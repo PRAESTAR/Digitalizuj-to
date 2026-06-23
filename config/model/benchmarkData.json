@@ -1,0 +1,109 @@
+{
+  "_comment": "Benchmark dáta pre digitalizuj.to — editovateľná verzia",
+  "_version": "2024-Q4",
+  "_source": "Eurostat DESI 2024 + expertné odhady",
+  "_last_updated": "2024-12-01",
+
+  "countryBenchmarks": {
+    "_comment": "DII distribúcia a mediány podľa krajín",
+    "SK": {
+      "diiDistribution": {
+        "_comment": "Percentuálne zastúpenie firiem v DII leveloch (súčet = 1.00)",
+        "very_low": 0.42,
+        "low": 0.33,
+        "high": 0.18,
+        "very_high": 0.07
+      },
+      "diiMedianScore": 4.2,
+      "orsEstimatedMedian": 38
+    },
+    "EU27": {
+      "diiDistribution": {
+        "very_low": 0.31,
+        "low": 0.30,
+        "high": 0.24,
+        "very_high": 0.15
+      },
+      "diiMedianScore": 5.5,
+      "orsEstimatedMedian": 44
+    }
+  },
+
+  "sectorBenchmarks": {
+    "_comment": "DII a ORS mediány podľa sektorov (NACE Rev.2). ORS mediány sú expertné odhady.",
+    "manufacturing": {
+      "label": "Výroba",
+      "diiMedian": 4.8,
+      "orsEstimatedMedian": 40
+    },
+    "wholesale_retail": {
+      "label": "Veľkoobchod a maloobchod",
+      "diiMedian": 5.2,
+      "orsEstimatedMedian": 42
+    },
+    "professional_services": {
+      "label": "Profesionálne služby",
+      "diiMedian": 6.5,
+      "orsEstimatedMedian": 50
+    },
+    "construction": {
+      "label": "Stavebníctvo",
+      "diiMedian": 3.5,
+      "orsEstimatedMedian": 30
+    },
+    "transport_logistics": {
+      "label": "Doprava a logistika",
+      "diiMedian": 4.0,
+      "orsEstimatedMedian": 35
+    },
+    "accommodation_food": {
+      "label": "Ubytovanie a stravovanie",
+      "diiMedian": 4.5,
+      "orsEstimatedMedian": 33
+    },
+    "ict": {
+      "label": "IT a telekomunikácie",
+      "diiMedian": 8.5,
+      "orsEstimatedMedian": 65
+    },
+    "other": {
+      "label": "Ostatné",
+      "diiMedian": 4.5,
+      "orsEstimatedMedian": 38
+    }
+  },
+
+  "sizeBenchmarks": {
+    "_comment": "DII a ORS mediány podľa veľkosti firmy. Mikrofirmy nie sú pokryté Eurostatom — expertný odhad.",
+    "micro": {
+      "label": "Mikro (1-9 zamestnancov)",
+      "diiMedian": 3.2,
+      "orsEstimatedMedian": 28,
+      "note": "Eurostat nepokrýva, expertný odhad"
+    },
+    "small": {
+      "label": "Malá (10-49 zamestnancov)",
+      "diiMedian": 4.5,
+      "orsEstimatedMedian": 38
+    },
+    "medium": {
+      "label": "Stredná (50-249 zamestnancov)",
+      "diiMedian": 6.8,
+      "orsEstimatedMedian": 52
+    },
+    "large": {
+      "label": "Veľká (250+ zamestnancov)",
+      "diiMedian": 8.0,
+      "orsEstimatedMedian": 60
+    }
+  },
+
+  "gapLabels": {
+    "_comment": "Popisky pre benchmarkové porovnanie podľa odchýlky",
+    "strongly_above": { "minGap": 20, "label": "Výrazne nad priemerom" },
+    "above": { "minGap": 5, "label": "Nad priemerom" },
+    "average": { "minGap": -5, "label": "V okolí priemeru" },
+    "below": { "minGap": -20, "label": "Pod priemerom" },
+    "strongly_below": { "minGap": null, "label": "Výrazne pod priemerom" }
+  }
+}

@@ -1,0 +1,232 @@
+{
+  "_comment": "Konfigurácia scoringového modelu digitalizuj.to — editovateľná verzia",
+  "_version": "1.1-MVP",
+  "_last_updated": "2026-04-12",
+  "_diiMethodologyVersion": "DII v3 (Eurostat 2023, isoc_e_dii)",
+
+  "categoryWeights": {
+    "_comment": "Váhy kategórií ODRM (musia dať v súčte 1.00)",
+    "A": 0.20,
+    "B": 0.20,
+    "C": 0.15,
+    "D": 0.15,
+    "E": 0.20,
+    "F": 0.10
+  },
+
+  "categoryNames": {
+    "A": "Procesy a digitalizácia práce",
+    "B": "Systémy a integrácie",
+    "C": "Dáta a reporting",
+    "D": "Infraštruktúra a cloud",
+    "E": "Bezpečnosť a technologický dlh",
+    "F": "Governance a ľudia"
+  },
+
+  "maturityThresholds": {
+    "_comment": "Hranice pre maturity level (ORS skóre -> level 0-4)",
+    "thresholds": [20, 40, 60, 80],
+    "labels": {
+      "0": "Digitálny nováčik",
+      "1": "Začiatočník",
+      "2": "Rozvíjajúci sa",
+      "3": "Pokročilý",
+      "4": "Digitálny líder"
+    }
+  },
+
+  "riskThresholds": {
+    "_comment": "Hranice pre TDRI risk level (TDRI skóre -> level)",
+    "thresholds": [15, 35, 60],
+    "labels": {
+      "low": "Dobre riadené",
+      "medium": "Vyžaduje pozornosť",
+      "high": "Vyžaduje okamžitú akciu",
+      "critical": "Ohrozenie prevádzky"
+    }
+  },
+
+  "diiLevelLabels": {
+    "_comment": "Popisky pre DII úrovne (0-12 škála)",
+    "very_low": "Veľmi nízka digitálna intenzita",
+    "low": "Nízka digitálna intenzita",
+    "high": "Vysoká digitálna intenzita",
+    "very_high": "Veľmi vysoká digitálna intenzita"
+  },
+
+  "securityPenalty": {
+    "_comment": "Ak kategória E < threshold, ORS sa penalizuje (max -30%)",
+    "threshold": 30,
+    "maxFactor": 0.30
+  },
+
+  "unknownAnswerExclusionThreshold": {
+    "_comment": "Ak viac ako 50% odpovedí v kategórii = 'Neviem', kategória má nízku spoľahlivosť",
+    "value": 0.50
+  },
+
+  "riskFactors": [
+    {
+      "id": "RF01",
+      "name": "Out-of-support core OS/DB",
+      "maxPenalty": 15,
+      "severity": "critical",
+      "description": "Hlavný operačný systém alebo databáza je mimo podpory (nedostáva bezpečnostné záplaty)"
+    },
+    {
+      "id": "RF02",
+      "name": "Chýbajúce zálohy core dát",
+      "maxPenalty": 15,
+      "severity": "critical",
+      "description": "Kritické firemné dáta nie sú zálohované"
+    },
+    {
+      "id": "RF03",
+      "name": "Zálohy existujú, ale netestované",
+      "maxPenalty": 8,
+      "severity": "high",
+      "description": "Zálohy existujú, ale nikdy nebola testovaná obnova z nich"
+    },
+    {
+      "id": "RF04",
+      "name": "Chýbajúci patch management",
+      "maxPenalty": 10,
+      "severity": "critical",
+      "description": "Systémy nie sú pravidelne aktualizované bezpečnostnými záplatami"
+    },
+    {
+      "id": "RF05",
+      "name": "Absencia MFA na kritických systémoch",
+      "maxPenalty": 10,
+      "severity": "critical",
+      "description": "Viacfaktorové overenie nie je nasadené na kritických systémoch"
+    },
+    {
+      "id": "RF06",
+      "name": "Single point of failure (infraštruktúra)",
+      "maxPenalty": 8,
+      "severity": "high",
+      "description": "Kritická infraštruktúra nemá redundanciu (napr. jeden server, jedno pripojenie)"
+    },
+    {
+      "id": "RF07",
+      "name": "Single point of failure (ľudia)",
+      "maxPenalty": 8,
+      "severity": "high",
+      "description": "Kritické znalosti a prístupy sú závislé na jednom človeku"
+    },
+    {
+      "id": "RF08",
+      "name": "Nezdokumentované/neowned systémy",
+      "maxPenalty": 5,
+      "severity": "medium",
+      "description": "Systémy bez dokumentácie alebo bez definovaného vlastníka"
+    },
+    {
+      "id": "RF09",
+      "name": "Žiadny BC/DR plán",
+      "maxPenalty": 7,
+      "severity": "high",
+      "description": "Neexistuje plán kontinuity podnikania a obnovy po havárii"
+    },
+    {
+      "id": "RF10",
+      "name": "Žiadny asset inventory",
+      "maxPenalty": 4,
+      "severity": "medium",
+      "description": "Firma nemá prehľad o svojich IT aktívach"
+    },
+    {
+      "id": "RF11",
+      "name": "Žiadne logovanie/monitoring",
+      "maxPenalty": 5,
+      "severity": "medium",
+      "description": "Žiadne logovanie bezpečnostných udalostí ani monitoring systémov"
+    },
+    {
+      "id": "RF12",
+      "name": "Out-of-support aplikácie (nie core)",
+      "maxPenalty": 5,
+      "severity": "medium",
+      "description": "Nekritické aplikácie sú mimo podpory"
+    }
+  ],
+
+  "hourlyCostMap": {
+    "_comment": "Hodinová cena práce v EUR podľa pásma (vrátane odvodov, SK priemer 2024)",
+    "low": 12,
+    "medium": 20,
+    "high": 35,
+    "very_high": 55
+  },
+
+  "processBenchmarks": {
+    "_comment": "Benchmark hodnoty pre ROI model — frekvencia, čas, automatizovateľnosť + error cost model (errorRate, reworkMinutes, exceptionRate)",
+    "invoicing": {
+      "frequencyPerMonth": { "micro": 20, "small": 50, "medium": 200, "large": 500 },
+      "timePerUnitMinutes": 15,
+      "automatableShare": 0.70,
+      "errorRate": 0.05,
+      "reworkMinutesPerError": 25,
+      "exceptionRate": 0.08
+    },
+    "reporting": {
+      "frequencyPerMonth": { "micro": 2, "small": 4, "medium": 12, "large": 30 },
+      "timePerUnitMinutes": 60,
+      "automatableShare": 0.80,
+      "errorRate": 0.08,
+      "reworkMinutesPerError": 45,
+      "exceptionRate": 0.05
+    },
+    "approval_workflows": {
+      "frequencyPerMonth": { "micro": 10, "small": 20, "medium": 60, "large": 150 },
+      "timePerUnitMinutes": 30,
+      "automatableShare": 0.75,
+      "errorRate": 0.02,
+      "reworkMinutesPerError": 20,
+      "exceptionRate": 0.10
+    },
+    "order_processing": {
+      "frequencyPerMonth": { "micro": 15, "small": 30, "medium": 150, "large": 400 },
+      "timePerUnitMinutes": 20,
+      "automatableShare": 0.60,
+      "errorRate": 0.03,
+      "reworkMinutesPerError": 30,
+      "exceptionRate": 0.07
+    },
+    "hr_onboarding": {
+      "frequencyPerMonth": { "micro": 0.5, "small": 1, "medium": 4, "large": 10 },
+      "timePerUnitMinutes": 480,
+      "automatableShare": 0.40,
+      "errorRate": 0.10,
+      "reworkMinutesPerError": 120,
+      "exceptionRate": 0.15
+    }
+  },
+
+  "manualShareFromMaturity": {
+    "_comment": "Ak firma neodpovie priamo na podiel manuálnej práce, odvodí sa z maturity levelu kategórie A",
+    "0": 0.90,
+    "1": 0.65,
+    "2": 0.40,
+    "3": 0.15,
+    "4": 0.05
+  },
+
+  "realizationRates": {
+    "_comment": "Scenáre realizácie potenciálu pre ROI model",
+    "conservative": 0.40,
+    "mid": 0.65,
+    "optimistic": 0.85
+  },
+
+  "pilotAcceptanceCriteria": {
+    "_comment": "Akceptačné kritériá pre pilotný zber dát (psychometrická validácia)",
+    "cronbachAlphaMin": 0.80,
+    "completionRateMin": 0.85,
+    "unknownAnswerRateMax": 0.10,
+    "orsToCorrelationMin": 0.50,
+    "minPilotSampleSize": 200,
+    "itemDiscriminationMin": 0.30
+  }
+}

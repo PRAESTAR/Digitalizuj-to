@@ -1,0 +1,1589 @@
+{
+  "version": "1.0.0-pre-alpha",
+  "model_name": "Adaptívny model DAP (Digitálna Auditná Platforma)",
+  "last_updated": "2026-04-17",
+  "indicative_quiz": {
+    "id": "indicative_v1",
+    "name": "Indikatívny kvíz",
+    "description": "Rýchly screening digitálnej zrelosti (max 15 otázok)",
+    "max_questions": 15,
+    "questions": [
+      {
+        "id": "ind_01",
+        "category": "meta",
+        "dimension": "company_profile",
+        "question_sk": "V akom odvetví vaša firma pôsobí?",
+        "question_type": "single_choice",
+        "weight": 0,
+        "options": [
+          { "value": "manufacturing", "label": "Výroba / Priemysel", "score": 0 },
+          { "value": "wholesale_retail", "label": "Veľkoobchod / Maloobchod", "score": 0 },
+          { "value": "professional_services", "label": "Profesionálne služby / IT", "score": 0 },
+          { "value": "construction", "label": "Stavebníctvo", "score": 0 },
+          { "value": "transport_logistics", "label": "Doprava / Logistika", "score": 0 },
+          { "value": "accommodation_food", "label": "Ubytovanie / Gastro", "score": 0 },
+          { "value": "ict", "label": "IT / Telekomunikácie", "score": 0 },
+          { "value": "other", "label": "Iné", "score": 0 }
+        ],
+        "branching_rules": [],
+        "evidence_type": "direct",
+        "maps_to_score": ["benchmark_sector"],
+        "maps_to_risk": [],
+        "maps_to_roi_model": ["sector"],
+        "tooltip": "Sektor ovplyvňuje benchmark, s ktorým vás porovnáme.",
+        "allow_unknown": false
+      },
+      {
+        "id": "ind_02",
+        "category": "meta",
+        "dimension": "company_profile",
+        "question_sk": "Koľko zamestnancov má vaša firma?",
+        "question_type": "single_choice",
+        "weight": 0,
+        "options": [
+          { "value": "micro", "label": "1–9", "score": 0 },
+          { "value": "small", "label": "10–49", "score": 0 },
+          { "value": "medium", "label": "50–249", "score": 0 },
+          { "value": "large", "label": "250+", "score": 0 }
+        ],
+        "branching_rules": [],
+        "evidence_type": "direct",
+        "maps_to_score": ["benchmark_size"],
+        "maps_to_risk": [],
+        "maps_to_roi_model": ["employee_count_band"],
+        "tooltip": "Vrátane brigádnikov a externých spolupracovníkov na plný úväzok.",
+        "allow_unknown": false
+      },
+      {
+        "id": "ind_03",
+        "category": "A",
+        "dimension": "process_digitalization",
+        "question_sk": "Ako by ste opísali väčšinu vašich interných procesov (objednávky, fakturácia, schvaľovanie, reporting)?",
+        "question_type": "single_choice",
+        "weight": 1.5,
+        "options": [
+          { "value": "0", "label": "Prevažne papier, Excel a e-mail", "score": 0 },
+          { "value": "1", "label": "Niektoré procesy máme v systéme, ale veľa robíme ručne", "score": 25 },
+          { "value": "2", "label": "Väčšina procesov je v systémoch, máme definované postupy", "score": 50 },
+          { "value": "3", "label": "Procesy sú automatizované, minimálne ručné zásahy", "score": 75 },
+          { "value": "4", "label": "Procesy priebežne optimalizujeme na základe dát", "score": 100 }
+        ],
+        "branching_rules": [],
+        "evidence_type": "self_assessment",
+        "maps_to_score": ["ors_A"],
+        "maps_to_risk": [],
+        "maps_to_roi_model": ["manual_share"],
+        "tooltip": "Myslíme tým, ako reálne pracujete deň-čo-deň, nie čo máte nakúpené.",
+        "allow_unknown": true
+      },
+      {
+        "id": "ind_04",
+        "category": "A",
+        "dimension": "manual_work",
+        "question_sk": "Prepisujete údaje ručne z jedného systému do druhého?",
+        "question_type": "single_choice",
+        "weight": 1.2,
+        "options": [
+          { "value": "always", "label": "Áno, pravidelne — je to bežná súčasť práce", "score": 0 },
+          { "value": "sometimes", "label": "Občas, pri niektorých procesoch", "score": 33 },
+          { "value": "rarely", "label": "Výnimočne, väčšina je automatická", "score": 66 },
+          { "value": "never", "label": "Nie, systémy sú prepojené", "score": 100 }
+        ],
+        "branching_rules": [],
+        "evidence_type": "self_assessment",
+        "maps_to_score": ["ors_A", "ors_B"],
+        "maps_to_risk": [],
+        "maps_to_roi_model": ["double_entry_waste"],
+        "tooltip": "Napr. údaje z objednávky prepisujete do fakturácie, z Excelu do účtovníctva, atď.",
+        "allow_unknown": true
+      },
+      {
+        "id": "ind_05",
+        "category": "B",
+        "dimension": "systems",
+        "question_sk": "Aké podnikové systémy aktívne používate?",
+        "question_type": "multi_select",
+        "weight": 1.0,
+        "options": [
+          { "value": "erp", "label": "ERP (SAP, Helios, Money S5...)", "score": 15 },
+          { "value": "crm", "label": "CRM (Salesforce, HubSpot, Pipedrive...)", "score": 15 },
+          { "value": "accounting", "label": "Účtovníctvo (Pohoda, Omega, MRP...)", "score": 10 },
+          { "value": "hr", "label": "HR / Dochádzka", "score": 10 },
+          { "value": "project_mgmt", "label": "Projektový manažment (Asana, Jira...)", "score": 10 },
+          { "value": "eshop", "label": "E-shop / E-commerce platforma", "score": 10 },
+          { "value": "bi", "label": "BI / Reporting nástroj", "score": 15 },
+          { "value": "dms", "label": "Dokumentový manažment (DMS)", "score": 15 }
+        ],
+        "max_score": 100,
+        "branching_rules": [
+          {
+            "condition": "selected_count <= 1",
+            "action": "skip",
+            "target": "ind_06_integration",
+            "reason": "Ak firma má 0-1 systém, integrácie nie sú relevantné"
+          }
+        ],
+        "evidence_type": "direct",
+        "maps_to_score": ["ors_B", "dii"],
+        "maps_to_risk": [],
+        "maps_to_roi_model": ["system_landscape"],
+        "tooltip": "Vyberte všetky systémy, ktoré reálne používate — nie len vlastníte.",
+        "allow_unknown": false
+      },
+      {
+        "id": "ind_06_integration",
+        "category": "B",
+        "dimension": "integration",
+        "question_sk": "Ako sú vaše systémy prepojené?",
+        "question_type": "single_choice",
+        "weight": 1.3,
+        "options": [
+          { "value": "none", "label": "Nie sú prepojené — dáta presúvame ručne alebo cez export/import", "score": 0 },
+          { "value": "partial", "label": "Niektoré sú prepojené, ale nie všetky", "score": 40 },
+          { "value": "mostly", "label": "Väčšina je prepojená, máme definovaný source of truth", "score": 75 },
+          { "value": "full", "label": "Plne integrované s centrálnym riadením dát", "score": 100 }
+        ],
+        "branching_rules": [],
+        "evidence_type": "self_assessment",
+        "maps_to_score": ["ors_B"],
+        "maps_to_risk": [],
+        "maps_to_roi_model": ["integration_gap"],
+        "tooltip": "Source of truth = jeden hlavný systém pre dané dáta (napr. zákazníci sú v CRM, nie v 3 Exceloch).",
+        "allow_unknown": true
+      },
+      {
+        "id": "ind_07",
+        "category": "C",
+        "dimension": "reporting",
+        "question_sk": "Ako vyzerá váš reporting a rozhodovanie na základe dát?",
+        "question_type": "single_choice",
+        "weight": 1.0,
+        "options": [
+          { "value": "0", "label": "Nemáme reporting — rozhodujeme sa na základe skúseností", "score": 0 },
+          { "value": "1", "label": "Manuálne reporty (Excel), pripravujeme ich na požiadanie", "score": 25 },
+          { "value": "2", "label": "Automatizované reporty z našich systémov", "score": 50 },
+          { "value": "3", "label": "Dashboardy s KPI, ktoré pravidelne sledujeme", "score": 75 },
+          { "value": "4", "label": "BI analytika, prediktívne modely, data-driven kultúra", "score": 100 }
+        ],
+        "branching_rules": [],
+        "evidence_type": "self_assessment",
+        "maps_to_score": ["ors_C", "dii"],
+        "maps_to_risk": [],
+        "maps_to_roi_model": ["reporting_gap"],
+        "tooltip": "Reporting = pravidelné vyhodnocovanie čísel, nie jednorazové ad-hoc tabuľky.",
+        "allow_unknown": true
+      },
+      {
+        "id": "ind_08",
+        "category": "D",
+        "dimension": "infrastructure",
+        "question_sk": "Kde prevádzkujete vašu IT infraštruktúru?",
+        "question_type": "single_choice",
+        "weight": 1.0,
+        "options": [
+          { "value": "onprem", "label": "Vlastný server(y) v kancelárii / serverovni", "score": 25 },
+          { "value": "hosted", "label": "Prenajatý server v dátovom centre", "score": 50 },
+          { "value": "hybrid", "label": "Kombinácia vlastných serverov a cloudu", "score": 60 },
+          { "value": "cloud", "label": "Prevažne cloud (SaaS, IaaS)", "score": 75 },
+          { "value": "cloud_native", "label": "Plne cloud-native, žiadne vlastné servery", "score": 90 },
+          { "value": "none", "label": "Nemáme servery, používame len SaaS aplikácie", "score": 70 }
+        ],
+        "branching_rules": [
+          {
+            "condition": "value == 'onprem' || value == 'hosted' || value == 'hybrid'",
+            "action": "include",
+            "target": "ind_09_server_age",
+            "reason": "Ak má on-prem, pýtame sa na vek a support"
+          },
+          {
+            "condition": "value == 'cloud' || value == 'cloud_native' || value == 'none'",
+            "action": "skip",
+            "target": "ind_09_server_age",
+            "reason": "Cloud-only nemá on-prem otázky"
+          }
+        ],
+        "evidence_type": "direct",
+        "maps_to_score": ["ors_D", "dii"],
+        "maps_to_risk": [],
+        "maps_to_roi_model": [],
+        "tooltip": "Cloud = služby ako Microsoft 365, Google Workspace, AWS, ale aj SaaS aplikácie.",
+        "allow_unknown": true
+      },
+      {
+        "id": "ind_09_server_age",
+        "category": "D",
+        "dimension": "tech_debt",
+        "question_sk": "Koľko rokov má váš hlavný server / serverový operačný systém?",
+        "question_type": "single_choice",
+        "weight": 1.2,
+        "options": [
+          { "value": "new", "label": "Menej ako 3 roky, aktuálny OS", "score": 100 },
+          { "value": "ok", "label": "3–5 rokov, podporovaný OS", "score": 60 },
+          { "value": "old", "label": "5–8 rokov, OS ešte v podpore", "score": 30 },
+          { "value": "eol", "label": "Viac ako 8 rokov alebo OS mimo podpory", "score": 0 }
+        ],
+        "branching_rules": [],
+        "evidence_type": "direct",
+        "maps_to_score": ["ors_D", "ors_E"],
+        "maps_to_risk": ["RF01"],
+        "maps_to_roi_model": [],
+        "tooltip": "OS mimo podpory = Windows Server 2012 R2, CentOS 7, Debian 10 a staršie.",
+        "allow_unknown": true
+      },
+      {
+        "id": "ind_10",
+        "category": "E",
+        "dimension": "security_basics",
+        "question_sk": "Aký je stav vašej kybernetickej bezpečnosti?",
+        "question_type": "multi_select",
+        "weight": 1.5,
+        "options": [
+          { "value": "mfa", "label": "Máme MFA (viacfaktorové overenie) na kritických systémoch", "score": 20 },
+          { "value": "backup", "label": "Máme zálohy dôležitých dát", "score": 15 },
+          { "value": "backup_tested", "label": "Zálohy pravidelne testujeme obnovou", "score": 20 },
+          { "value": "patching", "label": "Pravidelne aktualizujeme softvér a systémy", "score": 15 },
+          { "value": "policy", "label": "Máme bezpečnostnú politiku / pravidlá", "score": 15 },
+          { "value": "monitoring", "label": "Monitorujeme bezpečnostné udalosti", "score": 15 }
+        ],
+        "max_score": 100,
+        "branching_rules": [
+          {
+            "condition": "!selected.includes('backup')",
+            "action": "flag_risk",
+            "target": "RF02",
+            "reason": "Chýbajúce zálohy = critical risk"
+          },
+          {
+            "condition": "!selected.includes('mfa')",
+            "action": "flag_risk",
+            "target": "RF05",
+            "reason": "Chýbajúce MFA = critical risk"
+          },
+          {
+            "condition": "!selected.includes('patching')",
+            "action": "flag_risk",
+            "target": "RF04",
+            "reason": "Chýbajúci patch management = critical risk"
+          }
+        ],
+        "evidence_type": "direct",
+        "maps_to_score": ["ors_E", "dii"],
+        "maps_to_risk": ["RF02", "RF03", "RF04", "RF05"],
+        "maps_to_roi_model": [],
+        "tooltip": "MFA = prihlasovanie nielen heslom, ale aj kódom z telefónu alebo kľúčom.",
+        "allow_unknown": true
+      },
+      {
+        "id": "ind_11",
+        "category": "E",
+        "dimension": "business_continuity",
+        "question_sk": "Čo by sa stalo, keby ste zajtra prišli o všetky dáta alebo hlavný systém?",
+        "question_type": "single_choice",
+        "weight": 1.3,
+        "options": [
+          { "value": "disaster", "label": "Boli by sme v existenčnom ohrození", "score": 0 },
+          { "value": "major_impact", "label": "Stáli by sme niekoľko dní/týždňov, veľké straty", "score": 20 },
+          { "value": "managed", "label": "Máme zálohy, obnovili by sme sa do 24–48 hodín", "score": 60 },
+          { "value": "prepared", "label": "Máme otestovaný DR plán, obnovíme sa do hodín", "score": 100 }
+        ],
+        "branching_rules": [],
+        "evidence_type": "self_assessment",
+        "maps_to_score": ["ors_E"],
+        "maps_to_risk": ["RF02", "RF09"],
+        "maps_to_roi_model": [],
+        "tooltip": "DR plán = Disaster Recovery plán, definuje čo robiť pri strate dát alebo výpadku.",
+        "allow_unknown": true
+      },
+      {
+        "id": "ind_13",
+        "category": "F",
+        "dimension": "governance",
+        "question_sk": "Kto vo firme zodpovedá za digitalizáciu?",
+        "question_type": "single_choice",
+        "weight": 1.0,
+        "options": [
+          { "value": "nobody", "label": "Nikto konkrétny — riešime to, keď treba", "score": 0 },
+          { "value": "ceo_adhoc", "label": "Konateľ / majiteľ, ale ad hoc", "score": 25 },
+          { "value": "it_person", "label": "IT človek / IT oddelenie", "score": 50 },
+          { "value": "dedicated", "label": "Zodpovedná osoba s rozpočtom a plánom", "score": 75 },
+          { "value": "strategic", "label": "Digitalizácia je súčasť obchodnej stratégie", "score": 100 }
+        ],
+        "branching_rules": [],
+        "evidence_type": "self_assessment",
+        "maps_to_score": ["ors_F"],
+        "maps_to_risk": [],
+        "maps_to_roi_model": ["governance_readiness"],
+        "tooltip": "Nejde o IT správu, ale o to, kto rozhoduje o smerovaní digitalizácie.",
+        "allow_unknown": true
+      },
+      {
+        "id": "ind_14",
+        "category": "F",
+        "dimension": "key_person_risk",
+        "question_sk": "Existuje vo firme jeden človek, bez ktorého by IT a systémy prestali fungovať?",
+        "question_type": "single_choice",
+        "weight": 1.2,
+        "options": [
+          { "value": "yes_critical", "label": "Áno — jedna osoba vie všetko, nikto iný to neovláda", "score": 0 },
+          { "value": "yes_partial", "label": "Čiastočne — máme jedného hlavného, ale niečo vedia aj iní", "score": 33 },
+          { "value": "documented", "label": "Máme dokumentáciu a viacerí ľudia vedia systémy ovládať", "score": 66 },
+          { "value": "no_risk", "label": "Nie — máme tím / dodávateľa s jasným SLA", "score": 100 }
+        ],
+        "branching_rules": [
+          {
+            "condition": "value == 'yes_critical'",
+            "action": "flag_risk",
+            "target": "RF07",
+            "reason": "Single point of failure — ľudia"
+          }
+        ],
+        "evidence_type": "self_assessment",
+        "maps_to_score": ["ors_F", "ors_E"],
+        "maps_to_risk": ["RF07"],
+        "maps_to_roi_model": [],
+        "tooltip": "Myslíme tým situáciu, keby táto osoba ochorela alebo odišla — čo by sa stalo?",
+        "allow_unknown": true
+      },
+      {
+        "id": "ind_12",
+        "category": "dii",
+        "dimension": "web_presence",
+        "question_sk": "Akú online prítomnosť má vaša firma?",
+        "question_type": "single_choice",
+        "weight": 1.0,
+        "options": [
+          { "value": "none", "label": "Nemáme webstránku ani profily na sociálnych sieťach", "score": 0 },
+          { "value": "basic_web", "label": "Máme jednoduchú webovú vizitku", "score": 25 },
+          { "value": "active_web", "label": "Webstránka s obsahom + sociálne siete", "score": 50 },
+          { "value": "eshop", "label": "E-shop alebo online objednávky", "score": 75 },
+          { "value": "platform", "label": "Plne digitálne kanály (e-shop, klientsky portál, self-service)", "score": 100 }
+        ],
+        "branching_rules": [],
+        "evidence_type": "direct",
+        "maps_to_score": ["dii"],
+        "maps_to_risk": [],
+        "maps_to_roi_model": [],
+        "tooltip": "Online prítomnosť je kľúčový ukazovateľ digitálnej intenzity podľa EU metodiky.",
+        "allow_unknown": false
+      },
+      {
+        "id": "ind_15",
+        "category": "meta",
+        "dimension": "roi_input",
+        "question_sk": "Aká je priemerná hrubá hodinová cena práce vo vašej firme?",
+        "question_type": "single_choice",
+        "weight": 0,
+        "options": [
+          { "value": "low", "label": "Do 15 €/hod (manuálna práca, výroba)", "score": 0 },
+          { "value": "medium", "label": "15–25 €/hod (admin, bežné pozície)", "score": 0 },
+          { "value": "high", "label": "25–40 €/hod (špecialisti, technici)", "score": 0 },
+          { "value": "very_high", "label": "Nad 40 €/hod (manažéri, IT špecialisti)", "score": 0 }
+        ],
+        "branching_rules": [],
+        "evidence_type": "direct",
+        "maps_to_score": [],
+        "maps_to_risk": [],
+        "maps_to_roi_model": ["hourly_cost"],
+        "tooltip": "Vrátane odvodov a réžie. Ak neviete presne, vyberte najbližšie pásmo.",
+        "allow_unknown": true
+      }
+    ]
+  },
+  "complex_quiz": {
+    "id": "complex_v1",
+    "name": "Komplexný kvíz",
+    "description": "Hlbšia diagnostika digitálnej zrelosti (30–45 otázok, adaptívne)",
+    "modules": [
+      {
+        "id": "module_meta",
+        "name": "O firme",
+        "category": "meta",
+        "questions": [
+          {
+            "id": "cx_01",
+            "category": "meta",
+            "dimension": "company_profile",
+            "question_sk": "V akom odvetví vaša firma pôsobí?",
+            "question_type": "single_choice",
+            "weight": 0,
+            "options": [
+              { "value": "manufacturing", "label": "Výroba / Priemysel", "score": 0 },
+              { "value": "wholesale_retail", "label": "Veľkoobchod / Maloobchod", "score": 0 },
+              { "value": "professional_services", "label": "Profesionálne služby", "score": 0 },
+              { "value": "construction", "label": "Stavebníctvo", "score": 0 },
+              { "value": "transport_logistics", "label": "Doprava / Logistika", "score": 0 },
+              { "value": "accommodation_food", "label": "Ubytovanie / Gastro", "score": 0 },
+              { "value": "ict", "label": "IT / Telekomunikácie", "score": 0 },
+              { "value": "other", "label": "Iné", "score": 0 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["benchmark_sector"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["sector"],
+            "tooltip": null,
+            "allow_unknown": false
+          },
+          {
+            "id": "cx_02",
+            "category": "meta",
+            "dimension": "company_profile",
+            "question_sk": "Koľko zamestnancov má vaša firma?",
+            "question_type": "single_choice",
+            "weight": 0,
+            "options": [
+              { "value": "micro", "label": "1–9 (mikrofirma)", "score": 0 },
+              { "value": "small", "label": "10–49 (malá firma)", "score": 0 },
+              { "value": "medium", "label": "50–249 (stredná firma)", "score": 0 },
+              { "value": "large", "label": "250+ (veľká firma)", "score": 0 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["benchmark_size"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["employee_count"],
+            "tooltip": "Vrátane brigádnikov a stálych externých spolupracovníkov.",
+            "allow_unknown": false
+          },
+          {
+            "id": "cx_03",
+            "category": "meta",
+            "dimension": "company_profile",
+            "question_sk": "Aký je približný ročný obrat firmy?",
+            "question_type": "single_choice",
+            "weight": 0,
+            "options": [
+              { "value": "under_500k", "label": "Do 500 000 €", "score": 0 },
+              { "value": "500k_2m", "label": "500 000 – 2 mil. €", "score": 0 },
+              { "value": "2m_10m", "label": "2 – 10 mil. €", "score": 0 },
+              { "value": "10m_50m", "label": "10 – 50 mil. €", "score": 0 },
+              { "value": "over_50m", "label": "Nad 50 mil. €", "score": 0 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": [],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["revenue_band"],
+            "tooltip": null,
+            "allow_unknown": true
+          }
+        ]
+      },
+      {
+        "id": "module_A",
+        "name": "Procesy a digitalizácia práce",
+        "category": "A",
+        "questions": [
+          {
+            "id": "cx_A01",
+            "category": "A",
+            "dimension": "process_maturity",
+            "question_sk": "Ako by ste celkovo zhodnotili digitalizáciu vašich interných procesov?",
+            "question_type": "single_choice",
+            "weight": 1.0,
+            "options": [
+              { "value": "0", "label": "Prevažne papier, Excel a e-mail", "score": 0 },
+              { "value": "1", "label": "Niektoré procesy v systéme, ale veľa ručných krokov", "score": 25 },
+              { "value": "2", "label": "Väčšina procesov v systémoch, definované workflow", "score": 50 },
+              { "value": "3", "label": "Automatizované workflow, minimálny ručný zásah", "score": 75 },
+              { "value": "4", "label": "Priebežne optimalizované na základe dát", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_A"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["manual_share"],
+            "tooltip": "Nejde o to, čo máte nakúpené, ale ako reálne pracujete deň-čo-deň.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_A02",
+            "category": "A",
+            "dimension": "invoicing",
+            "question_sk": "Ako prebieha fakturácia a správa objednávok?",
+            "question_type": "single_choice",
+            "weight": 1.2,
+            "options": [
+              { "value": "manual", "label": "Ručne v Exceli alebo Worde", "score": 0 },
+              { "value": "basic_sw", "label": "V účtovnom softvéri, ale veľa manuálnych krokov", "score": 30 },
+              { "value": "integrated", "label": "V systéme prepojenom na objednávky / sklad", "score": 65 },
+              { "value": "automated", "label": "Plne automatizované vrátane schvaľovania a odosielania", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_A", "dii"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["invoicing_automation"],
+            "tooltip": "Myslíme celý cyklus: objednávka → dodanie → fakturácia → platba.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_A03",
+            "category": "A",
+            "dimension": "double_entry",
+            "question_sk": "Ako často prepisujete rovnaké údaje do viacerých systémov?",
+            "question_type": "single_choice",
+            "weight": 1.3,
+            "options": [
+              { "value": "daily", "label": "Denne — je to bežná súčasť práce", "score": 0 },
+              { "value": "weekly", "label": "Niekoľkokrát týždenne", "score": 25 },
+              { "value": "monthly", "label": "Pár procesov mesačne", "score": 50 },
+              { "value": "rarely", "label": "Výnimočne, systémy sú prepojené", "score": 80 },
+              { "value": "never", "label": "Nikdy — máme single source of truth", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_A", "ors_B"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["double_entry_waste"],
+            "tooltip": "Napr. kontaktné údaje zákazníka zadávate do CRM aj do fakturácie.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_A04",
+            "category": "A",
+            "dimension": "approval_workflows",
+            "question_sk": "Ako funguje schvaľovanie (objednávky, faktúry, dovolenky, nákupy)?",
+            "question_type": "single_choice",
+            "weight": 1.0,
+            "options": [
+              { "value": "email", "label": "E-mailom alebo ústne", "score": 0 },
+              { "value": "paper", "label": "Papierové formuláre / podpisy", "score": 10 },
+              { "value": "basic_digital", "label": "Digitálne, ale bez definovaného workflow", "score": 40 },
+              { "value": "workflow", "label": "Automatizovaný workflow so sledovaním stavu", "score": 75 },
+              { "value": "optimized", "label": "Workflow s eskaláciou, SLA a reportingom", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_A"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["approval_waste"],
+            "tooltip": "Myslíme akékoľvek schvaľovanie — nákupy, dovolenky, faktúry, zmeny.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_A05",
+            "category": "A",
+            "dimension": "process_specific",
+            "question_sk": "Ktoré z týchto procesov stále robíte prevažne ručne alebo na papieri?",
+            "question_type": "multi_select",
+            "weight": 1.0,
+            "options": [
+              { "value": "invoicing", "label": "Fakturácia / Objednávky", "score": -12 },
+              { "value": "hr_onboarding", "label": "HR / Onboarding zamestnancov", "score": -10 },
+              { "value": "warehouse", "label": "Sklad / Inventúra", "score": -12 },
+              { "value": "reporting", "label": "Reporting / Výkazy", "score": -14 },
+              { "value": "service", "label": "Servis / Zákazky", "score": -12 },
+              { "value": "purchasing", "label": "Nákup / Obstarávanie", "score": -10 },
+              { "value": "none", "label": "Žiadny — všetko máme digitalizované", "score": 0 }
+            ],
+            "max_score": 100,
+            "scoring_note": "Invertované: viac vybraných = nižšie skóre. Skóre = 100 + suma záporných hodnôt (min 0).",
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_A"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["manual_processes"],
+            "tooltip": "Vyberte všetky, ktoré sú stále prevažne manuálne.",
+            "allow_unknown": true
+          }
+        ]
+      },
+      {
+        "id": "module_B",
+        "name": "Systémy a integrácie",
+        "category": "B",
+        "questions": [
+          {
+            "id": "cx_B01",
+            "category": "B",
+            "dimension": "systems_landscape",
+            "question_sk": "Aké podnikové systémy aktívne používate?",
+            "question_type": "multi_select",
+            "weight": 1.0,
+            "options": [
+              { "value": "erp", "label": "ERP", "score": 15 },
+              { "value": "crm", "label": "CRM", "score": 12 },
+              { "value": "accounting", "label": "Účtovný softvér", "score": 10 },
+              { "value": "hr", "label": "HR / Dochádzka / Mzdy", "score": 10 },
+              { "value": "project_mgmt", "label": "Projektový manažment", "score": 8 },
+              { "value": "eshop", "label": "E-shop / E-commerce", "score": 8 },
+              { "value": "bi", "label": "BI / Reporting", "score": 12 },
+              { "value": "dms", "label": "DMS (správa dokumentov)", "score": 10 },
+              { "value": "helpdesk", "label": "Helpdesk / Ticketing", "score": 8 },
+              { "value": "marketing_auto", "label": "Marketing automation", "score": 7 }
+            ],
+            "max_score": 100,
+            "branching_rules": [
+              {
+                "condition": "selected_count <= 1",
+                "action": "skip",
+                "target": "cx_B03",
+                "reason": "Bez viacerých systémov nie je integrácia relevantná"
+              },
+              {
+                "condition": "selected.includes('eshop')",
+                "action": "include",
+                "target": "cx_B06_ecommerce",
+                "reason": "Ak má e-shop, pýtaj sa na e-commerce detaily"
+              }
+            ],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_B", "dii"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["system_landscape"],
+            "tooltip": null,
+            "allow_unknown": false
+          },
+          {
+            "id": "cx_B02",
+            "category": "B",
+            "dimension": "system_criticality",
+            "question_sk": "Ktorý systém je pre vašu firmu najkritickejší (bez neho nemôžete fungovať)?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "erp", "label": "ERP", "score": 0 },
+              { "value": "accounting", "label": "Účtovníctvo", "score": 0 },
+              { "value": "email", "label": "E-mail / Office 365 / Google Workspace", "score": 0 },
+              { "value": "custom", "label": "Vlastný/odborový systém", "score": 0 },
+              { "value": "eshop", "label": "E-shop", "score": 0 },
+              { "value": "other", "label": "Iný", "score": 0 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": [],
+            "maps_to_risk": ["RF06"],
+            "maps_to_roi_model": [],
+            "tooltip": "Ktorý systém by spôsobil najväčší problém, keby vypadol?",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_B03",
+            "category": "B",
+            "dimension": "integration_level",
+            "question_sk": "Ako sú vaše systémy navzájom prepojené?",
+            "question_type": "single_choice",
+            "weight": 1.5,
+            "options": [
+              { "value": "none", "label": "Nie sú — presúvame dáta ručne (copy-paste, CSV export/import)", "score": 0 },
+              { "value": "manual_bridge", "label": "Občas exportujeme/importujeme dáta medzi systémami", "score": 20 },
+              { "value": "partial_api", "label": "Niektoré sú prepojené automaticky (API, connector)", "score": 50 },
+              { "value": "mostly_integrated", "label": "Väčšina je prepojená, máme jasný source of truth", "score": 75 },
+              { "value": "fully_integrated", "label": "Plne integrované s centrálnym riadením dát", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_B"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["integration_gap"],
+            "tooltip": "Source of truth = jeden hlavný systém, kde sa dáta udržiavajú aktuálne.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_B04",
+            "category": "B",
+            "dimension": "source_of_truth",
+            "question_sk": "Máte jasne definované, ktorý systém je 'zdroj pravdy' pre kľúčové dáta (zákazníci, produkty, objednávky)?",
+            "question_type": "single_choice",
+            "weight": 1.2,
+            "options": [
+              { "value": "no", "label": "Nie — rovnaké dáta sú v rôznych systémoch a líšia sa", "score": 0 },
+              { "value": "informal", "label": "Neformálne — ľudia vedia kam sa pozrieť, ale nie je to definované", "score": 30 },
+              { "value": "defined", "label": "Áno — pre hlavné entity máme definovaný source of truth", "score": 70 },
+              { "value": "enforced", "label": "Áno — je to technicky vynútené (master data management)", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_B"],
+            "maps_to_risk": ["RF08"],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_B05",
+            "category": "B",
+            "dimension": "it_management",
+            "question_sk": "Kto spravuje vaše IT systémy?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "nobody", "label": "Nikto konkrétny — kto vie, ten pomôže", "score": 0 },
+              { "value": "one_person", "label": "Jeden interný človek (popri inej práci)", "score": 25 },
+              { "value": "it_person", "label": "Dedikovaný IT človek alebo tím", "score": 60 },
+              { "value": "outsourced", "label": "Externý dodávateľ / Managed service provider", "score": 50 },
+              { "value": "hybrid", "label": "Interný IT + externý dodávateľ s jasným SLA", "score": 80 }
+            ],
+            "branching_rules": [
+              {
+                "condition": "value == 'outsourced'",
+                "action": "include",
+                "target": "cx_B05b_outsource",
+                "reason": "Ak outsourcuje, pýtaj sa na SLA a ownership"
+              }
+            ],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_B", "ors_F"],
+            "maps_to_risk": ["RF07"],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": false
+          },
+          {
+            "id": "cx_B05b_outsource",
+            "category": "B",
+            "dimension": "outsource_quality",
+            "question_sk": "Aká je kvalita spolupráce s IT dodávateľom?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "poor", "label": "Nemáme SLA, reakcia je nepredvídateľná", "score": 10 },
+              { "value": "basic", "label": "Máme zmluvu, ale bez konkrétnych SLA a reportingu", "score": 35 },
+              { "value": "good", "label": "SLA definované, pravidelný reporting", "score": 70 },
+              { "value": "excellent", "label": "SLA, monitoring, eskalácia, pravidelné review", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_B"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": "SLA = Service Level Agreement — dohodnuté reakčné a riešiace časy.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_B06_ecommerce",
+            "category": "B",
+            "dimension": "ecommerce",
+            "question_sk": "Aký podiel vášho obratu tvorí online predaj?",
+            "question_type": "single_choice",
+            "weight": 0.6,
+            "options": [
+              { "value": "none", "label": "Menej ako 1 %", "score": 25 },
+              { "value": "low", "label": "1–10 %", "score": 50 },
+              { "value": "medium", "label": "10–30 %", "score": 75 },
+              { "value": "high", "label": "Nad 30 %", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["dii"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": true
+          }
+        ]
+      },
+      {
+        "id": "module_C",
+        "name": "Dáta a reporting",
+        "category": "C",
+        "questions": [
+          {
+            "id": "cx_C01",
+            "category": "C",
+            "dimension": "reporting_maturity",
+            "question_sk": "Ako vyzerá váš reporting?",
+            "question_type": "single_choice",
+            "weight": 1.2,
+            "options": [
+              { "value": "0", "label": "Nemáme reporting — čísla zisťujeme na požiadanie", "score": 0 },
+              { "value": "1", "label": "Manuálne reporty v Exceli, pripravujeme ich na požiadanie", "score": 25 },
+              { "value": "2", "label": "Pravidelné automatizované reporty zo systémov", "score": 50 },
+              { "value": "3", "label": "Dashboardy s KPI, pravidelné sledovanie", "score": 75 },
+              { "value": "4", "label": "BI platforma s pokročilou analytikou", "score": 100 }
+            ],
+            "branching_rules": [
+              {
+                "condition": "value == '0'",
+                "action": "skip",
+                "target": "cx_C03",
+                "reason": "Bez reportingu nemá zmysel pýtať sa na kvalitu dát a BI"
+              }
+            ],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_C", "dii"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["reporting_gap"],
+            "tooltip": "Reporting = pravidelné vyhodnocovanie KPI a obchodných čísel.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_C02",
+            "category": "C",
+            "dimension": "data_quality",
+            "question_sk": "Ako hodnotíte kvalitu a konzistenciu vašich dát?",
+            "question_type": "single_choice",
+            "weight": 1.0,
+            "options": [
+              { "value": "poor", "label": "Dáta sú roztrieštené, duplicitné a nekonzistentné", "score": 0 },
+              { "value": "basic", "label": "Niektoré dáta sú OK, ale bez systematickej správy", "score": 30 },
+              { "value": "good", "label": "Väčšina dát je konzistentná, máme pravidlá", "score": 65 },
+              { "value": "excellent", "label": "Systematická správa dát, data governance", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_C"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_C03",
+            "category": "C",
+            "dimension": "data_driven_decisions",
+            "question_sk": "Na základe čoho robíte dôležité obchodné rozhodnutia?",
+            "question_type": "single_choice",
+            "weight": 1.0,
+            "options": [
+              { "value": "gut", "label": "Prevažne intuícia a skúsenosti", "score": 0 },
+              { "value": "mixed", "label": "Mix intuície a príležitostných dát", "score": 30 },
+              { "value": "data_informed", "label": "Na základe dát, ale nie systematicky", "score": 55 },
+              { "value": "data_driven", "label": "Systematicky na základe dát a KPI", "score": 80 },
+              { "value": "predictive", "label": "Prediktívna analytika a modelovanie", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_C"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": true
+          }
+        ]
+      },
+      {
+        "id": "module_D",
+        "name": "Infraštruktúra a cloud",
+        "category": "D",
+        "questions": [
+          {
+            "id": "cx_D01",
+            "category": "D",
+            "dimension": "internet",
+            "question_sk": "Akú internetovú konektivitu máte na pracovisku?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "slow", "label": "Pomalú / nespoľahlivú (< 30 Mbps)", "score": 0 },
+              { "value": "basic", "label": "Bežnú (30–100 Mbps)", "score": 50 },
+              { "value": "fast", "label": "Rýchlu (100–500 Mbps)", "score": 75 },
+              { "value": "very_fast", "label": "Veľmi rýchlu (500+ Mbps) s redundanciou", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_D", "dii"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_D02",
+            "category": "D",
+            "dimension": "infrastructure_type",
+            "question_sk": "Kde prevádzkujete IT infraštruktúru?",
+            "question_type": "single_choice",
+            "weight": 1.0,
+            "options": [
+              { "value": "onprem", "label": "Vlastný server v kancelárii/serverovni", "score": 25 },
+              { "value": "hosted", "label": "Prenajatý server v dátovom centre", "score": 50 },
+              { "value": "hybrid", "label": "Kombinácia vlastných serverov a cloudu", "score": 60 },
+              { "value": "cloud", "label": "Prevažne cloud (SaaS, IaaS)", "score": 75 },
+              { "value": "cloud_native", "label": "Plne cloud-native", "score": 90 },
+              { "value": "saas_only", "label": "Len SaaS aplikácie, žiadne vlastné servery", "score": 70 }
+            ],
+            "branching_rules": [
+              {
+                "condition": "value == 'onprem' || value == 'hosted' || value == 'hybrid'",
+                "action": "include",
+                "target": ["cx_D03_server", "cx_D04_virtualization"],
+                "reason": "On-prem otázky"
+              },
+              {
+                "condition": "value == 'cloud' || value == 'cloud_native'",
+                "action": "include",
+                "target": ["cx_D05_cloud"],
+                "reason": "Cloud governance otázky"
+              }
+            ],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_D", "dii"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": "Zvážte aj hybridné scenáre — napr. mail v cloude, ERP na vlastnom serveri.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_D03_server",
+            "category": "D",
+            "dimension": "server_lifecycle",
+            "question_sk": "Aký je stav vášho serverového prostredia?",
+            "question_type": "single_choice",
+            "weight": 1.2,
+            "options": [
+              { "value": "eol", "label": "Server/OS je starší ako 7 rokov alebo mimo podpory", "score": 0 },
+              { "value": "aging", "label": "5–7 rokov, OS ešte v podpore, ale blíži sa koniec", "score": 25 },
+              { "value": "current", "label": "3–5 rokov, aktuálny OS, pravidelne aktualizovaný", "score": 60 },
+              { "value": "modern", "label": "Menej ako 3 roky, moderný stack, monitorovaný", "score": 100 }
+            ],
+            "branching_rules": [
+              {
+                "condition": "value == 'eol'",
+                "action": "flag_risk",
+                "target": "RF01",
+                "reason": "Out-of-support = critical risk"
+              }
+            ],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_D", "ors_E"],
+            "maps_to_risk": ["RF01"],
+            "maps_to_roi_model": [],
+            "tooltip": "OS mimo podpory: Windows Server 2012 R2, CentOS 7, staré Linux distribúcie.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_D04_virtualization",
+            "category": "D",
+            "dimension": "virtualization",
+            "question_sk": "Používate virtualizáciu serverov?",
+            "question_type": "single_choice",
+            "weight": 0.6,
+            "options": [
+              { "value": "no", "label": "Nie — fyzické servery", "score": 0 },
+              { "value": "partial", "label": "Čiastočne", "score": 50 },
+              { "value": "full", "label": "Áno — plne virtualizované (Hyper-V, VMware, Proxmox)", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_D"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_D05_cloud",
+            "category": "D",
+            "dimension": "cloud_governance",
+            "question_sk": "Ako riadite vaše cloud prostredie?",
+            "question_type": "single_choice",
+            "weight": 1.0,
+            "options": [
+              { "value": "unmanaged", "label": "Každý si kúpi čo potrebuje, bez centrálnej správy", "score": 10 },
+              { "value": "basic", "label": "Máme prehľad čo používame, ale bez governance", "score": 35 },
+              { "value": "managed", "label": "Centrálna správa, identity management, basic security", "score": 65 },
+              { "value": "optimized", "label": "Cloud governance, cost management, security policies", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_D"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_D06",
+            "category": "D",
+            "dimension": "remote_access",
+            "question_sk": "Vedia vaši zamestnanci plnohodnotne pracovať na diaľku?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "no", "label": "Nie, práca je viazaná na kanceláriu", "score": 0 },
+              { "value": "partial", "label": "Čiastočne — niektorí a nie všetko", "score": 40 },
+              { "value": "mostly", "label": "Áno, väčšina vie pracovať odkiaľkoľvek", "score": 75 },
+              { "value": "full", "label": "Remote-first — máme nástroje a kultúru", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_D", "dii"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_D07",
+            "category": "D",
+            "dimension": "devices",
+            "question_sk": "Ako spravujete pracovné zariadenia (počítače, notebooky, mobily)?",
+            "question_type": "single_choice",
+            "weight": 0.6,
+            "options": [
+              { "value": "byod_unmanaged", "label": "Zamestnanci používajú vlastné zariadenia, nespravujeme ich", "score": 0 },
+              { "value": "company_unmanaged", "label": "Firemné zariadenia, ale bez centrálnej správy", "score": 30 },
+              { "value": "managed", "label": "Firemné zariadenia s centrálnou správou (MDM, GPO)", "score": 70 },
+              { "value": "lifecycle", "label": "Plný lifecycle management — nákup, správa, výmena, vyradenie", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_D"],
+            "maps_to_risk": ["RF10"],
+            "maps_to_roi_model": [],
+            "tooltip": "MDM = Mobile Device Management, GPO = Group Policy.",
+            "allow_unknown": true
+          }
+        ]
+      },
+      {
+        "id": "module_E",
+        "name": "Bezpečnosť a technologický dlh",
+        "category": "E",
+        "questions": [
+          {
+            "id": "cx_E01",
+            "category": "E",
+            "dimension": "mfa",
+            "question_sk": "Používate viacfaktorové prihlasovanie (MFA) na dôležitých systémoch?",
+            "question_type": "single_choice",
+            "weight": 1.5,
+            "options": [
+              { "value": "none", "label": "Nie, používame len heslá", "score": 0 },
+              { "value": "partial", "label": "Na niektorých systémoch (napr. e-mail)", "score": 40 },
+              { "value": "critical", "label": "Na všetkých kritických systémoch", "score": 75 },
+              { "value": "all", "label": "Na všetkých systémoch + VPN/remote access", "score": 100 }
+            ],
+            "branching_rules": [
+              {
+                "condition": "value == 'none'",
+                "action": "flag_risk",
+                "target": "RF05",
+                "reason": "Absencia MFA = critical risk"
+              }
+            ],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_E"],
+            "maps_to_risk": ["RF05"],
+            "maps_to_roi_model": [],
+            "tooltip": "MFA = prihlásenie heslom + kód z aplikácie/SMS alebo bezpečnostný kľúč.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_E02",
+            "category": "E",
+            "dimension": "backup",
+            "question_sk": "Ako zálohujete dôležité dáta?",
+            "question_type": "single_choice",
+            "weight": 1.5,
+            "options": [
+              { "value": "none", "label": "Nezálohujeme", "score": 0 },
+              { "value": "local_only", "label": "Lokálna záloha (rovnaké miesto ako server)", "score": 15 },
+              { "value": "offsite", "label": "Záloha na vzdialenom mieste (off-site / cloud)", "score": 50 },
+              { "value": "offsite_tested", "label": "Off-site záloha, pravidelne testujeme obnovu", "score": 80 },
+              { "value": "321", "label": "3-2-1 pravidlo + pravidelne testovaná obnova", "score": 100 }
+            ],
+            "branching_rules": [
+              {
+                "condition": "value == 'none'",
+                "action": "flag_risk",
+                "target": "RF02",
+                "reason": "Žiadne zálohy = critical risk"
+              },
+              {
+                "condition": "value == 'local_only' || value == 'offsite'",
+                "action": "flag_risk",
+                "target": "RF03",
+                "reason": "Netestované zálohy = high risk"
+              }
+            ],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_E"],
+            "maps_to_risk": ["RF02", "RF03"],
+            "maps_to_roi_model": [],
+            "tooltip": "3-2-1 pravidlo: 3 kópie dát, 2 rôzne médiá, 1 off-site.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_E03",
+            "category": "E",
+            "dimension": "patching",
+            "question_sk": "Ako pravidelne aktualizujete softvér a operačné systémy?",
+            "question_type": "single_choice",
+            "weight": 1.3,
+            "options": [
+              { "value": "never", "label": "Neaktualizujeme — bojíme sa, že sa niečo pokazí", "score": 0 },
+              { "value": "ad_hoc", "label": "Občas, keď si na to spomenieme", "score": 20 },
+              { "value": "quarterly", "label": "Pravidelne (mesačne/kvartálne)", "score": 60 },
+              { "value": "automated", "label": "Automatizovaný patch management s testovaním", "score": 100 }
+            ],
+            "branching_rules": [
+              {
+                "condition": "value == 'never'",
+                "action": "flag_risk",
+                "target": "RF04",
+                "reason": "Žiadny patching = critical risk"
+              }
+            ],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_E"],
+            "maps_to_risk": ["RF04"],
+            "maps_to_roi_model": [],
+            "tooltip": "Pravidelné aktualizácie sú jedna z najúčinnejších ochranných opatrení.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_E04",
+            "category": "E",
+            "dimension": "asset_inventory",
+            "question_sk": "Máte prehľad o všetkých IT zariadeniach a systémoch vo firme?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "no", "label": "Nie — nemáme presný prehľad", "score": 0 },
+              { "value": "partial", "label": "Čiastočne — máme zoznam ale nie je aktuálny", "score": 35 },
+              { "value": "yes", "label": "Áno — aktuálny inventár všetkých zariadení a systémov", "score": 75 },
+              { "value": "automated", "label": "Automatizovaný discovery a asset management", "score": 100 }
+            ],
+            "branching_rules": [
+              {
+                "condition": "value == 'no'",
+                "action": "flag_risk",
+                "target": "RF10",
+                "reason": "Žiadny asset inventory = medium risk"
+              }
+            ],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_E"],
+            "maps_to_risk": ["RF10"],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_E05",
+            "category": "E",
+            "dimension": "monitoring",
+            "question_sk": "Monitorujete dostupnosť a výkon vašich systémov?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "none", "label": "Nie — o problémoch sa dozvieme od používateľov", "score": 0 },
+              { "value": "basic", "label": "Základný monitoring (uptime, ping)", "score": 35 },
+              { "value": "proactive", "label": "Proaktívny monitoring s alertami", "score": 70 },
+              { "value": "comprehensive", "label": "Komplexný monitoring vrátane logov a security eventov", "score": 100 }
+            ],
+            "branching_rules": [
+              {
+                "condition": "value == 'none'",
+                "action": "flag_risk",
+                "target": "RF11",
+                "reason": "Žiadne logovanie/monitoring = medium risk"
+              }
+            ],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_E"],
+            "maps_to_risk": ["RF11"],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_E06",
+            "category": "E",
+            "dimension": "bcdr",
+            "question_sk": "Máte plán čo robiť pri výpadku systémov alebo strate dát (BC/DR plán)?",
+            "question_type": "single_choice",
+            "weight": 1.0,
+            "options": [
+              { "value": "none", "label": "Nie — riešili by sme to improvizáciou", "score": 0 },
+              { "value": "informal", "label": "Neformálne — ľudia vedia čo robiť, ale nie je to zapísané", "score": 20 },
+              { "value": "documented", "label": "Máme zdokumentovaný plán", "score": 55 },
+              { "value": "tested", "label": "Zdokumentovaný plán, pravidelne testovaný", "score": 100 }
+            ],
+            "branching_rules": [
+              {
+                "condition": "value == 'none'",
+                "action": "flag_risk",
+                "target": "RF09",
+                "reason": "Žiadny BC/DR plán = high risk"
+              }
+            ],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_E"],
+            "maps_to_risk": ["RF09"],
+            "maps_to_roi_model": [],
+            "tooltip": "BC = Business Continuity (zabezpečenie prevádzky), DR = Disaster Recovery (obnova po havárii).",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_E07",
+            "category": "E",
+            "dimension": "security_policy",
+            "question_sk": "Máte zdokumentovanú bezpečnostnú politiku?",
+            "question_type": "single_choice",
+            "weight": 0.7,
+            "options": [
+              { "value": "none", "label": "Nie", "score": 0 },
+              { "value": "basic", "label": "Základné pravidlá (heslá, prístupy)", "score": 35 },
+              { "value": "documented", "label": "Zdokumentovaná politika vrátane incident response", "score": 70 },
+              { "value": "audited", "label": "Politika + pravidelný audit + školenia", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_E"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": true
+          }
+        ]
+      },
+      {
+        "id": "module_F",
+        "name": "Governance a ľudia",
+        "category": "F",
+        "questions": [
+          {
+            "id": "cx_F01",
+            "category": "F",
+            "dimension": "ownership",
+            "question_sk": "Kto vo firme zodpovedá za digitalizáciu?",
+            "question_type": "single_choice",
+            "weight": 1.2,
+            "options": [
+              { "value": "nobody", "label": "Nikto — riešime ad hoc", "score": 0 },
+              { "value": "ceo_adhoc", "label": "Konateľ/majiteľ popri iných povinnostiach", "score": 25 },
+              { "value": "it_implicit", "label": "IT človek, ale bez mandátu a rozpočtu", "score": 35 },
+              { "value": "dedicated", "label": "Zodpovedná osoba/tím s rozpočtom", "score": 75 },
+              { "value": "strategic", "label": "Digitalizácia je strategická priorita s governance", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_F"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["governance_readiness"],
+            "tooltip": "Nejde o IT správu, ale o strategické riadenie digitalizácie.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_F02",
+            "category": "F",
+            "dimension": "roadmap",
+            "question_sk": "Máte digitalizačnú roadmapu alebo plán?",
+            "question_type": "single_choice",
+            "weight": 1.0,
+            "options": [
+              { "value": "none", "label": "Nie — digitalizujeme reaktívne", "score": 0 },
+              { "value": "ideas", "label": "Máme nápady, ale nie formálny plán", "score": 20 },
+              { "value": "plan_12m", "label": "Máme plán na najbližších 12 mesiacov", "score": 55 },
+              { "value": "roadmap", "label": "Strategická roadmapa s prioritami a rozpočtom", "score": 80 },
+              { "value": "continuous", "label": "Kontinuálna roadmapa, pravidelne aktualizovaná", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_F"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["governance_readiness"],
+            "tooltip": "Roadmapa = konkrétny plán s prioritami, termínmi a zodpovednými osobami.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_F03",
+            "category": "F",
+            "dimension": "budget",
+            "question_sk": "Aký podiel obratu investujete do IT a digitalizácie?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "none", "label": "Nemáme vyčlenený rozpočet", "score": 0 },
+              { "value": "minimal", "label": "Minimálne — len na údržbu (< 1 %)", "score": 20 },
+              { "value": "standard", "label": "1–3 % obratu", "score": 50 },
+              { "value": "above", "label": "3–5 % obratu", "score": 75 },
+              { "value": "strategic", "label": "Nad 5 % obratu — strategická investícia", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["ors_F"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": "Vrátane licencií, hardvéru, externých služieb a interných IT miezd.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_F04",
+            "category": "F",
+            "dimension": "skills",
+            "question_sk": "Ako hodnotíte digitálne zručnosti vašich zamestnancov?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "low", "label": "Slabé — ľudia sa boja nových nástrojov", "score": 0 },
+              { "value": "basic", "label": "Základné — zvládajú bežné nástroje", "score": 30 },
+              { "value": "good", "label": "Dobré — väčšina je otvorená novým nástrojom", "score": 60 },
+              { "value": "advanced", "label": "Pokročilé — aktívne hľadajú lepšie spôsoby práce", "score": 85 },
+              { "value": "digital_native", "label": "Digitálne natívni — technológie sú pre nich prirodzené", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_F", "dii"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": "Nejde len o IT zručnosti — zahŕňa aj ochotu učiť sa nové nástroje.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_F05",
+            "category": "F",
+            "dimension": "change_readiness",
+            "question_sk": "Ako reagujú ľudia vo firme na zavádzanie nových nástrojov?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "resistant", "label": "Odpor — zmeny sú ťažké a bolestivé", "score": 0 },
+              { "value": "passive", "label": "Pasívne — akceptujú, ale s nevôľou", "score": 25 },
+              { "value": "neutral", "label": "Neutrálne — záleží na kvalite implementácie", "score": 50 },
+              { "value": "positive", "label": "Pozitívne — ľudia sú otvorení zmenám", "score": 75 },
+              { "value": "proactive", "label": "Proaktívne — sami navrhujú zlepšenia", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_F"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["change_readiness"],
+            "tooltip": "Change management je často väčšia výzva ako samotná technológia.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_F06",
+            "category": "F",
+            "dimension": "key_person_dependency",
+            "question_sk": "Existuje vo firme kritická závislosť na jednom IT človeku?",
+            "question_type": "single_choice",
+            "weight": 1.2,
+            "options": [
+              { "value": "yes_critical", "label": "Áno — bez neho by IT systémy nefungovali", "score": 0 },
+              { "value": "yes_partial", "label": "Čiastočne — je hlavný, ale niečo vedia aj iní", "score": 30 },
+              { "value": "documented", "label": "Máme dokumentáciu, viacerí ľudia vedia systémy ovládať", "score": 65 },
+              { "value": "no_risk", "label": "Nie — máme tím/dodávateľa s jasným SLA a dokumentáciou", "score": 100 }
+            ],
+            "branching_rules": [
+              {
+                "condition": "value == 'yes_critical'",
+                "action": "flag_risk",
+                "target": "RF07",
+                "reason": "Single point of failure — ľudia"
+              }
+            ],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_F", "ors_E"],
+            "maps_to_risk": ["RF07"],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": true
+          }
+        ]
+      },
+      {
+        "id": "module_ROI",
+        "name": "Dopadové údaje",
+        "category": "meta",
+        "questions": [
+          {
+            "id": "cx_ROI01",
+            "category": "meta",
+            "dimension": "roi_input",
+            "question_sk": "Aká je priemerná plná hodinová cena práce vo firme (vrátane odvodov)?",
+            "question_type": "single_choice",
+            "weight": 0,
+            "options": [
+              { "value": "low", "label": "Do 15 €/hod", "score": 0 },
+              { "value": "medium", "label": "15–25 €/hod", "score": 0 },
+              { "value": "high", "label": "25–40 €/hod", "score": 0 },
+              { "value": "very_high", "label": "Nad 40 €/hod", "score": 0 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": [],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["hourly_cost"],
+            "tooltip": "Ak neviete presne, vyberte najbližšie pásmo. Použijeme ho na odhad finančného dopadu.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_ROI02",
+            "category": "meta",
+            "dimension": "roi_input",
+            "question_sk": "Koľko ľudí vo firme sa venuje administratívnej/repetitívnej práci?",
+            "question_type": "single_choice",
+            "weight": 0,
+            "options": [
+              { "value": "1_3", "label": "1–3 osoby", "score": 0 },
+              { "value": "4_10", "label": "4–10 osôb", "score": 0 },
+              { "value": "11_30", "label": "11–30 osôb", "score": 0 },
+              { "value": "30_plus", "label": "Viac ako 30 osôb", "score": 0 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": [],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["admin_headcount"],
+            "tooltip": "Vrátane fakturácie, objednávok, reportingu, HR admin, zákazníckeho servisu.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_ROI03",
+            "category": "meta",
+            "dimension": "roi_input",
+            "question_sk": "Koľko faktúr (vydaných + prijatých) mesačne spracujete?",
+            "question_type": "single_choice",
+            "weight": 0,
+            "options": [
+              { "value": "low", "label": "Do 50", "score": 0 },
+              { "value": "medium", "label": "50–200", "score": 0 },
+              { "value": "high", "label": "200–500", "score": 0 },
+              { "value": "very_high", "label": "Nad 500", "score": 0 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": [],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["invoicing_volume"],
+            "tooltip": null,
+            "allow_unknown": true
+          }
+        ]
+      },
+      {
+        "id": "module_DII",
+        "name": "Digitálna intenzita (DII)",
+        "category": "dii",
+        "questions": [
+          {
+            "id": "cx_DII01",
+            "category": "dii",
+            "dimension": "web_presence",
+            "question_sk": "Akú webovú stránku máte?",
+            "question_type": "single_choice",
+            "weight": 1.0,
+            "options": [
+              { "value": "none", "label": "Nemáme webstránku", "score": 0 },
+              { "value": "basic", "label": "Jednoduchá vizitka (kontakt, o nás)", "score": 25 },
+              { "value": "functional", "label": "S kontaktným formulárom a obsahom", "score": 50 },
+              { "value": "advanced", "label": "S e-shopom, objednávkami alebo klientskym portálom", "score": 75 },
+              { "value": "platform", "label": "Plne interaktívna platforma (self-service, API)", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["dii"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": false
+          },
+          {
+            "id": "cx_DII02",
+            "category": "dii",
+            "dimension": "social_media",
+            "question_sk": "Využívate sociálne siete pre podnikanie?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "none", "label": "Nie", "score": 0 },
+              { "value": "presence", "label": "Máme profily, ale aktívne ich nevyužívame", "score": 30 },
+              { "value": "active", "label": "Aktívne publikujeme a komunikujeme", "score": 70 },
+              { "value": "strategic", "label": "Strategicky — vrátane reklamy, analýzy a lead gen", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["dii"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": false
+          },
+          {
+            "id": "cx_DII02b",
+            "category": "dii",
+            "dimension": "e_invoicing",
+            "question_sk": "Využívate elektronickú fakturáciu?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "paper", "label": "Faktúry posielame/prijímame prevažne v papierovej forme", "score": 0 },
+              { "value": "pdf", "label": "Posielame PDF e-mailom, ale bez automatického spracovania", "score": 33 },
+              { "value": "partial_auto", "label": "Čiastočne automatizované (napr. UBL, ISDOC pri niektorých partneroch)", "score": 66 },
+              { "value": "full_auto", "label": "Plne elektronická fakturácia s automatickým spracovaním", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["dii"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": ["invoicing_automation"],
+            "tooltip": "E-fakturácia = štruktúrovaná elektronická výmena faktúr, nie len PDF e-mailom.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_DII03",
+            "category": "dii",
+            "dimension": "ai_usage",
+            "question_sk": "Používate vo firme umelú inteligenciu?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "none", "label": "Nie, nevyužívame AI", "score": 0 },
+              { "value": "experimenting", "label": "Experimentujeme (ChatGPT, Copilot...)", "score": 33 },
+              { "value": "production", "label": "Používame AI v produkcii pre konkrétne procesy", "score": 66 },
+              { "value": "strategic", "label": "AI je strategická súčasť nášho podnikania", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["dii"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": "Vrátane chatbotov, automatizácie, prediktívnych modelov, generatívnej AI.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_DII03b",
+            "category": "dii",
+            "dimension": "cloud_services",
+            "question_sk": "Využívate cloud služby pre podnikanie?",
+            "question_type": "multi_select",
+            "weight": 0.8,
+            "options": [
+              { "value": "email_cloud", "label": "E-mail v cloude (Microsoft 365, Google Workspace)", "score": 15 },
+              { "value": "storage", "label": "Cloudové úložisko (OneDrive, Google Drive, SharePoint)", "score": 15 },
+              { "value": "accounting_cloud", "label": "Účtovníctvo / ERP v cloude", "score": 20 },
+              { "value": "crm_cloud", "label": "CRM v cloude", "score": 15 },
+              { "value": "iaas", "label": "IaaS / PaaS (AWS, Azure, GCP)", "score": 20 },
+              { "value": "none", "label": "Nepoužívame žiadne cloud služby", "score": 0 }
+            ],
+            "max_score": 85,
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["dii"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": "Cloud = služby dostupné cez internet, kde dáta a aplikácie bežia u poskytovateľa.",
+            "allow_unknown": false
+          },
+          {
+            "id": "cx_DII04",
+            "category": "dii",
+            "dimension": "ict_specialists",
+            "question_sk": "Máte vo firme ICT špecialistov?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              { "value": "none", "label": "Nie — IT rieši kto vie", "score": 0 },
+              { "value": "external_adhoc", "label": "Externý dodávateľ na zavolanie", "score": 33 },
+              { "value": "external_contract", "label": "Stály externý dodávateľ so zmluvou", "score": 55 },
+              { "value": "internal", "label": "Interný IT človek / tím", "score": 85 },
+              { "value": "internal_team", "label": "Dedikovaný IT tím s viacerými rolami", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_score": ["dii", "ors_F"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": false
+          }
+        ]
+      }
+    ]
+  }
+}
