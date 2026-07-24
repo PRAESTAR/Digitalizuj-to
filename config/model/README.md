@@ -43,7 +43,7 @@ Tento priečinok obsahuje **všetky konfiguračné súbory** modelu hodnotenia d
 
 ## Dôležité upozornenia
 
-- JSON súbory v tomto priečinku sú **kópiou** zdrojových súborov v `src/data/`
-- Po editácii je treba zmeny **preniesť** do zdrojových súborov
+- JSON súbory v tomto priečinku sú **kópiou** zdrojových súborov v `data/` (koreň projektu)
+- Po editácii je treba zmeny **preniesť** do zdrojových súborov: `questionBank.json` 1:1 kópiou, `scoringConfig.json`/`benchmarkData.json` ručne do TS súborov (`data/scoringConfig.ts`, `data/benchmarkData.ts`)
 - `scoringConfig.json` a `benchmarkData.json` sú JSON formát — zdrojové súbory sú TypeScript
 - Zmeny v `.md` metodických dokumentoch slúžia na dokumentáciu — neovplyvňujú priamo kód

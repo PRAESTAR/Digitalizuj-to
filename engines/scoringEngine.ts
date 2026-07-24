@@ -117,8 +117,11 @@ export function calculateORS(
   let penaltyReason: string | null = null;
   let scorePenalized = orsScore;
 
+  // Penalizácia sa aplikuje len na MERANÚ kategóriu E — bez zodpovedaných
+  // bezpečnostných otázok by sa penalizoval nezmeraný stav (E=0 by nebolo zistenie, ale artefakt).
+  const securityMeasured = (categories['E']?.answeredQuestions ?? 0) > 0;
   const securityScore = categories['E']?.score ?? 0;
-  if (securityScore < scoringConfig.securityPenaltyThreshold) {
+  if (securityMeasured && securityScore < scoringConfig.securityPenaltyThreshold) {
     const factor = 1 - scoringConfig.securityPenaltyMaxFactor +
       scoringConfig.securityPenaltyMaxFactor * (securityScore / scoringConfig.securityPenaltyThreshold);
     scorePenalized = Math.round(orsScore * factor * 10) / 10;

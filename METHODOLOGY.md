@@ -2,9 +2,10 @@
 
 **Metodika merania digitálnej zrelosti SME — Adaptívny model DAP**
 
-> Dátum: 2026-04-17  
+> Dátum: 2026-07-23 (revízia; pôvodný návrh 2026-04-17)  
 > Status: Návrh pre MVP implementáciu  
-> Verzia: viazaná na build celej platformy (viď footer webu)
+> Verzia: viazaná na build celej platformy (viď footer webu)  
+> Benchmark kotva: Eurostat `isoc_e_dii`, prieskum 2025, DII verzia 3
 
 ---
 
@@ -39,22 +40,26 @@ Meranie stojí na dvoch komplementárnych vrstvách:
 
 **Účel:** Odpovedať na otázku *"Ako si firma stojí v základnej digitálnej intenzite v porovnaní s rámcom EÚ?"*
 
-**Základ:** Digital Intensity Index (DII) je kompozitný indikátor Eurostatu, ktorý meria digitálnu intenzitu podnikov na základe 12 indikátorov (verzia 2023). Indikátory pokrývajú:
+**Základ:** Digital Intensity Index (DII) je kompozitný indikátor Eurostatu (dataset `isoc_e_dii`, prieskum ICT usage in enterprises), ktorý meria digitálnu intenzitu podnikov na základe 12 premenných. Metodika je ukotvená na **DII verziu 3 (prieskum 2025)** — najnovšiu publikovanú sadu premenných:
 
-| # | DII Indikátor | Kategória |
-|---|--------------|-----------|
-| 1 | Rýchlosť internetu ≥ 30 Mbps | Konektivita |
-| 2 | ICT špecialisti (zamestnanci alebo outsource) | Ľudské zdroje |
-| 3 | Vzdialený prístup (remote work) | Pracovné prostredie |
-| 4 | Základná digitálna zručnosť zamestnancov | Ľudské zdroje |
-| 5 | Webová stránka s pokročilou funkcionalitou | Online prítomnosť |
-| 6 | Sociálne siete | Online prítomnosť |
-| 7 | Nákup cloud služieb (stredná/vysoká sofistikácia) | Cloud |
-| 8 | Posielanie e-faktúr | Procesy |
-| 9 | E-commerce (aspoň 1 % obratu online) | E-commerce |
-| 10 | E-commerce > 1 % obratu z web predajov | E-commerce |
-| 11 | Využívanie AI technológií | AI/Pokročilé technológie |
-| 12 | Big data analýzy | Dáta |
+| # | DII premenná (v3, prieskum 2025) | Kategória |
+|---|----------------------------------|-----------|
+| 1 | Viac ako 50 % zamestnancov používa internet na pracovné účely | Konektivita / Ľudia |
+| 2 | Najrýchlejšie pevné pripojenie ≥ 30 Mbps | Konektivita |
+| 3 | Firma má webovú stránku | Online prítomnosť |
+| 4 | Využívanie sociálnych médií | Online prítomnosť |
+| 5 | Nákup cloud computing služieb | Cloud |
+| 6 | Nákup sofistikovaných/stredne pokročilých cloud služieb | Cloud |
+| 7 | ERP softvér | Systémy |
+| 8 | CRM softvér | Systémy |
+| 9 | Dátová analytika (vlastnými zamestnancami alebo externe) | Dáta |
+| 10 | E-commerce predaje ≥ 1 % obratu | E-commerce |
+| 11 | Web predaje > 1 % obratu a B2C web predaje > 10 % web predajov | E-commerce |
+| 12 | Využívanie akejkoľvek AI technológie | AI |
+
+> **Rotácia verzií DII:** Eurostat strieda sady premenných podľa dvojročnej rotácie modulov dotazníka — prieskum 2024 používal verziu 4 (ICT bezpečnosť, ICT špecialisti, remote access...), prieskum 2025 verziu 3 (7 z 12 premenných sa líši). Medziročné porovnania naprieč verziami preto **nie sú priamo porovnateľné** a benchmark dáta aj otázky musia byť ukotvené na jednu verziu a prieskumný rok (tu: v3/2025). Otázky metodiky, ktoré pokrývajú premenné mimo v3 (napr. e-fakturácia, remote access), zostávajú v ODRM vrstve — do DII skóre sa nezapočítavajú ako samostatné oficiálne indikátory.
+
+**Aktuálne referenčné hodnoty (Eurostat, prieskum 2025):** aspoň základnú digitálnu intenzitu (DII ≥ 4) dosahuje 72,1 % podnikov EÚ-27 vs. **58,4 % podnikov SR**; pre SME (10–249 zam.) je to 71,4 % EÚ vs. **57,1 % SR** — pri cieli Digitálnej dekády 90 % do roku 2030.
 
 **DII škála (Eurostat):**
 - 0–3 body: Veľmi nízka digitálna intenzita
@@ -215,7 +220,7 @@ DII je binárny (áno/nie pre každý indikátor). Pre produktovú diagnostiku p
 Kategória E má **špeciálnu penalizačnú mechaniku** — kritické bezpečnostné nedostatky generujú tvrdú penalizáciu v Technical Debt & Risk Index a zároveň znižujú celkový Operational Readiness Score. Detaily v SCORING_SPEC.md.
 
 **Rozhodnutie:**
-- *Prečo rovnaká váha ako Procesy (20 %)?* Pretože bezpečnostný a technologický dlh je systematicky podhodnocovaný v SME segmente. Firma s pekným CRM ale neaktualizovaným serverom je ticking time bomb. Toto je hard requirement z promptu.
+- *Prečo rovnaká váha ako Procesy (20 %)?* Pretože bezpečnostný a technologický dlh je systematicky podhodnocovaný v SME segmente a jeho zanedbanie má asymetrický dopad — jediný incident môže vymazať prínosy digitalizácie za roky. Váhu podporuje aj regulačný kontext: NIS2 (v SR transponovaná zákonom č. 366/2024 Z. z., účinným od 1. 1. 2025, s vyhláškou NBÚ č. 227/2025 Z. z.) rozširuje bezpečnostné povinnosti na tisíce stredných firiem. Firma s pekným CRM, ale neaktualizovaným serverom, je ticking time bomb.
 - *Alternatíva:* Ešte vyššia váha (25 %). Pre MVP zachovávame 20 % s tým, že Risk Index je separátny output.
 
 ### Kategória F: Governance, ľudia a execution schopnosť (váha: 10 %)
@@ -279,10 +284,17 @@ Detailný popis je v `SCORING_SPEC.md`. Tu je prehľad:
 
 ### 5.1 DII-Compatible Score (0–100)
 
-- Mapuje 12 DII indikátorov na otázky.
-- Každý indikátor sa hodnotí 0–100 (nie binárne).
-- Výsledné skóre = vážený priemer všetkých DII indikátorov.
-- Prepočet na 0–12: `dii_12 = round(score_100 / 100 * 12)`.
+- Mapuje 12 DII premenných (v3/2025) na otázky.
+- Každý indikátor sa hodnotí 0–100 (nie binárne); indikátory majú **rovnaké váhy** (zhodne s Eurostatom, kde každá premenná = 1 bod).
+- Výsledné skóre = priemer indikátorov; prepočet na 0–12: `dii_12 = round(score_100 / 100 * 12)`.
+- ⚠️ *MVP aproximácia:* implementácia zatiaľ priemeruje odpovede označené `dii` bez per-indikátorovej agregácie (jedna premenná pokrytá viacerými otázkami má vyššiu váhu) — per-indikátorové mapovanie `DII1–DII12` je v checkliste vylepšení. Prepočet `dii_12` je granulárna aproximácia, nie binárny Eurostat count; do benchmark porovnaní preto vstupuje s disclaimerom (viď 9.4).
+
+### 5.1b Spracovanie odpovede „Neviem" a preskočených otázok
+
+- Odpovede „Neviem" a otázky preskočené vetvením sa **vylučujú z menovateľa** kategórie (neskórujú sa ako 0).
+- Vysoký podiel nezodpovedaných otázok znižuje confidence rating kategórie (prah 25 % → medium, 50 % → low).
+- Bezpečnostná penalizácia ORS sa aplikuje **len ak je kategória E reálne meraná** (aspoň 1 zodpovedaná otázka).
+- Risk index (TDRI) ignoruje „Neviem"/preskočené odpovede v odvodzovaní čiastočných rizík — neznalosť sa neinterpretuje ako potvrdené riziko, znižuje však confidence.
 
 ### 5.2 Operational Readiness Score (0–100)
 
@@ -332,8 +344,8 @@ ročný_€_dopad = ušetrené_hodiny × plná_hodinová_cena
 
 ### 7.1 Dva režimy
 
-1. **Indikatívny kvíz** (max 15 otázok): Rýchly screening. Výsledok = orientačné skóre + rozhodnutie či pokračovať.
-2. **Komplexný kvíz** (30–45 otázok): Hlbšia diagnostika rozdelená do modulov.
+1. **Indikatívny kvíz** (15 otázok): Rýchly screening. Výsledok = orientačné skóre + rozhodnutie či pokračovať.
+2. **Komplexný kvíz** (47 otázok v banke, reálne 43–47 podľa vetvenia): Hlbšia diagnostika rozdelená do modulov.
 
 ### 7.2 Branching princípy
 
@@ -364,9 +376,12 @@ Detailný popis je v `BENCHMARK_SPEC.md`. Tu je prehľad:
 
 ### 8.1 Zdroj benchmarkov
 
-- Eurostat DESI / DII štatistiky pre SK/EU.
-- Sektorové priemery (kde dostupné).
+- **Eurostat `isoc_e_dii`** (ICT usage in enterprises) — DII distribúcia SK/EÚ-27, prieskum 2025 (DII v3). Pozn.: DESI ako samostatný index bol od r. 2023 začlenený do reportingu Digitálnej dekády — správne označenie zdroja je Eurostat dataset, nie „DESI".
+- **Digital Decade Country Report 2026 — Slovensko** (DESI 2026, dátový rok 2025) — kontextové KPI (cloud, AI, dátová analytika).
+- Sektorové a veľkostné mediány — expertné odhady (explicitne označené).
 - Vlastné agregované dáta (v budúcnosti).
+
+**Politika aktualizácie:** benchmark dataset sa obnovuje ročne, do 3 mesiacov od decembrovej publikácie Eurostat prieskumu; verzia datasetu (napr. `2025-DII-v3`) je súčasťou každého výsledku.
 
 ### 8.2 Čo benchmarkujeme
 
@@ -407,7 +422,7 @@ Pre MVP používame **statické benchmark hodnoty** odvodené z verejných Euros
 
 **Rozhodnutie:** 
 - Indikatívny kvíz (15 otázok) = nízka záťaž, nižšia presnosť.
-- Komplexný kvíz (30-45 otázok) = vyššia záťaž, vyššia presnosť.
+- Komplexný kvíz (43–47 otázok) = vyššia záťaž, vyššia presnosť.
 - Branching znižuje reálny počet otázok.
 
 ### 9.4 DII mapovanie nie je 1:1
@@ -429,7 +444,18 @@ Pre MVP používame **statické benchmark hodnoty** odvodené z verejných Euros
 - Confidence level.
 - Jasný disclaimer čo je benchmark a čo self-reported.
 
-### 9.6 Malá vs. stredná firma
+### 9.6 AI pripravenosť a regulačný kontext (2026)
+
+**Medzera:** AI je v modeli zachytená len ako DII premenná č. 12. ODRM nemá samostatnú AI dimenziu (data readiness pre AI, governance AI use-casov, AI zručnosti) — pritom adopcia AI je od 2025 najrýchlejšie rastúca os digitalizácie (EÚ 20,0 % podnikov, SR 18,0 %, medziročne +67 %; cieľ Digitálnej dekády 75 % do 2030).
+
+**Plán:** rozšíriť kategórie C (data readiness pre AI) a F (AI governance/zručnosti) o dimenzie AI pripravenosti; zvážiť samostatnú kategóriu G po pilotnej validácii.
+
+**Regulačné časové okná relevantné pre odporúčania:**
+- **NIS2 / zákon č. 366/2024 Z. z.** — účinný od 1. 1. 2025 (bezpečnostné opatrenia do 12 mesiacov od registrácie NBÚ; vyhláška č. 227/2025 Z. z. od 1. 9. 2025).
+- **Povinná elektronická B2B fakturácia v SR** — od 1. 1. 2027 (novela zákona o DPH, Peppol model, EN 16931); rozšírenie na cezhraničné transakcie (ViDA) od 1. 7. 2030.
+- **AI Act** — povinnosti nabiehajú postupne 2025–2027 (transparentnosť, vysokorizikové systémy).
+
+### 9.7 Malá vs. stredná firma
 
 **Dilema:** 5-osobová firma a 200-osobová firma majú fundamentálne iné digitalizačné výzvy.
 
@@ -450,10 +476,11 @@ Pre MVP používame **statické benchmark hodnoty** odvodené z verejných Euros
 - ✅ Princípy ROI modelu
 
 ### Aproximácie
-- ⚠️ Váhy kategórií sú expertný odhad, nie empiricky validované
-- ⚠️ DII mapovanie je aproximácia originálneho Eurostat modelu
-- ⚠️ Benchmark hodnoty sú statické a odvodené z verejných dát
-- ⚠️ ROI model používa zjednodušené predpoklady
+- ⚠️ Váhy kategórií sú expertný odhad, nie empiricky validované (chýba sensitivity analýza — viď checklist)
+- ⚠️ DII mapovanie je aproximácia originálneho Eurostat modelu; MVP navyše priemeruje otázky bez per-indikátorovej agregácie (DII1–DII12)
+- ⚠️ Benchmark hodnoty sú statické (Eurostat isoc_e_dii 2025 + expertné odhady), verzované, s ročnou aktualizačnou politikou
+- ⚠️ ROI model používa zjednodušené predpoklady (bez investičných nákladov a adopčnej krivky; výstup = ročný run-rate po plnej implementácii)
+- ⚠️ Niektoré otázky mapujú súčasne DII aj ODRM vrstvu — prekryv vrstiev zatiaľ nie je zdokumentovaný per otázka (riziko korelácie vrstiev „by construction")
 
 ### Otvorené pre budúcnosť
 - ❓ Sektorové normalizačné profily

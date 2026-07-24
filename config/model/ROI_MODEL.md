@@ -1,7 +1,8 @@
 # digitalizuj.to — ROI & Business Impact Model
 
-> Verzia: 1.0-MVP  
-> Dátum: 2026-04-08
+> Verzia: 1.1-MVP  
+> Dátum: 2026-07-23 (revízia; pôvodná verzia 2026-04-08)  
+> Mzdové kotvy: Eurostat lc_lci_lev 2025 + ŠÚ SR 2025/2026 (viď §7)
 
 ---
 
@@ -58,7 +59,7 @@ Odhaduje potenciálny business dopad digitalizácie na základe:
       "high": 35,
       "very_high": 55
     },
-    "note": "Plná hodinová cena práce vrátane odvodov. SK priemer 2024."
+    "note": "Plná hodinová cena práce vrátane odvodov. Default 20 €/h zodpovedá SK priemeru za rok 2025 (Eurostat lc_lci_lev: 19,8 €/h, celé hospodárstvo, podniky 10+; admin/podporné služby NACE N: 15,2 €/h). Odvodový multiplikátor zamestnávateľa od 1. 1. 2025: 1,362. Pásma sú reprezentatívne hodnoty možností v otázkach ind_15/cx_ROI01."
   },
   "process_benchmarks": {
     "invoicing": {
@@ -150,20 +151,22 @@ stredný_dopad = ročný_€_dopad × 0.65       // predpoklad: 65% realization 
 optimistický_dopad = ročný_€_dopad × 0.85  // predpoklad: 85% realization rate
 ```
 
+**Poznámky k implementácii (v1.1):**
+- Headline `ročný_€_dopad` v implementácii **zahŕňa aj úspory z error cost modelu** (§3.5); error zložka je zároveň vykazovaná samostatne v `errorCostReduction`.
+- Všetky hodnoty sú **ročný run-rate po plnej implementácii** — model nezahŕňa adopčnú krivku (typicky 6–12 mesiacov), reálny dopad v 1. roku bude nižší.
+
 ### 3.4 Risk-adjusted faktor
 
 ```
-confidence_factor = f(data_completeness, source_reliability)
+confidence_factor = 0.8 × data_completeness + 0.3 × (1 − data_completeness)
 
 Kde:
   data_completeness = počet_self_reported_vstupov / celkový_počet_vstupov
-  source_reliability:
-    - self_reported: 0.8
-    - benchmark_sector: 0.5
-    - benchmark_default: 0.3
-
-confidence_factor = data_completeness × source_reliability_avg
+  0.8 = spoľahlivosť self-reported vstupu
+  0.3 = spoľahlivosť benchmark_default vstupu
 ```
+
+Pozn.: úroveň `benchmark_sector` (0.5) je plánovaná — sektorovo diferencované procesné benchmarky zatiaľ neexistujú (benchmarky sa líšia len podľa veľkosti firmy); do ich doplnenia model používa lineárnu kombináciu self-reported/default vyššie.
 
 ### 3.5 Error cost model (doplnkový)
 
@@ -306,7 +309,7 @@ Ak category_score[F] < 50:
 ### 6.1 Čo model nezachytáva
 
 - Jednorazové investičné náklady na digitalizáciu.
-- Časová os realizácie (kedy sa benefity prejavia).
+- Časová os realizácie a adopčná krivka (kedy sa benefity prejavia — výstup je run-rate po plnej implementácii).
 - Príjmové benefity (vyšší obrat vďaka digitalizácii).
 - Kvalitatívne benefity (spokojnosť zamestnancov, zákaznícka skúsenosť).
 
@@ -322,3 +325,19 @@ Ak category_score[F] < 50:
 - Simple payback period kalkulácia.
 - Revenue impact model pre e-commerce a sales digitalizáciu.
 - TCO porovnanie (current state vs. target state).
+- Zapojenie zbieraných vstupov cx_ROI02 (admin headcount) a cx_ROI03 (objem fakturácie) do per-procesných prepočtov (dnes sa zbierajú, ale nevyužívajú — viď checklist).
+
+---
+
+## 7. Zdroje a aktualizácia mzdových kotiev
+
+| Vstup | Hodnota | Zdroj | Rok |
+|-------|---------|-------|-----|
+| Priemerná hodinová cena práce SR (celé hospodárstvo) | 19,8 €/h | Eurostat `lc_lci_lev` (publ. 3/2026) | 2025 |
+| — admin a podporné služby (NACE N) | 15,2 €/h | Eurostat `lc_lci_lev` | 2025 |
+| — priemer EÚ (kontext) | 34,9 €/h | Eurostat `lc_lci_lev` | 2025 |
+| Priemerná hrubá mesačná mzda SR | 1 620 € | ŠÚ SR (publ. 3/2026) | 2025 |
+| Odvodový multiplikátor zamestnávateľa | 1,362 (36,2 %) | zákony č. 461/2003 a 580/2004 Z. z. (zdravotné 11 % od 1. 1. 2025) | 2025–2026 |
+| Minimálna mzda SR | 915 €/mes (5,259 €/h) | MPSVR SR | 2026 |
+
+**Politika aktualizácie:** ročne po marcovej publikácii Eurostat lc_lci_lev a ŠÚ SR ročných miezd. Eurostat hodinová cena práce už zahŕňa odvody zamestnávateľa — nepoužívať dvojité násobenie multiplikátorom.

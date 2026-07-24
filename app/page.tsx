@@ -22,7 +22,7 @@ const faqSchema = {
       name: 'Ako funguje hodnotenie na digitalizuj.to?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Vyplníte adaptívny dotazník (12 otázok pre rýchly screening alebo 30+ pre komplexnú diagnostiku). Na základe odpovedí dostanete DII-Compatible skóre, Operational Readiness skóre, Technical Debt & Risk Index a Business Impact Potential s odhadom úspor v hodinách, MD a EUR.',
+        text: 'Vyplníte adaptívny dotazník (15 otázok pre rýchly screening alebo 45+ pre komplexnú diagnostiku). Na základe odpovedí dostanete DII-Compatible skóre, Operational Readiness skóre, Technical Debt & Risk Index a Business Impact Potential s odhadom úspor v hodinách, MD a EUR.',
       },
     },
     {
@@ -46,7 +46,7 @@ const faqSchema = {
       name: 'Koľko trvá hodnotenie?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Indikatívny kvíz trvá 5–7 minút (max. 15 otázok). Komplexná diagnostika trvá 15–20 minút (30+ otázok s adaptívnym branchingom).',
+        text: 'Indikatívny kvíz trvá 5–7 minút (max. 15 otázok). Komplexná diagnostika trvá 15–20 minút (45+ otázok s adaptívnym branchingom).',
       },
     },
   ],

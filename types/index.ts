@@ -260,6 +260,7 @@ export interface Recommendations {
   criticalRisks: Recommendation[];
   quickWins: Recommendation[];
   strategicInitiatives: Recommendation[];
+  longTermInitiatives: Recommendation[];
   roadmap: {
     immediate0_3m: string[];
     medium3_12m: string[];

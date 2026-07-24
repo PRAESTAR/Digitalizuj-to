@@ -1,21 +1,30 @@
+// Zdroj DII distribúcií: Eurostat, dataset isoc_e_dii (ICT usage in enterprises, prieskum 2025,
+// DII verzia 3, podniky 10+ zamestnancov, NACE C10-S951 bez K), vintage 2026-02-27.
+// Mediány DII sú odvodené lineárnou interpoláciou z pásmovej distribúcie (pozri BENCHMARK_SPEC.md §3.3).
+// ORS mediány a sektorové/veľkostné hodnoty sú expertné odhady — nie sú to merané Eurostat dáta.
+// Politika aktualizácie: ročne, do 3 mesiacov od decembrovej publikácie Eurostatu.
 export const benchmarkData = {
-  version: '2024-Q4',
-  source: 'Eurostat DESI 2024 + expertné odhady',
-  lastUpdated: '2024-12-01',
+  version: '2025-DII-v3',
+  source: 'Eurostat isoc_e_dii (prieskum 2025, DII v3) + expertné odhady (ORS, sektory, veľkosti)',
+  lastUpdated: '2026-07-23',
 
   countryBenchmarks: {
     SK: {
-      diiDistribution: { very_low: 0.42, low: 0.33, high: 0.18, very_high: 0.07 },
-      diiMedianScore: 4.2,
-      orsEstimatedMedian: 38,
+      // Eurostat isoc_e_dii 2025: E_DI3_VLO 41.61 %, E_DI3_LO 31.98 %, E_DI3_HI 20.43 %, E_DI3_VHI 5.98 %
+      diiDistribution: { very_low: 0.416, low: 0.32, high: 0.204, very_high: 0.06 },
+      diiMedianScore: 4.3, // odvodené: 3.5 + (0.5 - 0.416) / 0.32 * 3
+      orsEstimatedMedian: 38, // expertný odhad
     },
     EU27: {
-      diiDistribution: { very_low: 0.31, low: 0.30, high: 0.24, very_high: 0.15 },
-      diiMedianScore: 5.5,
-      orsEstimatedMedian: 44,
+      // Eurostat isoc_e_dii 2025: E_DI3_VLO 27.89 %, E_DI3_LO 34.52 %, E_DI3_HI 27.54 %, E_DI3_VHI 10.05 %
+      diiDistribution: { very_low: 0.279, low: 0.345, high: 0.275, very_high: 0.101 },
+      diiMedianScore: 5.4, // odvodené: 3.5 + (0.5 - 0.279) / 0.345 * 3
+      orsEstimatedMedian: 44, // expertný odhad
     },
   },
 
+  // Sektorové hodnoty sú expertné odhady kalibrované na SK distribúciu (Eurostat nepublikuje
+  // DII medián po sektoroch) — v UI sa zobrazujú s disclaimerom.
   sectorBenchmarks: {
     manufacturing: { diiMedian: 4.8, orsEstimatedMedian: 40 },
     wholesale_retail: { diiMedian: 5.2, orsEstimatedMedian: 42 },
@@ -27,10 +36,12 @@ export const benchmarkData = {
     other: { diiMedian: 4.5, orsEstimatedMedian: 38 },
   } as Record<string, { diiMedian: number; orsEstimatedMedian: number }>,
 
+  // Veľkostné hodnoty sú expertné odhady. Kontext z Eurostat 2025 (aspoň základná intenzita):
+  // SME 10-249: SK 57.1 % vs EÚ 71.4 %; veľké 250+: SK 89.4 % vs EÚ 96.4 %.
   sizeBenchmarks: {
-    micro: { diiMedian: 3.2, orsEstimatedMedian: 28 },
+    micro: { diiMedian: 3.2, orsEstimatedMedian: 28, note: 'Eurostat nepokrýva firmy <10 zamestnancov — expertný odhad' },
     small: { diiMedian: 4.5, orsEstimatedMedian: 38 },
     medium: { diiMedian: 6.8, orsEstimatedMedian: 52 },
     large: { diiMedian: 8.0, orsEstimatedMedian: 60 },
-  } as Record<string, { diiMedian: number; orsEstimatedMedian: number }>,
+  } as Record<string, { diiMedian: number; orsEstimatedMedian: number; note?: string }>,
 };

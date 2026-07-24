@@ -113,7 +113,7 @@ export default function Recommendations({ recommendations }: RecommendationsProp
             </div>
             <div className="space-y-3">
               {recommendations.roadmap.longTerm12mPlus.length > 0 ? (
-                recommendations.quickWins
+                (recommendations.longTermInitiatives ?? [])
                   .filter(r => recommendations.roadmap.longTerm12mPlus.includes(r.id))
                   .map(r => (
                     <div key={r.id} className="text-sm p-3 rounded-xl bg-white/60 border border-blue-100/50">

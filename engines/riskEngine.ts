@@ -32,8 +32,15 @@ export function calculateTDRI(
       penalty = def.maxPenalty * severityMultiplier;
       evidence = getEvidenceForRisk(def.id, answers, questions);
     } else if (sourceAnswers.length > 0) {
-      // Check from answer scores — partial risk
-      const relevantAnswers = answers.filter(a => sourceAnswers.includes(a.questionId));
+      // Check from answer scores — partial risk.
+      // "Neviem"/preskočené odpovede nevypovedajú o riziku (skóre 0 je artefakt, nie zistenie)
+      // a informačné otázky bez bodovateľných možností (všetky options score 0) sa vylučujú —
+      // inak by každá odpoveď aktivovala penaltu (napr. cx_B02 → RF06 pre všetkých respondentov).
+      const relevantAnswers = answers.filter(a => {
+        if (!sourceAnswers.includes(a.questionId) || a.isUnknown || a.wasSkipped) return false;
+        const q = questions.find(q => q.id === a.questionId);
+        return !!q?.options?.some(o => o.score > 0);
+      });
       const avgScore = relevantAnswers.length > 0
         ? relevantAnswers.reduce((s, a) => s + a.score, 0) / relevantAnswers.length
         : 100;

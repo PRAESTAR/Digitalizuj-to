@@ -1,7 +1,14 @@
 # digitalizuj.to — Scoring Specification
 
-> Verzia: 1.0-MVP  
-> Dátum: 2026-04-08
+> Verzia: 1.0-MVP (spec) / implementácia beží na scoringConfig **1.2-MVP**  
+> Dátum: 2026-04-08 (spec) / 2026-07-23 (poznámka k implementácii)
+
+> **Poznámka k verzii 1.2-MVP (2026-07-23):** oproti tejto špecifikácii implementácia obsahuje tieto potvrdené zmeny správania:
+> 1. Bezpečnostná penalizácia (§3.5) sa aplikuje **len ak je kategória E meraná** (aspoň 1 zodpovedaná otázka) — nemeraná kategória sa nepenalizuje.
+> 2. TDRI čiastočné penalty (§4) ignorujú „Neviem"/preskočené odpovede a otázky bez bodovateľných možností — neznalosť sa neinterpretuje ako potvrdené riziko.
+> 3. `diiMethodologyVersion` je ukotvená na **DII v3, prieskum 2025** (Eurostat isoc_e_dii).
+>
+> Známe odchýlky spec ↔ kód (per-indikátorová DII agregácia, binárne prahy 33/50, N/A reprezentácia kategórií, konfidenčné pásma indikatívneho kvízu) sú evidované v IMPROVEMENT_CHECKLIST.md a budú riešené v plnej revízii spec 2.0.
 
 ---
 

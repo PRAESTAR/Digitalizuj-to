@@ -37,6 +37,7 @@ export function generateRecommendations(
     criticalRisks,
     quickWins: quickWins.slice(0, 5),
     strategicInitiatives: strategic.slice(0, 3),
+    longTermInitiatives: longTerm,
     roadmap,
   };
 }
@@ -258,7 +259,9 @@ function generateLongTerm(
 
   if (ors.scorePenalized > 60) {
     const aiAnswer = answers.find(a => ['cx_DII03'].includes(a.questionId));
-    if (!aiAnswer || aiAnswer.score < 33) {
+    // Odporúčanie len pri explicitnom "nevyužívame AI" — chýbajúca alebo "Neviem"
+    // odpoveď nie je dôkaz o nevyužívaní.
+    if (aiAnswer && !aiAnswer.isUnknown && aiAnswer.value === 'none') {
       recs.push({
         id: 'rec_lt_ai',
         type: 'long_term',

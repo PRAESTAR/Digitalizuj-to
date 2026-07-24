@@ -142,7 +142,7 @@ export default function PeersPage() {
       <p className="text-xs text-slate-500 leading-relaxed">
         <strong className="text-slate-700">Poznámka:</strong> tieto výsledky sú deterministické testovacie
         dáta — žiadna konkrétna firma nie je reprezentovaná. Distribúcie sú nakalibrované voči Eurostat
-        DESI 2024 priemerom pre Slovensko.
+        DII 2025 (isoc_e_dii) priemerom pre Slovensko.
       </p>
     </div>
   );

@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0-pre-alpha",
-  "model_name": "Adaptívny model DAP (Digitálna Auditná Platforma)",
-  "last_updated": "2026-04-17",
+  "version": "1.1-MVP",
+  "model_name": "Adaptívny model DAP",
+  "last_updated": "2026-07-23",
   "indicative_quiz": {
     "id": "indicative_v1",
     "name": "Indikatívny kvíz",
@@ -222,7 +222,14 @@
           { "value": "old", "label": "5–8 rokov, OS ešte v podpore", "score": 30 },
           { "value": "eol", "label": "Viac ako 8 rokov alebo OS mimo podpory", "score": 0 }
         ],
-        "branching_rules": [],
+        "branching_rules": [
+          {
+            "condition": "value == 'eol'",
+            "action": "flag_risk",
+            "target": "RF01",
+            "reason": "Server/OS mimo podpory = critical risk (zhodné s cx_D03_server)"
+          }
+        ],
         "evidence_type": "direct",
         "maps_to_score": ["ors_D", "ors_E"],
         "maps_to_risk": ["RF01"],
@@ -243,7 +250,8 @@
           { "value": "backup_tested", "label": "Zálohy pravidelne testujeme obnovou", "score": 20 },
           { "value": "patching", "label": "Pravidelne aktualizujeme softvér a systémy", "score": 15 },
           { "value": "policy", "label": "Máme bezpečnostnú politiku / pravidlá", "score": 15 },
-          { "value": "monitoring", "label": "Monitorujeme bezpečnostné udalosti", "score": 15 }
+          { "value": "monitoring", "label": "Monitorujeme bezpečnostné udalosti", "score": 15 },
+          { "value": "none", "label": "Nemáme žiadne z uvedeného", "score": 0 }
         ],
         "max_score": 100,
         "branching_rules": [
@@ -286,13 +294,48 @@
           { "value": "managed", "label": "Máme zálohy, obnovili by sme sa do 24–48 hodín", "score": 60 },
           { "value": "prepared", "label": "Máme otestovaný DR plán, obnovíme sa do hodín", "score": 100 }
         ],
-        "branching_rules": [],
+        "branching_rules": [
+          {
+            "condition": "value == 'disaster'",
+            "action": "flag_risk",
+            "target": ["RF02", "RF09"],
+            "reason": "Existenčné ohrozenie pri strate dát = chýbajúce zálohy aj BC/DR plán"
+          },
+          {
+            "condition": "value == 'major_impact'",
+            "action": "flag_risk",
+            "target": "RF09",
+            "reason": "Viacdňový výpadok = chýbajúci BC/DR plán"
+          }
+        ],
         "evidence_type": "self_assessment",
         "maps_to_score": ["ors_E"],
         "maps_to_risk": ["RF02", "RF09"],
         "maps_to_roi_model": [],
         "tooltip": "DR plán = Disaster Recovery plán, definuje čo robiť pri strate dát alebo výpadku.",
         "allow_unknown": true
+      },
+      {
+        "id": "ind_12",
+        "category": "dii",
+        "dimension": "web_presence",
+        "question_sk": "Akú online prítomnosť má vaša firma?",
+        "question_type": "single_choice",
+        "weight": 1.0,
+        "options": [
+          { "value": "none", "label": "Nemáme webstránku ani profily na sociálnych sieťach", "score": 0 },
+          { "value": "basic_web", "label": "Máme jednoduchú webovú vizitku", "score": 25 },
+          { "value": "active_web", "label": "Webstránka s obsahom + sociálne siete", "score": 50 },
+          { "value": "eshop", "label": "E-shop alebo online objednávky", "score": 75 },
+          { "value": "platform", "label": "Plne digitálne kanály (e-shop, klientsky portál, self-service)", "score": 100 }
+        ],
+        "branching_rules": [],
+        "evidence_type": "direct",
+        "maps_to_score": ["dii"],
+        "maps_to_risk": [],
+        "maps_to_roi_model": [],
+        "tooltip": "Online prítomnosť je kľúčový ukazovateľ digitálnej intenzity podľa EU metodiky.",
+        "allow_unknown": false
       },
       {
         "id": "ind_13",
@@ -345,32 +388,10 @@
         "allow_unknown": true
       },
       {
-        "id": "ind_12",
-        "category": "dii",
-        "dimension": "web_presence",
-        "question_sk": "Akú online prítomnosť má vaša firma?",
-        "question_type": "single_choice",
-        "weight": 1.0,
-        "options": [
-          { "value": "none", "label": "Nemáme webstránku ani profily na sociálnych sieťach", "score": 0 },
-          { "value": "basic_web", "label": "Máme jednoduchú webovú vizitku", "score": 25 },
-          { "value": "active_web", "label": "Webstránka s obsahom + sociálne siete", "score": 50 },
-          { "value": "eshop", "label": "E-shop alebo online objednávky", "score": 75 },
-          { "value": "platform", "label": "Plne digitálne kanály (e-shop, klientsky portál, self-service)", "score": 100 }
-        ],
-        "branching_rules": [],
-        "evidence_type": "direct",
-        "maps_to_score": ["dii"],
-        "maps_to_risk": [],
-        "maps_to_roi_model": [],
-        "tooltip": "Online prítomnosť je kľúčový ukazovateľ digitálnej intenzity podľa EU metodiky.",
-        "allow_unknown": false
-      },
-      {
         "id": "ind_15",
         "category": "meta",
         "dimension": "roi_input",
-        "question_sk": "Aká je priemerná hrubá hodinová cena práce vo vašej firme?",
+        "question_sk": "Aká je priemerná celková hodinová cena práce vo vašej firme (vrátane odvodov)?",
         "question_type": "single_choice",
         "weight": 0,
         "options": [
@@ -384,7 +405,7 @@
         "maps_to_score": [],
         "maps_to_risk": [],
         "maps_to_roi_model": ["hourly_cost"],
-        "tooltip": "Vrátane odvodov a réžie. Ak neviete presne, vyberte najbližšie pásmo.",
+        "tooltip": "Celková cena práce = hrubá mzda + odvody zamestnávateľa (×1,362). Priemer SR 2025 podľa Eurostatu ≈ 19,8 €/hod. Ak neviete presne, vyberte najbližšie pásmo.",
         "allow_unknown": true
       }
     ]
@@ -798,7 +819,7 @@
                 "condition": "value == '0'",
                 "action": "skip",
                 "target": "cx_C03",
-                "reason": "Bez reportingu nemá zmysel pýtať sa na kvalitu dát a BI"
+                "reason": "Bez reportingu nemá zmysel pýtať sa na BI nadstavbu (cx_C03); kvalita dát (cx_C02) sa pýta ďalej"
               }
             ],
             "evidence_type": "self_assessment",
@@ -1504,7 +1525,7 @@
             "options": [
               { "value": "paper", "label": "Faktúry posielame/prijímame prevažne v papierovej forme", "score": 0 },
               { "value": "pdf", "label": "Posielame PDF e-mailom, ale bez automatického spracovania", "score": 33 },
-              { "value": "partial_auto", "label": "Čiastočne automatizované (napr. UBL, ISDOC pri niektorých partneroch)", "score": 66 },
+              { "value": "partial_auto", "label": "Čiastočne automatizované (napr. štruktúrované faktúry UBL/EN 16931 pri niektorých partneroch)", "score": 66 },
               { "value": "full_auto", "label": "Plne elektronická fakturácia s automatickým spracovaním", "score": 100 }
             ],
             "branching_rules": [],
@@ -1512,7 +1533,7 @@
             "maps_to_score": ["dii"],
             "maps_to_risk": [],
             "maps_to_roi_model": ["invoicing_automation"],
-            "tooltip": "E-fakturácia = štruktúrovaná elektronická výmena faktúr, nie len PDF e-mailom.",
+            "tooltip": "E-fakturácia = štruktúrovaná elektronická výmena faktúr, nie len PDF e-mailom. Od 1. 1. 2027 bude na Slovensku povinná elektronická B2B fakturácia (novela zákona o DPH, model Peppol).",
             "allow_unknown": true
           },
           {

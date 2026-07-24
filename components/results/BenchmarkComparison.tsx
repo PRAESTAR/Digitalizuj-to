@@ -1,6 +1,7 @@
 'use client';
 
 import type { BenchmarkResults, DIIScore } from '@/types';
+import { benchmarkData } from '@/data/benchmarkData';
 
 interface BenchmarkComparisonProps {
   benchmarks: BenchmarkResults;
@@ -68,7 +69,7 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
 
         <div className="mt-6 text-xs text-slate-400 font-medium flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-          Benchmark dáta: Eurostat DESI 2024 + expertné odhady. Posledná aktualizácia: 2024-Q4.
+          Benchmark dáta: {benchmarkData.source}. Verzia: {benchmarkData.version} ({benchmarkData.lastUpdated}).
         </div>
       </div>
     </div>

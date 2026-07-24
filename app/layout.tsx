@@ -186,7 +186,7 @@ export default function RootLayout({
               <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
                 <span>
                   Adaptívny model DAP &middot; DII-Compatible + ODRM &middot;
-                  Benchmark: Eurostat DESI 2024
+                  Benchmark: Eurostat DII 2025 (isoc_e_dii)
                 </span>
                 <div className="flex items-center gap-3">
                   <a

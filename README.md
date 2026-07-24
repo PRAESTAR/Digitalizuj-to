@@ -10,7 +10,7 @@ Metodicky obhajitelna platforma na meranie urovne digitalizacie firiem, identifi
 
 ## Co to robi
 
-Firma vyplni adaptivny dotaznik (12 alebo 30+ otazok) a dostane:
+Firma vyplni adaptivny dotaznik (15 alebo 45+ otazok) a dostane:
 
 | Vystup | Rozsah | Ucel |
 |--------|--------|------|
@@ -161,8 +161,8 @@ digitalizuj/
 ## Klucove vlastnosti
 
 ### Adaptivny dotaznik
-- **Indikativny kviz** — 12 otazok, 3-5 minut, rychly screening
-- **Komplexny kviz** — 30+ otazok, 10-15 minut, hlbsia diagnostika
+- **Indikativny kviz** — 15 otazok, 5-7 minut, rychly screening
+- **Komplexny kviz** — 45+ otazok, 15-20 minut, hlbsia diagnostika
 - Branching logika (`skip_if`, `include_if`, `flag_risk`) — otazky sa prisposobuju odpovediam
 - Moznost "Neviem" pri kazdej otazke s transparentnym handlingom
 
@@ -193,14 +193,15 @@ Vsetky parametre su v editovatelnych suboroch v `config/model/`:
 
 | Zdroj | Pokrytie | Rok |
 |-------|----------|-----|
-| Eurostat DESI | DII distribúcia SK/EU27 | 2024 |
-| Eurostat DESI | Sektorove priemery (8 sektorov) | 2024 |
-| Expertne odhady | ORS mediany, mikrofirmy | 2024 |
+| Eurostat `isoc_e_dii` (DII v3) | DII distribúcia SK/EU27 (prieskum 2025) | 2025 |
+| Digital Decade Report 2026 | Kontextove KPI (cloud, AI, SME intenzita) | 2026 |
+| Expertne odhady | ORS mediany, sektorove/velkostne mediany, mikrofirmy | rev. 2026-07 |
 
 **Zname obmedzenia:**
 - Eurostat nepokryva firmy < 10 zamestnancov
-- ORS benchmarky su expertne odhady, nie empiricke
-- Data sa aktualizuju s 1-2 rocnym oneskorenim
+- ORS, sektorove a velkostne benchmarky su expertne odhady, nie empiricke
+- DII verzia premennych rotuje kazde 2 roky (v4/2024 vs. v3/2025) — data su ukotvene na jeden prieskumny rok
+- Benchmark sa aktualizuje rocne podla publikacie Eurostatu (december)
 
 ---
 
@@ -246,4 +247,4 @@ Proprietary. (c) PRAESTAR.
 
 ---
 
-<sub>Verzia: 1.0.0-pre-alpha | Metodika: DII-Compatible + ODRM v1.0-MVP | Benchmark: Eurostat DESI 2024</sub>
+<sub>Verzia: 1.1.0-pre-alpha | Metodika: DII-Compatible + ODRM v1.1-MVP | Benchmark: Eurostat DII 2025 (isoc_e_dii, 2025-DII-v3)</sub>

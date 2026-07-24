@@ -44,7 +44,7 @@ function calculateDIIBenchmark(
   percentile = Math.round(Math.min(99, Math.max(1, percentile)));
 
   const gap = Math.round((dii.score12 - countryData.diiMedianScore) * 10) / 10;
-  const label = getGapLabel(gap, country === 'SK' ? 'SK' : 'EÚ');
+  const label = getGapLabel(gap, country === 'SK' ? 'SK' : 'EÚ', 'dii12');
 
   return { percentile, gap, labelSk: label };
 }
@@ -63,7 +63,7 @@ function calculateSectorBenchmark(
 
   return {
     gap,
-    labelSk: getGapLabel(gap, sectorLabel),
+    labelSk: getGapLabel(gap, sectorLabel, 'dii12'),
   };
 }
 
@@ -89,11 +89,14 @@ function calculateORSSectorBenchmark(
   };
 }
 
-function getGapLabel(gap: number, context: string): string {
-  if (gap > 20) return `Výrazne nad priemerom ${context}`;
-  if (gap > 5) return `Nad priemerom ${context}`;
-  if (gap > -5) return `V okolí priemeru ${context}`;
-  if (gap > -20) return `Pod priemerom ${context}`;
+function getGapLabel(gap: number, context: string, scale: 'ors100' | 'dii12' = 'ors100'): string {
+  // Prahy ±5/±20 sú kalibrované na škálu 0-100; DII gap je na škále 0-12,
+  // preto sa prahy prepočítavajú v rovnakom pomere (5 % a 20 % z rozsahu).
+  const [minor, major] = scale === 'dii12' ? [0.6, 2.4] : [5, 20];
+  if (gap > major) return `Výrazne nad priemerom ${context}`;
+  if (gap > minor) return `Nad priemerom ${context}`;
+  if (gap > -minor) return `V okolí priemeru ${context}`;
+  if (gap > -major) return `Pod priemerom ${context}`;
   return `Výrazne pod priemerom ${context}`;
 }
 

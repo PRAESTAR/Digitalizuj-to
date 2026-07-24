@@ -69,7 +69,7 @@ export default function QuizSelector({ onSelect }: QuizSelectorProps) {
         <div className="relative">
           <div className="flex items-center gap-4 mb-5">
             <span className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-card-indigo text-white font-black text-xl shadow-lg shadow-indigo-500/25 group-hover:scale-110 transition-transform">
-              30+
+              45+
             </span>
             <div>
               <h3 className="text-xl font-bold text-slate-900">

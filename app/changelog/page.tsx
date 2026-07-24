@@ -37,6 +37,38 @@ const breadcrumbSchema = {
 
 const changelog = [
   {
+    version: '1.1.0-pre-alpha',
+    date: '2026-07-23',
+    sections: [
+      {
+        title: 'Zmenené',
+        type: 'added' as const,
+        items: [
+          {
+            title: 'Benchmark dáta aktualizované na Eurostat DII 2025',
+            description: 'Nahradené zastarané „DESI 2024" dáta — nový dataset 2025-DII-v3 (isoc_e_dii, prieskum 2025, DII verzia 3): SK 41,6/32,0/20,4/6,0 %, EÚ-27 27,9/34,5/27,5/10,1 % podľa pásiem intenzity; odvodené mediány SK 4,3 / EÚ 5,4.',
+          },
+          {
+            title: 'Metodika ukotvená na DII v3 (prieskum 2025)',
+            description: 'Opravená tabuľka 12 DII premenných, zdokumentovaná rotácia verzií (v4/2024 vs. v3/2025), korektné citovanie datasetu isoc_e_dii namiesto „DESI", ročná aktualizačná politika benchmarkov.',
+          },
+          {
+            title: 'ROI model — mzdové kotvy 2025/2026',
+            description: 'Hodinová cena práce naviazaná na Eurostat lc_lci_lev 2025 (SK 19,8 €/h), ŠÚ SR mzdy 2025 (1 620 €/mes.), odvodový multiplikátor 1,362; doplnený zdrojový apendix.',
+          },
+          {
+            title: 'Opravy scoringu a rizík',
+            description: 'Bezpečnostná penalizácia sa aplikuje len na meranú kategóriu E; risk index ignoruje „Neviem" odpovede a informačné otázky; benchmark gap prahy prepočítané pre DII škálu 0–12; transformačné odporúčania (12+ mes.) sa opäť zobrazujú.',
+          },
+          {
+            title: 'Otázková banka v1.1',
+            description: 'Doplnená možnosť „Nemáme žiadne z uvedeného" pri bezpečnostnej otázke, risk flagy v indikatívnom kvíze zosúladené s komplexným, kontext povinnej B2B e-fakturácie od 2027, opravené poradie otázok.',
+          },
+        ],
+      },
+    ],
+  },
+  {
     version: '1.0.0-pre-alpha',
     date: '2026-04-10',
     sections: [
@@ -109,7 +141,7 @@ const changelog = [
         title: 'Známe obmedzenia',
         type: 'known' as const,
         items: [
-          { title: 'Statické benchmark dáta', description: 'Eurostat DESI 2024 — neaktualizujú sa automaticky' },
+          { title: 'Statické benchmark dáta', description: 'Eurostat isoc_e_dii — aktualizujú sa manuálne podľa ročnej politiky' },
           { title: 'Expertné ORS benchmarky', description: 'ORS mediány sú odhady, nie empirické dáta' },
           { title: 'Zjednodušený ROI model', description: 'Iba úspory — nezahŕňa investičné náklady ani payback period' },
           { title: 'Mikrofirmy', description: 'Firmy s menej ako 10 zamestnancami nie sú pokryté Eurostatom' },

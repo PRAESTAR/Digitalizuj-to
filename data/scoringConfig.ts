@@ -1,8 +1,8 @@
 import type { ScoringConfig } from '@/types';
 
 export const scoringConfig: ScoringConfig = {
-  version: '1.1-MVP',
-  diiMethodologyVersion: 'DII v3 (Eurostat 2023, isoc_e_dii)',
+  version: '1.2-MVP',
+  diiMethodologyVersion: 'DII v3 (Eurostat isoc_e_dii, prieskum 2025)',
   categoryWeights: {
     A: 0.20,
     B: 0.20,
@@ -72,6 +72,10 @@ export const riskFactorDefinitions = [
   { id: 'RF12', name: 'Out-of-support aplikácie (nie core)', maxPenalty: 5, severity: 'medium' as const },
 ];
 
+// Reprezentatívne hodnoty pásiem z otázok ind_15 / cx_ROI01 (celková cena práce vrátane odvodov).
+// Kalibrácia: Eurostat lc_lci_lev 2025 — SK celé hospodárstvo 19,8 €/h (EÚ 34,9 €/h),
+// administratívne a podporné služby (NACE N) 15,2 €/h; ŠÚ SR priemerná hrubá mzda 2025: 1 620 €/mes;
+// multiplikátor odvodov zamestnávateľa od 1. 1. 2025: 1,362. Revízia: ročne (marcová publikácia Eurostatu).
 export const hourlyCostMap: Record<string, number> = {
   low: 12,
   medium: 20,
@@ -79,6 +83,9 @@ export const hourlyCostMap: Record<string, number> = {
   very_high: 55,
 };
 
+// Procesné benchmarky sú interné expertné odhady (frekvencie, časy, automatizovateľnosť) —
+// zatiaľ bez externého zdroja; každý výstup ROI ich označuje ako benchmark v audit traile.
+// TODO (checklist): doplniť zdroje (APQC/procesné štúdie) alebo kalibrovať z vlastných dát.
 export const processBenchmarks: Record<string, {
   frequencyPerMonth: Record<string, number>;
   timePerUnitMinutes: number;

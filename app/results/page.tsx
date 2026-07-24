@@ -227,8 +227,8 @@ export default function ResultsPage() {
   ),
   securityPenaltyApplied: result.ors.penaltyApplied,
   securityPenaltyReason: result.ors.penaltyReason,
-  benchmarkVersion: '2024-Q4',
-  scoringVersion: '1.0-MVP',
+  benchmarkVersion: result.modelVersion?.benchmarkDataVersion ?? 'n/a',
+  scoringVersion: result.modelVersion?.scoringConfigVersion ?? 'n/a',
 }, null, 2)}
               </pre>
             </details>
