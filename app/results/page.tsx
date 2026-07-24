@@ -82,6 +82,7 @@ export default function ResultsPage() {
           ors={result.ors}
           tdri={result.tdri}
           impact={result.businessImpact}
+          aiReadiness={result.aiReadiness}
         />
 
         {/* Radar chart + Executive Summary */}

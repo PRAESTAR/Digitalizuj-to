@@ -6,6 +6,19 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ---
 
+## [1.2.0-pre-alpha] — 2026-07-24
+
+### Pridané
+- **AI & Automatizácia Readiness Index (0-100)** — nový, 5. nezávislý výstup platformy popri DII/ORS/TDRI/Business Impact. Architektonicky rovnaký princíp ako Technical Debt & Risk Index: prierezový index počítaný z otázok naprieč kategóriami (nie samostatná 7. os ODRM radaru), s vlastnou kartou vo výsledkoch a vlastnými odporúčaniami. Zdôrazňuje digitalizáciu, automatizáciu a AI ako prioritnú tému platformy.
+  - Nová otázka `ind_15_ai` v indikatívnom kvíze (dovtedy sa AI v rýchlom screeningu vôbec nepýtalo).
+  - Nové otázky `cx_A06_ai_automation` (AI vs. pravidlová automatizácia, modul Procesy) a `cx_F07_ai_governance` (AI politika a zodpovednosť, modul Governance) v komplexnom kvíze.
+  - Existujúca otázka `cx_DII03` (využívanie AI) dotagovaná do nového `ai_readiness` bucketu.
+  - Nezmeraný stav (chýbajúce odpovede o AI) sa zobrazuje ako "nezmerané", nie ako skóre 0.
+- **Vizuálny redizajn hero sekcie na apple.com štýl** — svetlé pozadie, tmavý konzistentný nav bar (rovnaký na každej stránke), veľký nadpis s gradientovým akcentom, plávajúca náhľadová karta výsledkov, čierne "Buy"-style CTA tlačidlo. Opravený bug, kde telo stránky ignorovalo načítaný font a renderovalo sa v Arial/Helvetica; primárny font nahradený za Onest (SF Pro–podobné proporcie s plnou podporou slovenskej diakritiky).
+
+### Odstránené
+- **Otázka na hodinovú cenu práce** (`ind_15` v indikatívnom, `cx_ROI01` v komplexnom kvíze) — citlivý údaj, ktorý respondenti odhadovali nepresne a oba kvízy sa naň navyše pýtali s odlišnou definíciou (hrubá vs. plná cena). ROI model teraz vždy počíta s priemernou plnou hodinovou cenou práce na Slovensku (19,8 €/h, Eurostat `lc_lci_lev` 2025) namiesto self-reported hodnoty. Indikatívny kvíz má po tejto zmene (odobratá mzdová otázka, pridaná AI otázka) opäť 15 otázok.
+
 ## [1.1.0-pre-alpha] — 2026-07-23
 
 ### Zmenené

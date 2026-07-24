@@ -39,7 +39,7 @@ Odhaduje potenciálny business dopad digitalizácie na základe:
 | Premenná | Zdroj | Fallback |
 |----------|-------|----------|
 | `employee_count` | Otázka | Povinná — bez nej žiadny ROI výpočet |
-| `hourly_cost` | Otázka alebo pásmo | Benchmark podľa sektora |
+| `hourly_cost` | **Vždy fixný — priemer SR** | Nepýtame sa (citlivý údaj); pozri 2.2 |
 | `process_frequency` | Per-proces otázka | Benchmark podľa veľkosti a sektora |
 | `process_time_per_unit` | Per-proces otázka | Benchmark |
 | `manual_share` | Per-proces otázka | Odvodzuje sa z maturity levelu |
@@ -49,17 +49,13 @@ Odhaduje potenciálny business dopad digitalizácie na základe:
 
 ### 2.2 Benchmark fallback hodnoty
 
+> **Zmena (verzia 1.1):** Otázka na hodinovú cenu práce (`ind_15` / `cx_ROI01`) bola z dotazníka **odstránená** — je to citlivý údaj a väčšina respondentov ho odhaduje nepresne. ROI model teraz vždy počíta s priemernou hodinovou cenou práce na Slovensku (viď nižšie), nie so self-reported hodnotou. Toto zjednodušenie znižuje presnosť pre firmy s výrazne podpriemernými/nadpriemernými mzdami, ale zvyšuje completion rate a odstraňuje nekonzistenciu medzi definíciami "hrubá" vs. "plná" cena práce, ktorá predtým existovala medzi oboma kvízmi.
+
 ```json
 {
   "hourly_cost_eur": {
-    "default": 20,
-    "bands": {
-      "low": 12,
-      "medium": 20,
-      "high": 35,
-      "very_high": 55
-    },
-    "note": "Plná hodinová cena práce vrátane odvodov. Default 20 €/h zodpovedá SK priemeru za rok 2025 (Eurostat lc_lci_lev: 19,8 €/h, celé hospodárstvo, podniky 10+; admin/podporné služby NACE N: 15,2 €/h). Odvodový multiplikátor zamestnávateľa od 1. 1. 2025: 1,362. Pásma sú reprezentatívne hodnoty možností v otázkach ind_15/cx_ROI01."
+    "default": 19.8,
+    "note": "Plná hodinová cena práce vrátane odvodov — vždy priemer SR, nepýta sa ako otázka. Zdroj: Eurostat lc_lci_lev 2025, celé hospodárstvo, podniky 10+ (19,8 €/h; admin/podporné služby NACE N: 15,2 €/h). Odvodový multiplikátor zamestnávateľa od 1. 1. 2025: 1,362. Revízia: ročne (marcová publikácia Eurostatu)."
   },
   "process_benchmarks": {
     "invoicing": {
@@ -190,8 +186,8 @@ Kde:
   "assessment_id": "uuid",
   "inputs": {
     "employee_count": 45,
-    "hourly_cost_eur": 20,
-    "hourly_cost_source": "benchmark_default",
+    "hourly_cost_eur": 19.8,
+    "hourly_cost_source": "SK priemer (Eurostat 2025) — vždy fixné, nepýta sa",
     "processes_assessed": ["invoicing", "reporting", "approval_workflows"],
     "data_completeness": 0.65
   },

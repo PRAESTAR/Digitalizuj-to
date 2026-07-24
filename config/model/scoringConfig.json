@@ -1,7 +1,7 @@
 {
   "_comment": "Konfigurácia scoringového modelu digitalizuj.to — editovateľná verzia",
-  "_version": "1.2-MVP",
-  "_last_updated": "2026-07-23",
+  "_version": "1.3-MVP",
+  "_last_updated": "2026-07-24",
   "_diiMethodologyVersion": "DII v3 (Eurostat isoc_e_dii, prieskum 2025)",
 
   "categoryWeights": {
@@ -152,12 +152,9 @@
     }
   ],
 
-  "hourlyCostMap": {
-    "_comment": "Hodinová cena práce v EUR podľa pásma (vrátane odvodov). Kalibrácia: Eurostat lc_lci_lev 2025 — SK 19,8 €/h (NACE N: 15,2 €/h); odvodový multiplikátor 1,362 od 1.1.2025. Pásma = reprezentatívne hodnoty možností ind_15/cx_ROI01.",
-    "low": 12,
-    "medium": 20,
-    "high": 35,
-    "very_high": 55
+  "defaultHourlyCostEur": {
+    "_comment": "Hodinová cena práce sa už nepýta ako otázka (citlivý údaj) — vždy priemer SR. Zdroj: Eurostat lc_lci_lev 2025, celé hospodárstvo, plná cena práce vrátane odvodov zamestnávateľa (multiplikátor 1,362 od 1.1.2025).",
+    "value": 19.8
   },
 
   "processBenchmarks": {

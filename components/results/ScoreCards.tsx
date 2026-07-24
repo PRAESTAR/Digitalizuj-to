@@ -1,17 +1,18 @@
 'use client';
 
-import type { DIIScore, ORSScore, TDRIScore, BusinessImpact } from '@/types';
+import type { DIIScore, ORSScore, TDRIScore, BusinessImpact, AIReadinessScore } from '@/types';
 
 interface ScoreCardsProps {
   dii: DIIScore;
   ors: ORSScore;
   tdri: TDRIScore;
   impact: BusinessImpact;
+  aiReadiness: AIReadinessScore;
 }
 
-export default function ScoreCards({ dii, ors, tdri, impact }: ScoreCardsProps) {
+export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: ScoreCardsProps) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 stagger-children">
       {/* DII Score */}
       <div className="group bg-white rounded-3xl border border-slate-100 p-6 shadow-lg shadow-blue-500/5 hover-lift card-shine relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-card-blue" />
@@ -38,6 +39,48 @@ export default function ScoreCards({ dii, ors, tdri, impact }: ScoreCardsProps) 
               style={{ width: `${Math.max(dii.score100, 2)}%` }}
             />
           </div>
+        </div>
+      </div>
+
+      {/* AI & Automatizácia Readiness */}
+      <div className="group bg-white rounded-3xl border border-slate-100 p-6 shadow-lg shadow-violet-500/5 hover-lift card-shine relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-card-violet" />
+        <div className="absolute -top-6 -right-6 w-20 h-20 bg-violet-500/5 rounded-full blur-xl" />
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-card-violet flex items-center justify-center text-white text-[10px] font-black group-hover:scale-110 transition-transform shadow-md shadow-violet-500/30">
+              AI
+            </div>
+            <span className="text-sm font-medium text-slate-500">AI Readiness</span>
+          </div>
+          {aiReadiness.measured && aiReadiness.score !== null ? (
+            <>
+              <div className="flex items-baseline gap-2 animate-count-up">
+                <span className="text-4xl font-black bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+                  {Math.round(aiReadiness.score)}
+                </span>
+                <span className="text-sm text-slate-400 font-medium">/100</span>
+              </div>
+              <div className="text-xs text-slate-500 mt-2 font-medium">
+                {aiReadiness.levelLabelSk}
+              </div>
+              <div className="mt-3 h-2.5 rounded-full bg-slate-100 overflow-hidden shadow-inner">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 progress-striped transition-all duration-1000 ease-out"
+                  style={{ width: `${Math.max(aiReadiness.score, 2)}%` }}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-2xl font-black text-slate-300">
+                &ndash;
+              </div>
+              <div className="text-xs text-slate-400 mt-2 font-medium">
+                Nezmerané &mdash; chýbajú odpovede o AI
+              </div>
+            </>
+          )}
         </div>
       </div>
 

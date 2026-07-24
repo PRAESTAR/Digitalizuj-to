@@ -7,7 +7,7 @@ interface ExecutiveSummaryProps {
 }
 
 export default function ExecutiveSummary({ result }: ExecutiveSummaryProps) {
-  const { ors, tdri, dii, recommendations } = result;
+  const { ors, tdri, dii, aiReadiness, recommendations } = result;
 
   return (
     <div className="bg-white rounded-3xl border border-slate-100 shadow-lg shadow-slate-200/50 p-8 relative overflow-hidden animate-fade-in-up">
@@ -46,6 +46,20 @@ export default function ExecutiveSummary({ result }: ExecutiveSummaryProps) {
             Z pohľadu digitálnej intenzity (DII) dosahujete{' '}
             <strong>{dii.score12}/12 bodov</strong>, čo zodpovedá úrovni{' '}
             <strong>&ldquo;{dii.levelLabelSk}&rdquo;</strong>.
+          </p>
+
+          <p>
+            V oblasti umelej inteligencie a automatizácie ste na úrovni{' '}
+            {aiReadiness.measured && aiReadiness.score !== null ? (
+              <>
+                <strong className="bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+                  &ldquo;{aiReadiness.levelLabelSk}&rdquo;
+                </strong>{' '}
+                (<strong>{Math.round(aiReadiness.score)}/100</strong>).
+              </>
+            ) : (
+              <>nezmeranej — v dotazníku ste nezodpovedali otázky o využívaní AI.</>
+            )}
           </p>
 
           {tdri.score > 35 && (

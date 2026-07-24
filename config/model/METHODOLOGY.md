@@ -311,6 +311,26 @@ Detailný popis je v `SCORING_SPEC.md`. Tu je prehľad:
 - Každý risk faktor má severity weight.
 - Index sa počíta ako suma penalizácií, normalizovaná na 0–100.
 
+### 5.4 AI & Automatizácia Readiness Index (0–100)
+
+**Účel:** Digitalizácia, automatizácia a nasadzovanie AI sú pre platformu prioritnou témou — namiesto zaradenia AI ako podkategórie jednej z 6 ODRM oblastí je preto **samostatným prierezovým výstupom**, architektonicky rovnakým ako Technical Debt & Risk Index (5.3): nezávislý index počítaný z otázok naprieč viacerými kategóriami, nie jedna zo 6 kategórií v radare.
+
+**Prečo nie 7. kategória ODRM?** Pridanie novej kategórie by si vyžiadalo prerozdelenie váh existujúcich 6 kategórií, novú os v radarovom grafe a nový benchmark bez akejkoľvek Eurostat opory (na rozdiel od DII, kde je AI oficiálny indikátor #11). Prierezový index dáva AI plnú viditeľnosť (vlastná karta vo výsledkoch, vlastné odporúčania) bez oslabenia už zavedenej a s Eurostatom zosúladenej 6-osovej štruktúry.
+
+**Vstupné otázky** (označené `ai_readiness` v `maps_to_score`):
+- Indikatívny kvíz: `ind_15_ai` — využívanie AI nástrojov (zároveň oficiálny DII indikátor #11).
+- Komplexný kvíz: `cx_DII03` (využívanie AI), `cx_A06_ai_automation` (AI vs. pravidlová automatizácia procesov, kategória A), `cx_F07_ai_governance` (AI politika a zodpovednosť, kategória F).
+
+**Výpočet:** vážený priemer skóre zodpovedaných `ai_readiness` otázok (rovnaká logika ako kategóriové skóre v ORS). Nezmeraný stav (žiadna zodpovedaná otázka) vracia `null`, nie 0 — neznalosť sa nezobrazuje ako "žiadne využitie AI".
+
+**Pásma:**
+| Skóre | Úroveň |
+|-------|--------|
+| 0–25 | Bez využitia AI |
+| 26–55 | Experimentálne využitie AI |
+| 56–80 | Pokročilé využitie AI |
+| 81–100 | AI ako súčasť stratégie |
+
 ### 5.4 Business Impact Potential
 
 - Odhaduje: ušetrené hodiny/MD/€ ročne, redukciu rizika, opportunity gap.
@@ -337,6 +357,10 @@ ročný_€_dopad = ušetrené_hodiny × plná_hodinová_cena
 - Výstup obsahuje: konzervatívny odhad, stredný odhad, hrubý potenciál.
 - Risk-adjusted faktor zohľadňuje neistotu.
 - Pri každom čísle je jasné, z čoho vzniklo.
+
+### 6.3 Hodinová cena práce — vždy benchmark, nie otázka
+
+Dotazník sa **nepýta** na hodinovú cenu práce vo firme — je to citlivý údaj, respondenti ho odhadujú nepresne, a v praxi spôsoboval nekonzistenciu (indikatívny a komplexný kvíz sa pýtali na odlišne definovanú cenu — hrubú vs. plnú). Namiesto toho ROI model vždy počíta s **priemernou plnou hodinovou cenou práce na Slovensku** (Eurostat `lc_lci_lev`, aktuálne 19,8 €/h — pozri `ROI_MODEL.md` §7). Toto je vedomý trade-off: nižšia presnosť pre firmy s výrazne pod-/nadpriemernými mzdami výmenou za vyššiu completion rate a jednoduchší, dôveryhodnejší dotazník.
 
 ---
 
@@ -479,7 +503,7 @@ Pre MVP používame **statické benchmark hodnoty** odvodené z verejných Euros
 - ⚠️ Váhy kategórií sú expertný odhad, nie empiricky validované (chýba sensitivity analýza — viď checklist)
 - ⚠️ DII mapovanie je aproximácia originálneho Eurostat modelu; MVP navyše priemeruje otázky bez per-indikátorovej agregácie (DII1–DII12)
 - ⚠️ Benchmark hodnoty sú statické (Eurostat isoc_e_dii 2025 + expertné odhady), verzované, s ročnou aktualizačnou politikou
-- ⚠️ ROI model používa zjednodušené predpoklady (bez investičných nákladov a adopčnej krivky; výstup = ročný run-rate po plnej implementácii)
+- ⚠️ ROI model používa zjednodušené predpoklady (bez investičných nákladov a adopčnej krivky; výstup = ročný run-rate po plnej implementácii); hodinová cena práce je vždy fixný priemer SR, nie self-reported hodnota (viď 6.3)
 - ⚠️ Niektoré otázky mapujú súčasne DII aj ODRM vrstvu — prekryv vrstiev zatiaľ nie je zdokumentovaný per otázka (riziko korelácie vrstiev „by construction")
 
 ### Otvorené pre budúcnosť

@@ -16,6 +16,7 @@ Firma vyplni adaptivny dotaznik (15 alebo 45+ otazok) a dostane:
 |--------|--------|------|
 | **DII-Compatible Score** | 0-100 (+ prepocet 0-12) | Porovnanie s EU benchmark |
 | **Operational Readiness Score** | 0-100 | Realna prevadzkova zrelost |
+| **AI & Automatizacia Readiness** | 0-100 | Uroven vyuzitia AI a automatizacie |
 | **Technical Debt & Risk Index** | 0-100 (vyssie = horsie) | Bezpecnostne a technologicke rizika |
 | **Business Impact Potential** | hodiny/MD/EUR rocne | Odhad uspor s 3 scenarmi |
 
@@ -167,7 +168,7 @@ digitalizuj/
 - Moznost "Neviem" pri kazdej otazke s transparentnym handlingom
 
 ### Scoring engine
-- **4 nezavisle vystupy** — DII, ORS, TDRI, Business Impact
+- **5 nezavislych vystupov** — DII, ORS, AI & Automatizacia Readiness, TDRI, Business Impact
 - **Bezpecnostna penalizacia** — ak kategoria E < 30 bodov, ORS sa penalizuje az -30 %
 - **12 risk faktorov** (RF01-RF12) s critical/high/medium severity
 - Kazde skore je spatne rozlozitelne na odpovede a pravidla (audit trail)

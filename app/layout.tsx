@@ -1,12 +1,15 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Onest, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { AssessmentProvider } from '@/context/AssessmentContext';
 import SiteHeader from '@/components/ui/SiteHeader';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
+// Onest — variable, SF Pro–ublízke geometrické proporcie, plná podpora
+// slovenskej diakritiky (latin-ext). Nesie primárnu typografiu celej stránky.
+const onest = Onest({
+  variable: '--font-onest',
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '500', '600', '700', '800'],
 });
 
 const geistMono = Geist_Mono({
@@ -93,10 +96,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#4f46e5' },
-    { media: '(prefers-color-scheme: dark)', color: '#312e81' },
-  ],
+  themeColor: '#1d1d1f',
   colorScheme: 'light',
 };
 
@@ -156,7 +156,7 @@ export default function RootLayout({
   return (
     <html
       lang="sk"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${onest.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-slate-900">
         <script

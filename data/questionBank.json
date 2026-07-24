@@ -1,7 +1,7 @@
 {
-  "version": "1.1-MVP",
+  "version": "1.3-MVP",
   "model_name": "Adaptívny model DAP",
-  "last_updated": "2026-07-23",
+  "last_updated": "2026-07-24",
   "indicative_quiz": {
     "id": "indicative_v1",
     "name": "Indikatívny kvíz",
@@ -388,24 +388,24 @@
         "allow_unknown": true
       },
       {
-        "id": "ind_15",
-        "category": "meta",
-        "dimension": "roi_input",
-        "question_sk": "Aká je priemerná celková hodinová cena práce vo vašej firme (vrátane odvodov)?",
+        "id": "ind_15_ai",
+        "category": "dii",
+        "dimension": "ai_usage",
+        "question_sk": "Používate vo firme nástroje s umelou inteligenciou (napr. ChatGPT, Copilot, AI automatizácia)?",
         "question_type": "single_choice",
-        "weight": 0,
+        "weight": 1.0,
         "options": [
-          { "value": "low", "label": "Do 15 €/hod (manuálna práca, výroba)", "score": 0 },
-          { "value": "medium", "label": "15–25 €/hod (admin, bežné pozície)", "score": 0 },
-          { "value": "high", "label": "25–40 €/hod (špecialisti, technici)", "score": 0 },
-          { "value": "very_high", "label": "Nad 40 €/hod (manažéri, IT špecialisti)", "score": 0 }
+          { "value": "none", "label": "Nie, nevyužívame AI", "score": 0 },
+          { "value": "experimenting", "label": "Experimentujeme (ChatGPT, Copilot...)", "score": 33 },
+          { "value": "production", "label": "Používame AI v produkcii pre konkrétne procesy", "score": 66 },
+          { "value": "strategic", "label": "AI je strategická súčasť nášho podnikania", "score": 100 }
         ],
         "branching_rules": [],
         "evidence_type": "direct",
-        "maps_to_score": [],
+        "maps_to_score": ["dii", "ai_readiness"],
         "maps_to_risk": [],
-        "maps_to_roi_model": ["hourly_cost"],
-        "tooltip": "Celková cena práce = hrubá mzda + odvody zamestnávateľa (×1,362). Priemer SR 2025 podľa Eurostatu ≈ 19,8 €/hod. Ak neviete presne, vyberte najbližšie pásmo.",
+        "maps_to_roi_model": [],
+        "tooltip": "Vrátane chatbotov, automatizácie, prediktívnych modelov, generatívnej AI. Toto je zároveň oficiálny DII indikátor (Eurostat).",
         "allow_unknown": true
       }
     ]
@@ -606,6 +606,27 @@
             "maps_to_risk": [],
             "maps_to_roi_model": ["manual_processes"],
             "tooltip": "Vyberte všetky, ktoré sú stále prevažne manuálne.",
+            "allow_unknown": true
+          },
+          {
+            "id": "cx_A06_ai_automation",
+            "category": "A",
+            "dimension": "ai_automation",
+            "question_sk": "Využívate pri automatizácii procesov umelú inteligenciu (nie len pevné pravidlá/skripty)?",
+            "question_type": "single_choice",
+            "weight": 1.0,
+            "options": [
+              { "value": "none", "label": "Automatizáciu nevyužívame vôbec", "score": 0 },
+              { "value": "rules_only", "label": "Len jednoduché pravidlá/skripty (bez AI)", "score": 40 },
+              { "value": "ai_assisted", "label": "AI nám pomáha pri časti procesov (návrhy, kategorizácia, sumarizácia)", "score": 70 },
+              { "value": "ai_driven", "label": "AI aktívne riadi/vykonáva časti procesov (agenti, autonómne rozhodovanie)", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_A", "ai_readiness"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": "Rozdiel oproti bežnej automatizácii: AI dokáže spracovať neštruktúrované vstupy a robiť odhady, nielen vykonávať pevne dané kroky.",
             "allow_unknown": true
           }
         ]
@@ -1394,6 +1415,27 @@
             "maps_to_roi_model": [],
             "tooltip": null,
             "allow_unknown": true
+          },
+          {
+            "id": "cx_F07_ai_governance",
+            "category": "F",
+            "dimension": "ai_governance",
+            "question_sk": "Máte vo firme jasné pravidlá a zodpovednosť za používanie AI (governance, školenia, zodpovedná osoba)?",
+            "question_type": "single_choice",
+            "weight": 1.0,
+            "options": [
+              { "value": "none", "label": "Nemáme žiadne pravidlá ani zodpovednosť", "score": 0 },
+              { "value": "informal", "label": "Používame AI neformálne, bez pravidiel", "score": 30 },
+              { "value": "basic_rules", "label": "Máme základné pravidlá (čo sa smie/nesmie)", "score": 60 },
+              { "value": "governed", "label": "Máme AI politiku, školenia aj zodpovednú osobu", "score": 100 }
+            ],
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": ["ors_F", "ai_readiness"],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": "AI politika = jasné pravidlá, čo sa smie robiť s firemnými/zákazníckymi dátami pri použití AI nástrojov.",
+            "allow_unknown": true
           }
         ]
       },
@@ -1402,27 +1444,6 @@
         "name": "Dopadové údaje",
         "category": "meta",
         "questions": [
-          {
-            "id": "cx_ROI01",
-            "category": "meta",
-            "dimension": "roi_input",
-            "question_sk": "Aká je priemerná plná hodinová cena práce vo firme (vrátane odvodov)?",
-            "question_type": "single_choice",
-            "weight": 0,
-            "options": [
-              { "value": "low", "label": "Do 15 €/hod", "score": 0 },
-              { "value": "medium", "label": "15–25 €/hod", "score": 0 },
-              { "value": "high", "label": "25–40 €/hod", "score": 0 },
-              { "value": "very_high", "label": "Nad 40 €/hod", "score": 0 }
-            ],
-            "branching_rules": [],
-            "evidence_type": "direct",
-            "maps_to_score": [],
-            "maps_to_risk": [],
-            "maps_to_roi_model": ["hourly_cost"],
-            "tooltip": "Ak neviete presne, vyberte najbližšie pásmo. Použijeme ho na odhad finančného dopadu.",
-            "allow_unknown": true
-          },
           {
             "id": "cx_ROI02",
             "category": "meta",
@@ -1551,7 +1572,7 @@
             ],
             "branching_rules": [],
             "evidence_type": "direct",
-            "maps_to_score": ["dii"],
+            "maps_to_score": ["dii", "ai_readiness"],
             "maps_to_risk": [],
             "maps_to_roi_model": [],
             "tooltip": "Vrátane chatbotov, automatizácie, prediktívnych modelov, generatívnej AI.",

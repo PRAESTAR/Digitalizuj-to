@@ -1,13 +1,12 @@
 import type { Answer, BusinessImpact, CalculationAuditEntry, Question } from '@/types';
 import {
-  hourlyCostMap,
+  defaultHourlyCostEur,
   processBenchmarks,
   manualShareFromMaturity,
 } from '@/data/scoringConfig';
 
 interface ROIInputs {
   employeeCountBand: string;
-  hourlyCostBand: string;
   maturityLevel: number;
   manualProcesses: string[];
   invoicingVolumeBand: string;
@@ -20,7 +19,8 @@ export function calculateBusinessImpact(
   questions: Question[],
   inputs: ROIInputs
 ): BusinessImpact {
-  const hourlyCost = hourlyCostMap[inputs.hourlyCostBand] || hourlyCostMap.medium;
+  // Hodinová cena práce sa nepýta ako otázka — vždy priemer SR (viď data/scoringConfig.ts).
+  const hourlyCost = defaultHourlyCostEur;
   const manualShare = manualShareFromMaturity[inputs.maturityLevel] ?? 0.65;
   const sizeBand = inputs.employeeCountBand || 'small';
 
@@ -141,7 +141,7 @@ export function calculateBusinessImpact(
   const disclaimers = [
     'Odhad je založený na kombinácii self-reported dát a sektorových benchmarkov.',
     'Reálny dopad závisí od kvality implementácie a organizačnej pripravenosti.',
-    `Hodinová cena práce: ${hourlyCost} €/hod (${inputs.hourlyCostBand === 'medium' ? 'benchmark hodnota' : 'z odpovede'}).`,
+    `Hodinová cena práce: ${hourlyCost} €/hod (priemer SR, Eurostat 2025 — nie vstup od firmy).`,
     'Konzervatívny scenár predpokladá 40% realizáciu identifikovaného potenciálu.',
     'Odhad chýb a reworku vychádza zo sektorových benchmarkov chybovosti procesov.',
   ];
@@ -270,7 +270,6 @@ export function extractROIInputs(
 
   return {
     employeeCountBand: getAnswerValue('ind_02') || getAnswerValue('cx_02') || 'small',
-    hourlyCostBand: getAnswerValue('ind_15') || getAnswerValue('cx_ROI01') || 'medium',
     maturityLevel,
     manualProcesses: manualProcs.filter(p => p !== 'none'),
     invoicingVolumeBand: getAnswerValue('cx_ROI03') || 'medium',

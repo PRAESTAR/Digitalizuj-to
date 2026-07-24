@@ -12,6 +12,7 @@ import {
 } from '@/engines/questionEngine';
 import { calculateDII, calculateORS } from '@/engines/scoringEngine';
 import { calculateTDRI } from '@/engines/riskEngine';
+import { calculateAIReadiness } from '@/engines/aiReadinessEngine';
 import { calculateBusinessImpact, extractROIInputs } from '@/engines/roiEngine';
 import { calculateBenchmarks } from '@/engines/benchmarkEngine';
 import { generateRecommendations } from '@/engines/recommendationEngine';
@@ -153,6 +154,7 @@ function computeResult(assessment: Assessment, questions: Question[]): ResultSna
   const dii = calculateDII(answers, questions);
   const ors = calculateORS(answers, questions);
   const tdri = calculateTDRI(answers, questions, riskFlags);
+  const aiReadiness = calculateAIReadiness(answers, questions);
 
   const roiInputs = extractROIInputs(answers, questions, ors.categories['F']?.score ?? 0);
   const businessImpact = calculateBusinessImpact(answers, questions, roiInputs);
@@ -163,7 +165,7 @@ function computeResult(assessment: Assessment, questions: Question[]): ResultSna
     respondent.employeeCountBand || 'small'
   );
 
-  const recommendations = generateRecommendations(answers, questions, ors, tdri, dii);
+  const recommendations = generateRecommendations(answers, questions, ors, tdri, dii, aiReadiness);
 
   const modelVersion: ModelVersionInfo = {
     questionBankVersion: questionBankJson.version || '1.0-MVP',
@@ -179,6 +181,7 @@ function computeResult(assessment: Assessment, questions: Question[]): ResultSna
     dii,
     ors,
     tdri,
+    aiReadiness,
     businessImpact,
     benchmarks,
     recommendations,

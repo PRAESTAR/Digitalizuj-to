@@ -1,8 +1,25 @@
 # Celkový checklist vylepšení — digitalizuj.to
 
-> Dátum: 2026-07-23
+> Dátum: 2026-07-24 (revízia; pôvodný audit 2026-07-23)
 > Zdroj: hĺbkový audit metodiky (6 oblastí: metodika, scoring, benchmark, ROI, odporúčania, otázková banka) + overenie aktuálnych dát (Eurostat isoc_e_dii 2025, State of the Digital Decade 2026, ŠÚ SR / Eurostat mzdové dáta 2025-2026).
 > Priorita: **P0** = podkopáva obhájiteľnosť/správnosť, riešiť najskôr · **P1** = významné metodické/funkčné medzery · **P2** = kvalita, dôveryhodnosť, roadmapa.
+
+---
+
+## ✅ Hotové v revízii 2026-07-24 (v1.2–1.3)
+
+### Vizuál
+- [x] Hero sekcia prerobená na apple.com štýl — svetlé pozadie, konzistentný tmavý nav bar na celej stránke (nie len na homepage), gradientový akcent v nadpise, plávajúca karta s náhľadom výsledkov, čierne "Buy"-štýl CTA; mäkký prechod header→body (namiesto ostrej hranice)
+- [x] Opravený font bug — telo stránky renderovalo natvrdo v Arial/Helvetica, ignorujúc načítaný font; nový primárny font Onest (SF Pro–podobné proporcie, plná slovenská diakritika)
+
+### AI & Automatizácia Readiness Index
+- [x] Nový 5. nezávislý výstup (0–100), architektonicky rovnaký ako TDRI (prierezový index naprieč otázkami, nie 7. os ODRM radaru — 6-osový radar a Eurostat benchmark zostávajú nedotknuté)
+- [x] Vlastná karta vo výsledkoch, vlastný odsek v Executive Summary, vlastné odporúčania (quick win pri nízkom skóre, strategické "rozšírte do produkcie"/"formalizujte governance" pri vyššom)
+- [x] Nová otázka `ind_15_ai` v indikatívnom kvíze (dovtedy sa AI v rýchlom screeningu nepýtalo vôbec); `cx_A06_ai_automation` a `cx_F07_ai_governance` v komplexnom kvíze; `cx_DII03` dotagovaná
+- [x] Nezmeraný stav = `null`, nie skóre 0 (rovnaká oprava ako odporúčaná pre DII/ORS nižšie v P0)
+
+### ROI model — hodinová cena práce
+- [x] **Otázka na hodinovú cenu práce úplne odstránená** (`ind_15`, `cx_ROI01`) — citlivý údaj, nepresné odhady, navyše nekonzistentná definícia medzi kvízmi (hrubá vs. plná cena). ROI teraz vždy počíta s priemernou plnou hodinovou cenou práce na Slovensku (19,8 €/h, Eurostat `lc_lci_lev` 2025) — vedomý trade-off nižšej presnosti za vyššiu completion rate a jednoduchší dotazník (zdokumentované v METHODOLOGY.md §6.3)
 
 ---
 
@@ -37,7 +54,7 @@
 ### Otázková banka (v1.1)
 - [x] ind_10: pridaná exkluzívna možnosť „Nemáme žiadne z uvedeného" — firmy bez opatrení môžu odpovedať pravdivo a risk flagy (RF02/RF04/RF05) sa korektne spustia
 - [x] ind_09: flag_risk `eol` → RF01 (zosúladené s cx_D03_server); ind_11: flag_risk `disaster` → RF02+RF09, `major_impact` → RF09
-- [x] ind_15 zjednotená s cx_ROI01 na plnú cenu práce vrátane odvodov (predtým hrubá vs. plná — ~36 % rozdiel do rovnakej mapy)
+- [x] ~~ind_15 zjednotená s cx_ROI01~~ → **obe otázky odstránené** (2026-07-24): hodinová cena práce sa už nepýta, ROI vždy počíta s priemerom SR (viď revízia 1.3 nižšie) — pôvodná nekonzistencia hrubá/plná cena je tým odstránená natrvalo, nie len opravená
 - [x] Opravené poradie ind_12 (bolo za ind_14); cx_C01 skip-reason opravený; ISDOC (český formát) → UBL/EN 16931 + kontext povinnej B2B e-fakturácie 2027
 - [x] Kópie `data/` ↔ `config/model/` zosynchronizované (questionBank drift 8 dní; broken sync cesta `src/data/` v README opravená)
 
@@ -105,7 +122,7 @@
 - [ ] Hardcoded scoring parametre do configu (DII level cutoffs 3/6/9, binárne prahy, 0,25 confidence cutoff, indikátorov 12)
 - [ ] Mikrofirmy: UI caveat pri DII porovnaní (Eurostat 10+); size-conditional scoring kotvy pre governance/ICT otázky
 - [ ] Zjednotiť verzie hlavičiek spec dokumentov s configom (spec 2.0 rekonciliácia) a viesť changelog zmien modelu
-- [ ] Ročný proces: december — Eurostat isoc_e_dii release → aktualizovať benchmarkData (obe kópie) + METHODOLOGY referenčné hodnoty; marec — lc_lci_lev/ŠÚ SR → hourlyCostMap poznámky a ROI_MODEL §7
+- [ ] Ročný proces: december — Eurostat isoc_e_dii release → aktualizovať benchmarkData (obe kópie) + METHODOLOGY referenčné hodnoty; marec — lc_lci_lev/ŠÚ SR → `defaultHourlyCostEur` a ROI_MODEL §7
 - [ ] Sledovať publikáciu State of the Digital Decade 2027 (jún 2027) a prípadnú zmenu DII na v4 v prieskume 2026 (december 2026!) — otázky DII vrstvy bude treba premapovať
 
 ---

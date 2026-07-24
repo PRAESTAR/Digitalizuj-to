@@ -1,7 +1,7 @@
 import type { ScoringConfig } from '@/types';
 
 export const scoringConfig: ScoringConfig = {
-  version: '1.2-MVP',
+  version: '1.3-MVP',
   diiMethodologyVersion: 'DII v3 (Eurostat isoc_e_dii, prieskum 2025)',
   categoryWeights: {
     A: 0.20,
@@ -41,6 +41,17 @@ export const diiLevelLabels: Record<string, string> = {
   very_high: 'Veľmi vysoká digitálna intenzita',
 };
 
+// AI & Automatizácia Readiness — prierezový index (rovnaká logika ako TDRI),
+// počítaný z otázok naprieč kategóriami A/F/DII označených 'ai_readiness'.
+export const aiReadinessThresholds = [25, 55, 80];
+
+export const aiReadinessLabels: Record<string, string> = {
+  ziadna: 'Bez využitia AI',
+  experimentalna: 'Experimentálne využitie AI',
+  pokrocila: 'Pokročilé využitie AI',
+  strategicka: 'AI ako súčasť stratégie',
+};
+
 export const riskLevelLabels: Record<string, string> = {
   low: 'Dobre riadené',
   medium: 'Vyžaduje pozornosť',
@@ -72,16 +83,13 @@ export const riskFactorDefinitions = [
   { id: 'RF12', name: 'Out-of-support aplikácie (nie core)', maxPenalty: 5, severity: 'medium' as const },
 ];
 
-// Reprezentatívne hodnoty pásiem z otázok ind_15 / cx_ROI01 (celková cena práce vrátane odvodov).
-// Kalibrácia: Eurostat lc_lci_lev 2025 — SK celé hospodárstvo 19,8 €/h (EÚ 34,9 €/h),
-// administratívne a podporné služby (NACE N) 15,2 €/h; ŠÚ SR priemerná hrubá mzda 2025: 1 620 €/mes;
-// multiplikátor odvodov zamestnávateľa od 1. 1. 2025: 1,362. Revízia: ročne (marcová publikácia Eurostatu).
-export const hourlyCostMap: Record<string, number> = {
-  low: 12,
-  medium: 20,
-  high: 35,
-  very_high: 55,
-};
+// Hodinová cena práce pre ROI výpočet — už sa nepýtame firmu (citlivý údaj, zbytočná
+// záťaž respondenta); vždy používame priemer SR, keďže ROI má slúžiť ako orientačný
+// odhad, nie presnú kalkuláciu na základe interných mzdových dát.
+// Zdroj: Eurostat lc_lci_lev 2025 — SK celé hospodárstvo, plná cena práce vrátane
+// odvodov zamestnávateľa (multiplikátor 1,362 od 1. 1. 2025). EÚ priemer pre kontext: 34,9 €/h.
+// Revízia: ročne (marcová publikácia Eurostatu).
+export const defaultHourlyCostEur = 19.8;
 
 // Procesné benchmarky sú interné expertné odhady (frekvencie, časy, automatizovateľnosť) —
 // zatiaľ bez externého zdroja; každý výstup ROI ich označuje ako benchmark v audit traile.

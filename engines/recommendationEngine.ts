@@ -4,6 +4,7 @@ import type {
   ORSScore,
   TDRIScore,
   DIIScore,
+  AIReadinessScore,
   Recommendations,
   Recommendation,
   Strength,
@@ -14,13 +15,21 @@ export function generateRecommendations(
   questions: Question[],
   ors: ORSScore,
   tdri: TDRIScore,
-  dii: DIIScore
+  dii: DIIScore,
+  aiReadiness?: AIReadinessScore
 ): Recommendations {
   const criticalRisks = generateCriticalRisks(tdri);
   const quickWins = generateQuickWins(ors, answers, questions);
   const strategic = generateStrategic(ors, answers, questions);
+  const aiRec = generateAIRecommendation(aiReadiness);
+  if (aiRec) {
+    if (aiRec.type === 'quick_win') quickWins.push(aiRec);
+    else strategic.push(aiRec);
+    quickWins.sort((a, b) => b.priorityScore - a.priorityScore);
+    strategic.sort((a, b) => b.priorityScore - a.priorityScore);
+  }
   const longTerm = generateLongTerm(ors, dii, answers);
-  const strengths = generateStrengths(ors, tdri, dii);
+  const strengths = generateStrengths(ors, tdri, dii, aiReadiness);
 
   // Build roadmap
   const roadmap = {
@@ -293,10 +302,58 @@ function generateLongTerm(
   return recs;
 }
 
+function generateAIRecommendation(aiReadiness?: AIReadinessScore): Recommendation | null {
+  if (!aiReadiness || !aiReadiness.measured || aiReadiness.score === null) return null;
+
+  if (aiReadiness.score <= 25) {
+    return {
+      id: 'rec_ai_start',
+      type: 'quick_win',
+      category: 'AI',
+      titleSk: 'Začnite experimentovať s AI nástrojmi',
+      descriptionSk: 'Nasaďte AI asistenta (napr. ChatGPT, Copilot) na jeden konkrétny opakujúci sa proces — reporting, odpovede zákazníkom, sumarizácia dokumentov. Rýchly, lacný spôsob ako overiť prínos bez veľkej investície.',
+      urgency: 3, impact: 4, effort: 1,
+      priorityScore: 12,
+      horizon: '0-3 mesiace',
+      triggeredBy: [], sourceAnswers: [],
+      expectedOutcome: 'Prvá overená AI aplikácia a základ pre ďalšie kroky',
+    };
+  }
+
+  if (aiReadiness.score <= 55) {
+    return {
+      id: 'rec_ai_scale',
+      type: 'strategic',
+      category: 'AI',
+      titleSk: 'Rozšírte AI z experimentov do produkcie',
+      descriptionSk: 'Vyberte 2-3 procesy s najvyšším potenciálom (fakturácia, zákaznícka podpora, reporting) a nasaďte AI produkčne s meraním prínosu. Zaveďte aj základné pravidlá používania.',
+      urgency: 3, impact: 4, effort: 3,
+      priorityScore: 4,
+      horizon: '3-12 mesiacov',
+      triggeredBy: [], sourceAnswers: [],
+      expectedOutcome: 'AI ako súčasť bežnej prevádzky, nie len experiment',
+    };
+  }
+
+  return {
+    id: 'rec_ai_govern',
+    type: 'strategic',
+    category: 'AI',
+    titleSk: 'Formalizujte AI governance',
+    descriptionSk: 'Máte solídne využitie AI — doplňte formálnu politiku (dátová bezpečnosť, zodpovedná osoba, školenia), aby rast využitia AI nepredbehol riadenie rizík.',
+    urgency: 2, impact: 3, effort: 2,
+    priorityScore: 3,
+    horizon: '3-12 mesiacov',
+    triggeredBy: [], sourceAnswers: [],
+    expectedOutcome: 'Bezpečné a riadené škálovanie AI naprieč firmou',
+  };
+}
+
 function generateStrengths(
   ors: ORSScore,
   tdri: TDRIScore,
-  dii: DIIScore
+  dii: DIIScore,
+  aiReadiness?: AIReadinessScore
 ): Strength[] {
   const strengths: Strength[] = [];
 
@@ -320,6 +377,13 @@ function generateStrengths(
     strengths.push({
       category: 'DII',
       descriptionSk: 'Vysoká digitálna intenzita — aktívne využívanie digitálnych nástrojov',
+    });
+  }
+
+  if (aiReadiness?.measured && aiReadiness.score !== null && aiReadiness.score >= 70) {
+    strengths.push({
+      category: 'AI',
+      descriptionSk: 'Vyspelé využitie AI — firma je v tejto oblasti pred väčšinou trhu',
     });
   }
 

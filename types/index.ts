@@ -166,6 +166,21 @@ export interface RiskFactor {
   sourceAnswers: string[];
 }
 
+/**
+ * AI & Automatizácia Readiness — prierezový index (rovnaká architektúra ako TDRI):
+ * počíta sa z otázok naprieč kategóriami A/F/DII označených 'ai_readiness',
+ * nie je jednou zo 6 ODRM kategórií ani nemení radar/benchmark.
+ */
+export interface AIReadinessScore {
+  score: number | null;
+  measured: boolean;
+  level: 'ziadna' | 'experimentalna' | 'pokrocila' | 'strategicka';
+  levelLabelSk: string;
+  confidence: 'low' | 'medium' | 'high';
+  answeredQuestions: number;
+  totalQuestions: number;
+}
+
 export interface TDRIScore {
   score: number;
   riskLevel: 'low' | 'medium' | 'high' | 'critical';
@@ -282,6 +297,7 @@ export interface ResultSnapshot {
   dii: DIIScore;
   ors: ORSScore;
   tdri: TDRIScore;
+  aiReadiness: AIReadinessScore;
   businessImpact: BusinessImpact;
   benchmarks: BenchmarkResults;
   recommendations: Recommendations;

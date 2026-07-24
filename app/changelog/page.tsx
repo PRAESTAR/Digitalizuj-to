@@ -37,6 +37,36 @@ const breadcrumbSchema = {
 
 const changelog = [
   {
+    version: '1.2.0-pre-alpha',
+    date: '2026-07-24',
+    sections: [
+      {
+        title: 'Pridané',
+        type: 'added' as const,
+        items: [
+          {
+            title: 'AI & Automatizácia Readiness Index',
+            description: 'Nový 5. nezávislý výstup (0-100) popri DII/ORS/TDRI/Business Impact — prierezový index naprieč otázkami (rovnaká architektúra ako Technical Debt & Risk Index), vlastná karta vo výsledkoch, vlastné odporúčania. Nová otázka o AI aj v indikatívnom kvíze, dve nové otázky v komplexnom kvíze (automatizácia s AI, AI governance).',
+          },
+          {
+            title: 'Vizuálny redizajn v apple.com štýle',
+            description: 'Svetlé hero pozadie, konzistentný tmavý nav bar, gradientový akcent v nadpise, plávajúca karta s náhľadom výsledkov. Opravený font bug (telo stránky renderovalo v Arial namiesto načítaného fontu) — nový primárny font Onest.',
+          },
+        ],
+      },
+      {
+        title: 'Odstránené',
+        type: 'known' as const,
+        items: [
+          {
+            title: 'Otázka na hodinovú cenu práce',
+            description: 'Citlivý údaj, ktorý respondenti odhadovali nepresne a oba kvízy sa naň pýtali s odlišnou definíciou. ROI model teraz vždy počíta s priemernou hodinovou cenou práce na Slovensku (19,8 €/h, Eurostat 2025) namiesto self-reported hodnoty. Indikatívny kvíz má opäť 15 otázok.',
+          },
+        ],
+      },
+    ],
+  },
+  {
     version: '1.1.0-pre-alpha',
     date: '2026-07-23',
     sections: [
