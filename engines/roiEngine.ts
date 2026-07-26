@@ -1,8 +1,11 @@
-import type { Answer, BusinessImpact, CalculationAuditEntry, Question } from '@/types';
+import type { Answer, BusinessImpact, CalculationAuditEntry, Question, ScenarioValues, SavingsProjection } from '@/types';
 import {
   defaultHourlyCostEur,
   processBenchmarks,
   manualShareFromMaturity,
+  realizationRates,
+  rampUpMonthsByScenario,
+  savingsProjectionHorizonMonths,
 } from '@/data/scoringConfig';
 
 interface ROIInputs {
@@ -102,9 +105,9 @@ export function calculateBusinessImpact(
   }
 
   // Scenarios with realization rates (applied to both time savings and error cost reduction)
-  const conservativeRate = 0.40;
-  const midRate = 0.65;
-  const optimisticRate = 0.85;
+  const conservativeRate = realizationRates.conservative;
+  const midRate = realizationRates.mid;
+  const optimisticRate = realizationRates.optimistic;
 
   const hoursConservative = Math.round(totalSavedHours * conservativeRate);
   const hoursMid = Math.round(totalSavedHours * midRate);
@@ -141,9 +144,10 @@ export function calculateBusinessImpact(
   const disclaimers = [
     'Odhad je založený na kombinácii self-reported dát a sektorových benchmarkov.',
     'Reálny dopad závisí od kvality implementácie a organizačnej pripravenosti.',
-    `Hodinová cena práce: ${hourlyCost} €/hod (priemer SR, Eurostat 2025 — nie vstup od firmy).`,
+    `Hodinová cena práce: ${hourlyCost} €/hod (priemer IT/telekomunikačného sektora SR, Eurostat 2025 — nie vstup od firmy).`,
     'Konzervatívny scenár predpokladá 40% realizáciu identifikovaného potenciálu.',
     'Odhad chýb a reworku vychádza zo sektorových benchmarkov chybovosti procesov.',
+    'Krivky kumulatívnej úspory predpokladajú lineárny nábeh k plnému ročnému run-rate (3/6/9 mesiacov podľa scenára) — zjednodušený ilustratívny model, nie empiricky kalibrovaná adopčná krivka.',
   ];
   if (governanceNote) disclaimers.push(governanceNote);
 
@@ -151,6 +155,12 @@ export function calculateBusinessImpact(
   const totalConservative = (hoursConservative + errorHoursConservative) * hourlyCost;
   const totalMid = (hoursMid + errorHoursMid) * hourlyCost;
   const totalOptimistic = (hoursOptimistic + errorHoursOptimistic) * hourlyCost;
+
+  const savingsProjection = buildSavingsProjection({
+    conservative: totalConservative,
+    mid: totalMid,
+    optimistic: totalOptimistic,
+  });
 
   return {
     timeSavings: {
@@ -187,6 +197,7 @@ export function calculateBusinessImpact(
       confidence,
       confidenceLabelSk: confidenceLabel,
     },
+    savingsProjection,
     riskReduction: {
       currentLevel: currentRiskLevel,
       potentialLevel: potentialRiskLevel,
@@ -206,7 +217,46 @@ export function calculateBusinessImpact(
   };
 }
 
-function getRelevantProcesses(manualProcesses: string[], answers: Answer[]): string[] {
+/**
+ * Kumulatívna krivka úspory pre 3 scenáre: lineárny nábeh mesačnej sadzby
+ * z 0 na plnú (eurPerYear / 12) počas rampUpMonthsByScenario[scenár] mesiacov,
+ * potom akumulácia pri plnej mesačnej sadzbe až do horizontu.
+ */
+function buildSavingsProjection(eurPerYear: ScenarioValues): SavingsProjection {
+  const scenarios = ['conservative', 'mid', 'optimistic'] as const;
+  const monthlyRunRate: ScenarioValues = {
+    conservative: eurPerYear.conservative / 12,
+    mid: eurPerYear.mid / 12,
+    optimistic: eurPerYear.optimistic / 12,
+  };
+
+  const cumulative: ScenarioValues = { conservative: 0, mid: 0, optimistic: 0 };
+  const points: SavingsProjection['points'] = [
+    { month: 0, conservative: 0, mid: 0, optimistic: 0 },
+  ];
+
+  for (let month = 1; month <= savingsProjectionHorizonMonths; month++) {
+    for (const scenario of scenarios) {
+      const rampMonths = rampUpMonthsByScenario[scenario];
+      const rampFactor = Math.min(month / rampMonths, 1);
+      cumulative[scenario] += monthlyRunRate[scenario] * rampFactor;
+    }
+    points.push({
+      month,
+      conservative: Math.round(cumulative.conservative),
+      mid: Math.round(cumulative.mid),
+      optimistic: Math.round(cumulative.optimistic),
+    });
+  }
+
+  return {
+    horizonMonths: savingsProjectionHorizonMonths,
+    rampUpMonths: rampUpMonthsByScenario,
+    points,
+  };
+}
+
+function getRelevantProcesses(manualProcesses: string[], _answers: Answer[]): string[] {
   if (manualProcesses.length > 0) {
     return manualProcesses.filter(p => processBenchmarks[p]);
   }

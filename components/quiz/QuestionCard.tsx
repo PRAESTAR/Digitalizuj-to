@@ -52,41 +52,55 @@ export default function QuestionCard({ question, onSubmit }: QuestionCardProps) 
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in-up">
-      <div className="bg-white rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100 p-8 relative overflow-hidden">
+      {/* Padding rastie až s displejom — pri 320 px a zväčšenom texte ukrajovalo
+          pevných p-8 (2rem) z oboch strán viac miesta, než koľko zostalo na text. */}
+      <div className="bg-white rounded-3xl shadow-sm border border-black/5 p-4 sm:p-6 lg:p-8 relative overflow-hidden">
         {/* Top accent */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-[#1d1d1f]/10" />
 
-        <div className="mb-6">
-          <div className="flex items-start justify-between gap-4">
-            <h2 className="text-xl font-bold text-slate-900 leading-tight">
+        {/* relative kvôli tooltipu, ktorý sa od sm: kotví k celej hlavičke,
+            nie k úzkemu stĺpcu tlačidla „?" */}
+        <div className="mb-6 relative">
+          <div className="flex items-start justify-between gap-2 sm:gap-4">
+            <h2 className="text-lg sm:text-xl font-bold text-[#1d1d1f] leading-tight min-w-0 break-words">
               {question.question_sk}
             </h2>
             {question.tooltip && (
-              <div className="relative">
-                <button
-                  className="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold hover:bg-indigo-200 transition-colors"
-                  onMouseEnter={() => setShowTooltip(true)}
-                  onMouseLeave={() => setShowTooltip(false)}
-                  onClick={() => setShowTooltip(!showTooltip)}
+              /* Dotyková plocha 44x44 (WCAG 2.5.8); vizuálny krúžok zostáva 28 px
+                 vo vnorenom span, záporné okraje držia pôvodné optické zarovnanie. */
+              <button
+                type="button"
+                aria-expanded={showTooltip}
+                aria-label="Vysvetlenie otázky"
+                className="group/help flex-shrink-0 -mr-2 -mt-2 w-11 h-11 flex items-center justify-center rounded-full"
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+                onClick={() => setShowTooltip(!showTooltip)}
+              >
+                <span
+                  aria-hidden="true"
+                  className="w-7 h-7 flex items-center justify-center rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] text-xs font-bold transition-colors group-hover/help:bg-[#1d1d1f]/12"
                 >
                   ?
-                </button>
-                {showTooltip && (
-                  <div className="absolute right-0 top-9 w-72 p-4 bg-slate-800 text-white text-sm rounded-2xl shadow-xl z-10 animate-scale-in">
-                    <div className="absolute -top-1.5 right-3 w-3 h-3 bg-slate-800 rotate-45" />
-                    {question.tooltip}
-                  </div>
-                )}
-              </div>
+                </span>
+              </button>
             )}
           </div>
+          {question.tooltip && showTooltip && (
+            /* Na mobile blok v toku pod nadpisom — pevných w-72 (288 px) kotvených
+               vpravo pretekalo pri 320 px mimo karty a text sa orezal. */
+            <div className="relative mt-3 w-full p-4 bg-[#1d1d1f] text-white text-sm rounded-2xl shadow-xl z-10 animate-scale-in sm:absolute sm:right-0 sm:top-11 sm:mt-0 sm:w-72">
+              <div className="absolute -top-1.5 right-3 w-3 h-3 bg-[#1d1d1f] rotate-45" />
+              {question.tooltip}
+            </div>
+          )}
           {question.question_type === 'multi_select' && (
-            <p className="text-sm text-indigo-500 mt-2 font-medium">Vyberte všetky, ktoré platia</p>
+            <p className="text-sm text-[#6e6e73] mt-2 font-medium">Vyberte všetky, ktoré platia</p>
           )}
         </div>
 
         <div className="space-y-2.5 stagger-children">
-          {question.options?.map((option, idx) => {
+          {question.options?.map((option) => {
             const isMulti = question.question_type === 'multi_select';
             const isSelected = isMulti
               ? Array.isArray(selected) && selected.includes(option.value)
@@ -98,15 +112,19 @@ export default function QuestionCard({ question, onSubmit }: QuestionCardProps) 
                 onClick={() => isMulti ? handleMultiSelect(option.value) : handleSingleSelect(option.value)}
                 className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 ${
                   isSelected
-                    ? 'border-indigo-500 bg-indigo-50 text-indigo-900 shadow-md shadow-indigo-500/10 scale-[1.01]'
-                    : 'border-slate-100 bg-white text-slate-700 hover:border-slate-200 hover:bg-slate-50 hover:shadow-sm'
+                    ? 'border-[#0068d6] bg-[#0068d6]/5 text-[#1d1d1f] shadow-sm'
+                    : 'border-black/5 bg-white text-[#1d1d1f] hover:border-black/10 hover:bg-black/[0.02] hover:shadow-sm'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-${isMulti ? 'lg' : 'full'} border-2 flex-shrink-0 flex items-center justify-center transition-all ${
+                  {/* Trieda sa musí uviesť celá — Tailwind skenuje zdroj ako
+                      text, takže `rounded-${'${'}...}` by nikdy nevygeneroval.
+                      Doteraz to fungovalo len náhodou, lebo rounded-lg aj
+                      rounded-full pribudli do buildu z iných komponentov. */}
+                  <div className={`w-6 h-6 ${isMulti ? 'rounded-lg' : 'rounded-full'} border-2 flex-shrink-0 flex items-center justify-center transition-all ${
                     isSelected
-                      ? 'border-indigo-500 bg-indigo-500 scale-110'
-                      : 'border-slate-300'
+                      ? 'border-[#0068d6] bg-[#0068d6]'
+                      : 'border-black/10'
                   }`}>
                     {isSelected && (
                       <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,34 +132,40 @@ export default function QuestionCard({ question, onSubmit }: QuestionCardProps) 
                       </svg>
                     )}
                   </div>
-                  <span className="text-sm font-medium">{option.label}</span>
+                  <span className="text-sm font-medium min-w-0 break-words">{option.label}</span>
                 </div>
               </button>
             );
           })}
         </div>
 
-        <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-100">
+        {/* flex-col-reverse drží primárne CTA hore aj v stĺpcovom režime — vedľa
+            seba sa obe tlačidlá pri 320 px a zväčšenom texte nezmestili a
+            „Pokračovať" sa orezalo o okraj karty. */}
+        <div className="flex flex-col-reverse gap-3 mt-8 pt-6 border-t border-black/5 sm:flex-row sm:items-center sm:justify-between">
           {question.allow_unknown ? (
             <button
+              type="button"
               onClick={handleUnknown}
-              className="text-sm text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1.5 group"
+              className="w-full sm:w-auto min-h-11 px-3 sm:-ml-3 rounded-full text-sm text-[#86868b] hover:text-[#6e6e73] transition-colors inline-flex items-center justify-center sm:justify-start gap-1.5"
             >
-              <svg className="w-4 h-4 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
               Neviem / Preskočiť
             </button>
           ) : (
-            <div />
+            /* Prázdna výplň má zmysel len pri justify-between na širokom displeji;
+               v stĺpci by pridala zbytočnú medzeru. */
+            <div className="hidden sm:block" />
           )}
           <button
             onClick={handleSubmit}
             disabled={isSubmitDisabled}
-            className={`px-8 py-3.5 rounded-2xl font-semibold transition-all duration-200 ${
+            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full font-semibold transition-all duration-200 ${
               isSubmitDisabled
-                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-105 active:scale-100'
+                ? 'bg-[#1d1d1f]/5 text-[#86868b] cursor-not-allowed'
+                : 'btn-apple-primary text-white'
             }`}
           >
             Pokračovať

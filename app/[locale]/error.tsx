@@ -11,7 +11,6 @@ export default function Error({
 }) {
   useEffect(() => {
     // In production you would forward this to Sentry / OpenTelemetry.
-    // eslint-disable-next-line no-console
     console.error('[app error]', error);
   }, [error]);
 
@@ -19,7 +18,7 @@ export default function Error({
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 py-16">
       <div className="max-w-md text-center animate-fade-in-up">
         <div
-          className="w-20 h-20 mx-auto mb-8 rounded-3xl bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-red-500/30"
+          className="w-20 h-20 mx-auto mb-8 rounded-3xl bg-rose-500/10 flex items-center justify-center text-rose-600"
           aria-hidden="true"
         >
           <svg
@@ -51,7 +50,7 @@ export default function Error({
         <div className="flex items-center justify-center gap-3 flex-wrap">
           <button
             onClick={() => reset()}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-2xl font-bold hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all duration-200"
+            className="btn-apple-primary inline-flex items-center gap-2 px-6 py-3 rounded-full text-white font-semibold"
           >
             <svg
               className="w-4 h-4"
@@ -69,9 +68,12 @@ export default function Error({
             </svg>
             Skúsiť znova
           </button>
+          {/* Zámerne <a> namiesto <Link> — po chybe chceme plný reload a čistý stav,
+              nie client-side navigáciu, ktorá by mohla zdediť rozbitý router stav. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 border-2 border-slate-200 text-slate-700 rounded-2xl font-bold hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-200"
+            className="inline-flex items-center gap-2 px-6 py-3 border-2 border-slate-200 text-slate-700 rounded-2xl font-bold hover:border-[#0068d6]/30 hover:bg-[#0068d6]/5 transition-all duration-200"
           >
             Späť na úvod
           </a>

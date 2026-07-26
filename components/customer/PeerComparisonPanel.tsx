@@ -40,13 +40,6 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
   );
   const country = getCountryAverages();
 
-  const cohortMedian = {
-    dii: median(cohort.map((p) => p.diiScore100)),
-    ors: median(cohort.map((p) => p.orsScore)),
-    tdri: median(cohort.map((p) => p.tdriScore)),
-    eur: median(cohort.map((p) => p.businessImpactEur)),
-  };
-
   const allDii = PEER_DATA.map((p) => p.diiScore100).sort((a, b) => a - b);
   const allOrs = PEER_DATA.map((p) => p.orsScore).sort((a, b) => a - b);
   const allTdri = PEER_DATA.map((p) => p.tdriScore).sort((a, b) => a - b);
@@ -100,10 +93,19 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
   const sizeLabel = SIZE_BAND_LABELS_SK[current.sizeBand];
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-6 sm:p-8">
+    // p-6 na mobile ukrojilo 48 px zo 288 px viewportu; padding v rem navyše
+    // rastie so zväčšeným textom, takže použiteľná šírka klesala práve vtedy,
+    // keď písmo rástlo.
+    <div className="bg-white rounded-3xl border border-black/5 shadow-sm p-4 sm:p-6 lg:p-8">
       {/* Header */}
       <div className="flex items-start gap-3 mb-2">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/30 flex-shrink-0">
+        {/* Dekoratívny odznak zaberal na mobile 52 px šírky bez informačnej
+            hodnoty — pod sm ho skrývame (pozor: pôvodné `flex` muselo zmiznúť,
+            inak by `hidden` prepísalo len display a prvok by zostal viditeľný). */}
+        <div
+          className="hidden sm:flex w-10 h-10 rounded-2xl bg-[#1d1d1f]/8 text-[#1d1d1f] items-center justify-center flex-shrink-0"
+          aria-hidden="true"
+        >
           <svg
             className="w-5 h-5"
             fill="none"
@@ -119,38 +121,107 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
             />
           </svg>
         </div>
-        <div>
-          <h3 className="text-lg font-black text-slate-900">
+        <div className="min-w-0">
+          <h3 className="text-lg font-bold text-[#1d1d1f] break-words">
             Porovnanie s peer skupinou a krajinou
           </h3>
-          <p className="text-sm text-slate-600 mt-1 leading-relaxed">
+          <p className="text-sm text-[#6e6e73] mt-1 leading-relaxed break-words">
             Vaša pozícia voči anonymizovaným výsledkom firiem zo segmentu
-            <strong className="text-slate-800"> {sectorLabel}</strong>,
-            veľkosť <strong className="text-slate-800">{sizeLabel}</strong>
+            <strong className="text-[#1d1d1f]"> {sectorLabel}</strong>,
+            veľkosť <strong className="text-[#1d1d1f]">{sizeLabel}</strong>
             {' '}({cohort.length}{' '}firiem) a celého slovenského vzorky ({PEER_DATA.length}).
           </p>
         </div>
       </div>
 
-      {/* Quick percentile chips */}
-      <div className="grid grid-cols-3 gap-2 mt-6 mb-6">
+      {/* Quick percentile chips.
+          Nie grid-cols-3, ale wrap: Tailwind breakpointy sa pri zväčšenom
+          texte NEposúvajú (@media rem sa viaže na initial 16 px), takže
+          fixné 3 stĺpce držali čip na ~66 px, kým trojciferná hodnota
+          potrebovala viac — číslo sa lámalo na „10“ / „0“. flex-basis v rem
+          rastie spolu s textom, takže čipy sa pri 125/150 % samy preskupia
+          do dvoch riadkov a pri 100 % zostanú tri vedľa seba. */}
+      <div className="flex flex-wrap gap-2 mt-6 mb-6">
         <PercentileChip label="DII" pct={userPercentiles.dii} />
         <PercentileChip label="ORS" pct={userPercentiles.ors} />
         <PercentileChip label="Risk" pct={userPercentiles.tdri} />
       </div>
 
+      {/* Mobil: kartový zoznam namiesto tabuľky.
+          Tabuľka s 5 stĺpcami mala 519 px v 238 px okne, takže stĺpce
+          „Peer medián“, „SK priemer“ a „Δ vs peer“ — teda celá pointa panelu —
+          boli mimo obrazovky a nič nenaznačovalo, že sa dá scrollovať. */}
+      <ul className="sm:hidden space-y-2">
+        {rows.map((row) => {
+          const peerMed = median(row.cohortValues);
+          const delta = row.yours - peerMed;
+          const better = row.inverted ? delta < 0 : delta > 0;
+          const hasCohort = row.cohortValues.length > 0;
+          return (
+            <li
+              key={row.label}
+              className="rounded-2xl border border-black/5 bg-black/[0.02] p-3"
+            >
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="min-w-0 font-medium text-[#1d1d1f] break-words">
+                  {row.label}
+                </p>
+                <p className="shrink-0 font-mono font-bold text-[#0068d6] tabular-nums">
+                  {row.format(row.yours)}
+                </p>
+              </div>
+              <dl className="mt-2 space-y-1 text-xs">
+                <div className="flex items-baseline justify-between gap-2">
+                  <dt className="min-w-0 text-[#6e6e73] break-words">Peer medián</dt>
+                  <dd className="shrink-0 font-mono text-[#1d1d1f] tabular-nums">
+                    {hasCohort ? row.format(peerMed) : '—'}
+                  </dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-2">
+                  <dt className="min-w-0 text-[#6e6e73] break-words">SK priemer</dt>
+                  <dd className="shrink-0 font-mono text-[#1d1d1f] tabular-nums">
+                    {row.format(row.countryAvg)}
+                  </dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-2">
+                  <dt className="min-w-0 text-[#6e6e73] break-words">Δ vs peer</dt>
+                  <dd className="shrink-0">
+                    {hasCohort ? (
+                      <span
+                        className={`font-mono font-bold text-xs px-2 py-1 rounded-lg tabular-nums ${
+                          better
+                            ? 'bg-emerald-500/10 text-emerald-700'
+                            : delta === 0
+                              ? 'bg-black/5 text-[#6e6e73]'
+                              : 'bg-amber-500/10 text-amber-700'
+                        }`}
+                      >
+                        {delta > 0 ? '+' : ''}
+                        {row.format(delta)}
+                      </span>
+                    ) : (
+                      <span className="text-[#86868b] text-xs">—</span>
+                    )}
+                  </dd>
+                </div>
+              </dl>
+            </li>
+          );
+        })}
+      </ul>
+
       {/* Metric table */}
-      <div className="overflow-x-auto rounded-2xl border border-slate-100">
+      <div className="hidden sm:block overflow-x-auto rounded-2xl border border-black/5">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-slate-50">
-              <th className="text-left py-3 px-4 text-slate-500 font-bold">Metrika</th>
-              <th className="text-right py-3 px-4 text-indigo-600 font-bold">Vy</th>
-              <th className="text-right py-3 px-4 text-slate-500 font-bold">
+            <tr className="bg-black/[0.03]">
+              <th className="text-left py-3 px-4 text-[#6e6e73] font-bold">Metrika</th>
+              <th className="text-right py-3 px-4 text-[#0068d6] font-bold">Vy</th>
+              <th className="text-right py-3 px-4 text-[#6e6e73] font-bold">
                 Peer medián
               </th>
-              <th className="text-right py-3 px-4 text-slate-500 font-bold">SK priemer</th>
-              <th className="text-right py-3 px-4 text-slate-500 font-bold">Δ vs peer</th>
+              <th className="text-right py-3 px-4 text-[#6e6e73] font-bold">SK priemer</th>
+              <th className="text-right py-3 px-4 text-[#6e6e73] font-bold">Δ vs peer</th>
             </tr>
           </thead>
           <tbody>
@@ -161,18 +232,18 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
               return (
                 <tr
                   key={row.label}
-                  className="border-b border-slate-50 last:border-0"
+                  className="border-b border-black/5 last:border-0"
                 >
-                  <td className="py-3 px-4 text-slate-700 font-medium">
+                  <td className="py-3 px-4 text-[#1d1d1f] font-medium">
                     {row.label}
                   </td>
-                  <td className="py-3 px-4 text-right font-mono font-bold text-indigo-700">
+                  <td className="py-3 px-4 text-right font-mono font-bold text-[#0068d6]">
                     {row.format(row.yours)}
                   </td>
-                  <td className="py-3 px-4 text-right font-mono text-slate-600">
+                  <td className="py-3 px-4 text-right font-mono text-[#6e6e73]">
                     {row.cohortValues.length > 0 ? row.format(peerMed) : '—'}
                   </td>
-                  <td className="py-3 px-4 text-right font-mono text-slate-600">
+                  <td className="py-3 px-4 text-right font-mono text-[#6e6e73]">
                     {row.format(row.countryAvg)}
                   </td>
                   <td className="py-3 px-4 text-right">
@@ -180,10 +251,10 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
                       <span
                         className={`font-mono font-bold text-xs px-2 py-1 rounded-lg ${
                           better
-                            ? 'bg-emerald-50 text-emerald-700'
+                            ? 'bg-emerald-500/10 text-emerald-700'
                             : delta === 0
-                              ? 'bg-slate-100 text-slate-500'
-                              : 'bg-amber-50 text-amber-700'
+                              ? 'bg-black/5 text-[#6e6e73]'
+                              : 'bg-amber-500/10 text-amber-700'
                         }`}
                       >
                         {delta > 0 ? '+' : ''}
@@ -192,7 +263,7 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
                           : delta}
                       </span>
                     ) : (
-                      <span className="text-slate-400 text-xs">—</span>
+                      <span className="text-[#86868b] text-xs">—</span>
                     )}
                   </td>
                 </tr>
@@ -202,8 +273,8 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
         </table>
       </div>
 
-      <p className="text-xs text-slate-500 mt-4 leading-relaxed">
-        <strong className="text-slate-700">Anonymizácia:</strong>{' '}
+      <p className="text-xs text-[#6e6e73] mt-4 leading-relaxed">
+        <strong className="text-[#1d1d1f]">Anonymizácia:</strong>{' '}
         zobrazené sú iba agregáty — žiadne identifikačné údaje firiem.
         Δ porovnanie je oproti mediánu peer skupiny (rovnaký sektor a veľkosť).
       </p>
@@ -214,23 +285,28 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
 function PercentileChip({ label, pct }: { label: string; pct: number }) {
   const color =
     pct >= 75
-      ? 'from-emerald-500 to-green-600'
+      ? 'text-emerald-600'
       : pct >= 50
-        ? 'from-cyan-500 to-blue-500'
+        ? 'text-cyan-600'
         : pct >= 25
-          ? 'from-amber-500 to-orange-500'
-          : 'from-red-500 to-rose-500';
+          ? 'text-amber-600'
+          : 'text-rose-600';
   return (
-    <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4 text-center">
-      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">
-        {label} percentil
+    <div className="grow basis-16 rounded-2xl bg-black/[0.03] border border-black/5 p-2 sm:p-4 text-center min-w-0">
+      {/* Slovo „percentil“ potrebuje 69 px, ale bunka čipu má pri 320 px len
+          ~56 px — nedá sa zalomiť, takže text vytekal mimo zaoblený rámček.
+          Pod sm ho preto necháme len pre čítačky obrazovky (prístupný názov
+          zostáva nezmenený), od sm sa zobrazí normálne. */}
+      <p className="text-[11px] sm:text-xs font-bold text-[#6e6e73] uppercase tracking-wide mb-1 break-words">
+        {label}
+        <span className="sr-only sm:not-sr-only"> percentil</span>
       </p>
-      <p
-        className={`text-3xl font-black bg-gradient-to-r ${color} bg-clip-text text-transparent`}
-      >
+      {/* Rovnaká škála ako ScoreCard na /r/[hash]; break-words je posledná
+          poistka, aby hodnota nikdy nevytiekla mimo zaoblený rámček. */}
+      <p className={`text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums break-words ${color}`}>
         {pct}
       </p>
-      <p className="text-xs text-slate-500 mt-1">
+      <p className="text-[11px] sm:text-xs text-[#6e6e73] mt-1 break-words">
         {pct >= 75
           ? 'Top 25 %'
           : pct >= 50

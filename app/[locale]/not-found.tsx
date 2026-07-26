@@ -14,7 +14,7 @@ export default function NotFound() {
   return (
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 py-16">
       <div className="max-w-md text-center animate-fade-in-up">
-        <div className="w-20 h-20 mx-auto mb-8 rounded-3xl bg-gradient-to-r from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+        <div className="w-20 h-20 mx-auto mb-8 rounded-3xl bg-[#1d1d1f]/8 flex items-center justify-center text-[#1d1d1f]">
           <svg
             className="w-10 h-10"
             fill="none"
@@ -40,7 +40,7 @@ export default function NotFound() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-2xl font-bold hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all duration-200"
+          className="btn-apple-primary inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-white font-semibold"
         >
           <svg
             className="w-4 h-4"

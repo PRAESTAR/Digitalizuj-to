@@ -96,8 +96,9 @@ export function calculateTDRI(
 
 function getEvidenceForRisk(
   riskId: string,
-  answers: Answer[],
-  questions: Question[]
+  // odpovede/otázky sa zatiaľ nepoužívajú — evidencia je statický text per risk faktor
+  _answers: Answer[],
+  _questions: Question[]
 ): string {
   const evidenceMap: Record<string, string> = {
     RF01: 'Core systém/OS je mimo podpory (end-of-life)',
@@ -112,6 +113,8 @@ function getEvidenceForRisk(
     RF10: 'Neexistuje asset inventory',
     RF11: 'Žiadne logovanie alebo monitoring systémov',
     RF12: 'Používanie aplikácií mimo podpory',
+    RF13: 'Nepripravenosť na povinnú e-fakturáciu od 1.1.2027',
+    RF14: 'Nepripravenosť na NIS2 (zákon č. 366/2024 Z.z.)',
   };
 
   return evidenceMap[riskId] || 'Identifikované riziko na základe odpovedí';

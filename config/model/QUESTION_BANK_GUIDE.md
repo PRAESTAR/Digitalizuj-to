@@ -1,306 +1,308 @@
-# Pokyny na editovanie matice otazok (questionBank.json)
+# Pokyny na editovanie matice otázok (questionBank.json)
 
-> Verzia: 1.0-MVP
-> Posledna aktualizacia: 2026-04-09
-
----
-
-## 1. Prehlad struktury
-
-Subor `questionBank.json` obsahuje vsetky otazky pre oba rezimy diagnostiky:
-- **Indikativny kviz** (`assessment_type: "indicative"`) — max 15 otazok, rychly screening
-- **Komplexny kviz** (`assessment_type: "complex"`) — 30-45 otazok, hlbsia diagnostika
-
-Kazda otazka je objekt v poli `questions` a ma presne definovanu strukturu.
+> Verzia: 2.0 (prepísané podľa reálnej implementácie pre release 1.0.0)
+> Posledná aktualizácia: 2026-07-24
+>
+> **Táto verzia nahrádza 1.0-MVP**, ktorá popisovala schému (`assessment_type`, `module`, `text`, `maps_to_dii`, `branching` objekt), akú kód nikdy neimplementoval. Nižšie je schéma taká, aká skutočne existuje v `data/questionBank.json` a akú číta `engines/questionEngine.ts`.
 
 ---
 
-## 2. Struktura jednej otazky
+## 1. Prehľad štruktúry
+
+Súbor `questionBank.json` má dve hlavné sekcie:
 
 ```json
 {
-  "id": "ind_01",
-  "assessment_type": "indicative",
-  "module": null,
-  "text": "Text otazky v slovencine",
-  "tooltip": "Volitelny vysvetlujuci text (zobrazi sa ako hint pri otazke)",
-  "type": "single_choice",
-  "options": [
-    { "value": "option_a", "label": "Popis moznosti A", "score": 0 },
-    { "value": "option_b", "label": "Popis moznosti B", "score": 50 },
-    { "value": "option_c", "label": "Popis moznosti C", "score": 100 }
-  ],
-  "weight": 1.0,
-  "maps_to_score": "category_A",
-  "maps_to_dii": null,
-  "maps_to_risk": null,
-  "maps_to_roi_variable": null,
-  "branching": null,
-  "allow_unknown": true
-}
-```
-
----
-
-## 3. Popis kazdeho pola
-
-### 3.1 Povinne polia
-
-| Pole | Typ | Popis | Mozno menit? |
-|------|-----|-------|-------------|
-| `id` | string | Unikatny identifikator otazky | **NIE** — meni sa len pri pridavani novej otazky |
-| `assessment_type` | string | `"indicative"` alebo `"complex"` | **NIE** — urcuje do ktoreho kvizu otazka patri |
-| `module` | string/null | Modul v komplexnom kvize (`"A"` az `"F"`) alebo `null` | **NIE** |
-| `text` | string | Slovensky text otazky | **ANO** — hlavny ucel editovania |
-| `type` | string | Typ otazky (pozri sekciu 4) | **OPATRNE** — zmena typu meni logiku |
-| `options` | array | Pole moznosti s `value`, `label`, `score` | **ANO** — hlavny ucel editovania |
-| `weight` | number | Vaha otazky v ramci kategorie (default 1.0) | **ANO** — ovplyvnuje scoring |
-| `maps_to_score` | string | Na ktore skore otazka prispeva | **OPATRNE** — meni scoring logiku |
-| `allow_unknown` | boolean | Ci je dostupna moznost "Neviem" | **ANO** |
-
-### 3.2 Volitelne polia
-
-| Pole | Typ | Popis |
-|------|-----|-------|
-| `tooltip` | string/null | Vysvetlujuci text k otazke (zobrazuje sa ako hint) |
-| `maps_to_dii` | string/null | DII indikator (`"DII1"` az `"DII12"`) |
-| `maps_to_risk` | string/null | Risk faktor (`"RF01"` az `"RF12"`) |
-| `maps_to_roi_variable` | string/null | ROI premenna (`"employee_count"`, `"hourly_cost"`, atd.) |
-| `branching` | object/null | Pravidla pre preskocenie/zahrnutie otazok |
-
----
-
-## 4. Podporovane typy otazok
-
-| Typ | Popis | Kolko opcii? |
-|-----|-------|-------------|
-| `single_choice` | Vyber jednej moznosti | 2-6 |
-| `multi_select` | Vyber viacerych moznosti | 3-10 |
-
-> **POZOR:** Typ `numeric_bands` NIE JE implementovany v UI. Nepouzivat. Ak potrebujete ciselne pasma, pouzite `single_choice` s pasmami ako options.
-
----
-
-## 5. Scoring — pravidla pre `score` hodnoty
-
-### 5.1 Zakladne pravidla
-
-- **Score je cislo 0-100** pre kazdu option
-- **0** = najhorsia moznost / najnizsia uroven
-- **100** = najlepsia moznost / najvyssia uroven
-- **Medzistupne** distribuujte rovnomerne (napr. 0, 25, 50, 75, 100 pre 5 opcii)
-
-### 5.2 Typicke rozlozenia
-
-**5-stupnova maturity scala (najcastejsia):**
-```json
-{ "score": 0 }    // Level 0 — Ad hoc
-{ "score": 25 }   // Level 1 — Ciastocna
-{ "score": 50 }   // Level 2 — Standardizovane
-{ "score": 75 }   // Level 3 — Automatizovane
-{ "score": 100 }  // Level 4 — Optimalizovane
-```
-
-**4-stupnova:**
-```json
-{ "score": 0 }    // Ziadne
-{ "score": 33 }   // Zakladne
-{ "score": 66 }   // Pokrocile
-{ "score": 100 }  // Plne
-```
-
-**3-stupnova:**
-```json
-{ "score": 0 }    // Nie
-{ "score": 50 }   // Ciastocne
-{ "score": 100 }  // Ano
-```
-
-**Binarna (ano/nie):**
-```json
-{ "score": 0 }    // Nie
-{ "score": 100 }  // Ano
-```
-
-### 5.3 Multi-select scoring
-
-Pre `multi_select` otazky:
-- Kazda opcia ma svoj `score`
-- Celkove skore = sucet oznacenych / maximalne mozne × 100
-- Nastavte `score` tak, aby sucet vsetkych opcii dal max mozne skore (napr. 20 + 20 + 20 + 20 + 20 = 100)
-
----
-
-## 6. maps_to_score — kam otazka prispeva
-
-Mozne hodnoty:
-
-| Hodnota | Vyznam |
-|---------|--------|
-| `"category_A"` | Procesy a digitalizacia prace |
-| `"category_B"` | Systemy a integracie |
-| `"category_C"` | Data a reporting |
-| `"category_D"` | Infrastruktura a cloud |
-| `"category_E"` | Bezpecnost a technologicky dlh |
-| `"category_F"` | Governance a ludia |
-| `"dii"` | Iba DII skore (neprispieva do kategorie) |
-| `"roi_input"` | Iba vstup pre ROI model (neprispieva do skore) |
-| `"meta"` | Metadatova otazka (sektor, velkost) — ziadne skore |
-
----
-
-## 7. maps_to_dii — DII indikatory
-
-Ak otazka mapuje na DII indikator, nastavte:
-
-| Hodnota | DII indikator |
-|---------|---------------|
-| `"DII1"` | Internet >= 30 Mbps |
-| `"DII2"` | ICT specialisti |
-| `"DII3"` | Vzdialeny pristup |
-| `"DII4"` | Digitalne zrucnosti |
-| `"DII5"` | Webstranka s funkciami |
-| `"DII6"` | Socialne siete |
-| `"DII7"` | Cloud sluzby |
-| `"DII8"` | E-faktury |
-| `"DII9"` | E-commerce existuje |
-| `"DII10"` | E-commerce > 1% obratu |
-| `"DII11"` | AI technologie |
-| `"DII12"` | Big data analyzy |
-
----
-
-## 8. maps_to_risk — Risk faktory (TDRI)
-
-| Hodnota | Risk faktor | Severity |
-|---------|-------------|----------|
-| `"RF01"` | Out-of-support core OS/DB | Critical |
-| `"RF02"` | Chybajuce zalohy core dat | Critical |
-| `"RF03"` | Zalohy existuju, ale netestovane | High |
-| `"RF04"` | Chybajuci patch management | Critical |
-| `"RF05"` | Absencia MFA | Critical |
-| `"RF06"` | Single point of failure (infra) | High |
-| `"RF07"` | Single point of failure (ludia) | High |
-| `"RF08"` | Nezdokumentovane systemy | Medium |
-| `"RF09"` | Ziadny BC/DR plan | High |
-| `"RF10"` | Ziadny asset inventory | Medium |
-| `"RF11"` | Ziadne logovanie/monitoring | Medium |
-| `"RF12"` | Out-of-support aplikacie (nie core) | Medium |
-
----
-
-## 9. Branching pravidla
-
-Branching umoznuje preskocit alebo zahnut otazky podla predchadzajucich odpovedi.
-
-### 9.1 Struktura branching objektu
-
-```json
-"branching": {
-  "skip_if": {
-    "question_id": "cx_B01",
-    "value": ["one_system"]
+  "version": "1.4-MVP",
+  "model_name": "Adaptívny model DAP",
+  "last_updated": "2026-07-24",
+  "indicative_quiz": {
+    "id": "indicative_v1",
+    "name": "Indikatívny kvíz",
+    "description": "...",
+    "max_questions": 15,
+    "questions": [ /* plochý zoznam otázok */ ]
   },
-  "include_if": {
-    "question_id": "cx_D02",
-    "value": ["onprem", "hybrid"]
-  },
-  "flag_risk": {
-    "question_id": "cx_E01",
-    "value": ["none"],
-    "risk_factor": "RF05"
+  "complex_quiz": {
+    "id": "complex_v1",
+    "name": "Komplexný kvíz",
+    "description": "...",
+    "modules": [
+      { "id": "module_meta", "name": "O firme", "category": "meta", "questions": [ /* ... */ ] },
+      { "id": "module_A", "name": "Procesy a digitalizácia práce", "category": "A", "questions": [ /* ... */ ] },
+      /* module_B .. module_F, module_ROI, module_DII */
+    ]
   }
 }
 ```
 
-### 9.2 Typy pravidiel
+- **Indikatívny kvíz** — plochý zoznam v `indicative_quiz.questions` (žiadne moduly). Aktuálne **15 otázok**.
+- **Komplexný kvíz** — otázky sú rozdelené do `complex_quiz.modules[].questions`. `questionEngine.getQuizQuestions('complex')` ich sploští do jedného poľa v poradí modulov (`module_meta`, `module_A`...`module_F`, `module_ROI`, `module_DII`). Aktuálne **50 otázok** definovaných naprieč 9 modulmi; keďže vetvenie je od verzie 1.4-MVP reálne podmienené (viď sekcia 5.2), konkrétny respondent reálne uvidí typicky **43–49** z nich — presný počet po úprave otázok si vždy overte priamo v súbore.
 
-| Pravidlo | Efekt |
+Poradie otázok v poli/module **je funkčné** — `questionEngine.getNextQuestion()` vracia prvú nezodpovedanú, nepreskočenú otázku v tomto poradí (lineárne skenovanie, nie prioritizácia podľa ID).
+
+---
+
+## 2. Štruktúra jednej otázky (skutočná schéma)
+
+```json
+{
+  "id": "cx_A06_ai_automation",
+  "category": "A",
+  "dimension": "ai_automation",
+  "question_sk": "Využívate pri automatizácii procesov umelú inteligenciu (nie len pevné pravidlá/skripty)?",
+  "question_type": "single_choice",
+  "weight": 1.0,
+  "options": [
+    { "value": "none", "label": "Automatizáciu nevyužívame vôbec", "score": 0 },
+    { "value": "rules_only", "label": "Len jednoduché pravidlá/skripty (bez AI)", "score": 40 },
+    { "value": "ai_assisted", "label": "AI nám pomáha pri časti procesov", "score": 70 },
+    { "value": "ai_driven", "label": "AI aktívne riadi/vykonáva časti procesov", "score": 100 }
+  ],
+  "branching_rules": [],
+  "evidence_type": "self_assessment",
+  "maps_to_score": ["ors_A", "ai_readiness"],
+  "maps_to_risk": [],
+  "maps_to_roi_model": [],
+  "tooltip": "Rozdiel oproti bežnej automatizácii: AI dokáže spracovať neštruktúrované vstupy...",
+  "allow_unknown": true
+}
+```
+
+### 2.1 Polia — presný zoznam
+
+| Pole | Typ | Povinné | Popis |
+|------|-----|---------|-------|
+| `id` | string | áno | Unikátny identifikátor. **Nemeniť existujúce ID** — kód aj branching pravidlá naň odkazujú. |
+| `category` | string | áno | `"A"`–`"F"` (ODRM kategória), `"dii"` (iba DII bucket, nepatrí do ORS), `"meta"` (demografia/ROI vstup, `weight: 0`, neprispieva do žiadneho skóre). |
+| `dimension` | string | áno | Voľný popisný label pre editorov (napr. `"process_maturity"`, `"ai_usage"`) — kód ho nečíta, slúži len ako orientácia v UI editora. |
+| `question_sk` | string | áno | Text otázky v slovenčine. **Nie** `text` — pole sa volá presne `question_sk`. |
+| `question_type` | string | áno | **Iba `"single_choice"` alebo `"multi_select"` sú implementované** (`QuestionCard.tsx`). Iné hodnoty (napr. `numeric_bands`, `numeric_input`) nie sú podporené v UI — nepoužívať. |
+| `weight` | number | áno | Váha otázky v rámci kategórie (default `1.0`, meta otázky majú `0`). |
+| `options` | array | pre single/multi | `{ value, label, score }`. `score` je číslo, typicky 0–100. |
+| `max_score` | number | pre multi_select | Súčet, voči ktorému sa normalizuje `multi_select` skóre (viď 4.2). |
+| `scoring_note` | string | nie | Ak reťazec obsahuje slovo **`"Invertované"`**, `questionEngine` prepne `multi_select` na invertovaný scoring (viď 4.3). Toto je jediný spôsob, ako invertovaný mód zapnúť — nie je tam explicitné boolean pole. |
+| `branching_rules` | array | áno (môže byť `[]`) | Pole pravidiel — **nie** `branching` objekt. Presná štruktúra v sekcii 5. |
+| `evidence_type` | string | áno | `"direct"` alebo `"self_assessment"` — informačné, kód ho nevyhodnocuje. |
+| `maps_to_score` | **string[]** | áno (môže byť `[]`) | **Pole**, nie jeden string. Otázka môže prispievať do viacerých vecí naraz — napr. `["ors_D", "dii"]`. Hodnoty: `"ors_A"`..`"ors_F"` (kategória ORS), `"dii"` (DII bucket), `"ai_readiness"` (AI & Automatizácia Readiness), `"benchmark_sector"` / `"benchmark_size"` (meta otázky, ktoré nastavujú `respondent.sector`/`employeeCountBand` — číta ich priamo `AssessmentContext`, nie scoring engine). |
+| `maps_to_risk` | **string[]** | áno (môže byť `[]`) | Pole risk faktorov `"RF01"`–`"RF14"` (viď sekcia 7). |
+| `maps_to_roi_model` | **string[]** | áno (môže byť `[]`) | Popisné pole pre editorov. **Pozor:** `roiEngine.extractROIInputs()` v skutočnosti číta hodnoty podľa **natvrdo napísaných ID otázok** (`ind_02`, `cx_02`, `cx_A05`, `cx_ROI02`, `cx_ROI03`...), nie podľa tohto poľa — pridanie `maps_to_roi_model` samo o sebe nezapojí otázku do ROI výpočtu. |
+| `tooltip` | string \| null | nie | Vysvetľujúci text, zobrazí sa ako hint. |
+| `allow_unknown` | boolean | áno | Či je dostupná možnosť "Neviem". |
+
+Neexistujúce polia (nepridávať — kód ich nikde nečíta): `assessment_type`, `module`, `text`, `type`, `maps_to_dii`, `maps_to_roi_variable`, `branching` (objekt).
+
+---
+
+## 3. Kam otázka patrí — `category` a umiestnenie v súbore
+
+Umiestnenie otázky v súbore (do ktorého poľa/modulu ju vložíte) určuje, v ktorom kvíze sa zobrazí — **nie** samostatné pole. Otázka pre indikatívny kvíz ide do `indicative_quiz.questions`; otázka pre komplexný kvíz ide do príslušného `complex_quiz.modules[].questions`.
+
+`category` pole na otázke je nezávislé od toho, do akého modulu ju vložíte — reálne sa používa len na filtrovanie pri výpočte ORS kategóriových skóre (`scoringEngine.calculateORS` filtruje `questions.filter(q => q.category === cat)`).
+
+---
+
+## 4. Scoring — pravidlá pre `score` hodnoty
+
+### 4.1 Single choice
+
+Skóre je priamo hodnota vybranej `option.score` (0–100). Žiadna ďalšia normalizácia.
+
+**Typické rozloženia:**
+
+5-stupňová maturity škála: `0 / 25 / 50 / 75 / 100`
+4-stupňová: `0 / 33 / 66 / 100`
+3-stupňová: `0 / 50 / 100`
+Binárna: `0 / 100`
+
+### 4.2 Multi select (normálny režim)
+
+```
+selectedScore = súčet score vybraných možností
+skóre = min(100, round(selectedScore / max_score × 100))
+```
+
+Nastavte `score` jednotlivých možností tak, aby ich súčet zodpovedal `max_score` (typicky `100`).
+
+### 4.3 Multi select (invertovaný režim)
+
+Zapína sa tým, že `scoring_note` obsahuje text `"Invertované"` (magický reťazec, presné znenie ostatného textu je jedno). V tomto režime majú možnosti **záporné** `score` hodnoty a platí:
+
+```
+skóre = max(0, 100 + súčet score vybraných možností)
+```
+
+Príklad — `cx_A05` (ktoré procesy sú prevažne ručné): každá vybraná manuálna možnosť odčíta body od 100. **Pozor:** ak záporné hodnoty možností v súčte nedosahujú −100, firma s úplne všetkými manuálnymi procesmi nedostane 0, ale zvyšok (napr. −70 v súčte → skóre 30). Pri návrhu invertovanej otázky si súčet záporných hodnôt overte tak, aby dával zmysel pri najhoršom možnom výbere.
+
+### 4.4 "Neviem" a preskočené otázky
+
+- `allow_unknown: true` sprístupní tlačidlo "Neviem" — uloží sa `isUnknown: true`, `score: 0`.
+- Scoring engine (`calculateDII`, `calculateORS`) **vylučuje** `isUnknown`/`wasSkipped` odpovede z menovateľa — neznižujú skóre, len znižujú confidence kategórie.
+- **Dôležité:** branching pravidlá sa pre "Neviem" odpovede **nevyhodnocujú** (`AssessmentContext.tsx`: `if (!action.isUnknown) evaluateBranching(...)`). To znamená, že `skip_if`/`flag_risk` naviazané na otázku sa pri odpovedi "Neviem" nikdy nespustia — otázky určené na preskočenie zostanú v zozname a risk flag sa nenastaví. Ak je toto pre vašu otázku problém (napr. bezpečnostná otázka, kde "Neviem" by mala byť rizikový signál), doplňte to zatiaľ len do `tooltip`/UX, kód to automaticky nerieši.
+
+---
+
+## 5. Branching pravidlá (skutočná štruktúra)
+
+Pravidlá sú **pole priamo na spúšťacej otázke**, nie samostatný `branching` objekt s `question_id` odkazom:
+
+```json
+{
+  "id": "ind_10",
+  "...": "...",
+  "branching_rules": [
+    {
+      "condition": "!selected.includes('backup')",
+      "action": "flag_risk",
+      "target": "RF02",
+      "reason": "Chýbajúce zálohy = critical risk"
+    },
+    {
+      "condition": "value == 'eol'",
+      "action": "flag_risk",
+      "target": ["RF01"],
+      "reason": "Server/OS mimo podpory"
+    }
+  ]
+}
+```
+
+Pravidlo sa vyhodnotí **hneď po zodpovedaní tejto otázky** a `target` (string alebo pole stringov) odkazuje na **neskoršie** otázky (podľa poradia v poli) alebo na risk faktor.
+
+### 5.1 Podporovaná gramatika `condition` (presne toto a nič iné)
+
+`questionEngine.evaluateCondition()` rozpoznáva **iba** týchto 6 tvarov (regex match). Čokoľvek iné **potichu vráti `false`** — žiadna chyba, žiadne varovanie, pravidlo sa jednoducho nikdy nespustí:
+
+| Tvar | Príklad | Platí pre |
+|------|---------|-----------|
+| `value == 'x'` | `value == 'eol'` | single_choice |
+| `value != 'x'` | `value != 'none'` | single_choice |
+| `value == 'x' \|\| value == 'y'` | `value == 'disaster' \|\| value == 'major_impact'` | single_choice (OR reťaz) |
+| `selected_count <= N` (aj `>=`, `<`, `>`, `==`) | `selected_count <= 1` | multi_select |
+| `selected.includes('x')` | `selected.includes('erp')` | multi_select |
+| `!selected.includes('x')` | `!selected.includes('mfa')` | multi_select |
+
+**Pred uložením zmeny branching pravidla si podmienku manuálne overte oproti tejto tabuľke** — preklep (napr. medzery navyše, dvojité úvodzovky) pravidlo ticho vyradí.
+
+### 5.2 Akcie
+
+| `action` | Efekt |
 |----------|-------|
-| `skip_if` | Otazka sa preskoci ak podmienka je splnena |
-| `include_if` | Otazka sa zobrazi IBA ak podmienka je splnena |
-| `flag_risk` | Ak podmienka je splnena, aktivuje sa risk faktor |
+| `skip` | Cieľová otázka(y) sa pridá do `skippedQuestions` — nezobrazí sa a nepočíta sa. **Toto je jediný funkčný mechanizmus podmieneného vynechania/zobrazenia otázky** (viď `include` nižšie). |
+| `include` | **Nepoužívať — v aktuálnej verzii enginu je no-op.** `AssessmentContext.tsx` necháva `include` ciele v zozname vždy, bez ohľadu na to, či podmienka platí, takže cieľová otázka sa reálne zobrazí vždy. Ak potrebujete podmienenú viditeľnosť otázky, autorujte ju cez **dvojicu (alebo viac) invertovaných `skip` pravidiel** na spúšťacej otázke — jedno pravidlo pre každú hodnotu/vetvu, pri ktorej sa má cieľová otázka vynechať. Vzor nájdete pri `cx_D02` (skip na `cx_D03_server`+`cx_D04_virtualization` pre cloud-only vetvy vrátane `'saas_only'`, samostatný skip na `cx_D05_cloud` pre non-cloud vetvy) alebo `cx_B01`→`cx_B06_ecommerce`, `cx_B05`→`cx_B05b_outsource`. Otázková banka od verzie 1.4-MVP `action: "include"` nikde nepoužíva. |
+| `flag_risk` | Cieľ (RF01–RF14) sa pridá do `riskFlags` — `riskEngine` mu priradí plnú `maxPenalty × severityMultiplier`. |
 
-### 9.3 Pravidla pre editovanie branchingu
+### 5.3 Pravidlá pre editovanie branchingu
 
-- `question_id` musi odkazovat na otazku ktora **predchadza** v poradi
-- `value` je pole moznych hodnot (aspon jedna musi matchovat)
-- Nepouzivajte cyklicke zavislosti (A zavisi na B ktore zavisi na A)
-- Testujte branching logiku — nespravne pravidla mozu preskocit dolezite otazky
-
----
-
-## 10. Konvencie pre ID otazok
-
-### 10.1 Indikativny kviz
-
-Format: `ind_XX` kde XX je poradove cislo (01-15)
-
-### 10.2 Komplexny kviz
-
-Format: `cx_[MODUL]XX[variant]`
-
-Priklady:
-- `cx_A01` — prva otazka modulu A
-- `cx_B03` — tretia otazka modulu B
-- `cx_DII02b` — druhy variant DII otazky 02
-- `cx_ROI01` — ROI vstupna otazka
-
-### 10.3 Pravidla pre ID
-
-- **NEMENIT existujuce ID** — kód na ne odkazuje
-- Pri pridavani novej otazky pouzite nasledujuce volne cislo
-- ID musi byt unikatne v celom subore
-- Pouzivajte iba male pismena, cisla a podtrznik
+- `target` musí odkazovať na otázku, ktorá je v poli **za** touto otázkou (dopredné vetvenie).
+- Vyhýbajte sa cyklickým závislostiam.
+- Po úprave branchingu prejdite kvíz ručne v prehliadači (`npm run dev`) — statická validácia gramatiky podmienok zatiaľ neexistuje.
 
 ---
 
-## 11. Ako pridat novu otazku
+## 6. `maps_to_score` — kam otázka prispieva
 
-1. Skopirujte existujucu otazku podobneho typu
-2. Zmente `id` na nasledujuce volne cislo
-3. Upravte `text`, `tooltip`, `options`
-4. Nastavte spravne `maps_to_score`, `maps_to_dii`, `maps_to_risk`
-5. Ak treba, pridajte `branching`
-6. Overte ze `score` hodnoty su logicke (0 = najhorsie, 100 = najlepsie)
-7. Overte ze `assessment_type` a `module` su spravne
+| Hodnota | Význam |
+|---------|--------|
+| `"ors_A"` … `"ors_F"` | Prispieva do príslušnej ODRM kategórie (váhovaný priemer podľa `weight`). |
+| `"dii"` | Prispieva do DII-Compatible Score. Otázky s `"dii"` sa v `scoringEngine.calculateDII` spriemerujú — **nie je tu per-indikátorové rozlíšenie DII1–DII12** (pozri `SCORING_SPEC.md` §2 pre presnú aproximáciu a jej obmedzenia). |
+| `"ai_readiness"` | Prispieva do AI & Automatizácia Readiness Indexu (prierezový, nezávislý od ORS kategórií — architektúra rovnaká ako TDRI). |
+| `"benchmark_sector"` / `"benchmark_size"` | Meta otázka, ktorej hodnota sa uloží priamo do `respondent.sector` / `respondent.employeeCountBand` (číta `AssessmentContext.tsx`, nie scoring engine). |
 
----
-
-## 12. Ako odstranit otazku
-
-> **POZOR:** Odstranenie otazky moze rozbit branching pravidla inych otazok!
-
-1. Najdite vsetky otazky ktore referencuju jej `id` v `branching`
-2. Upravte alebo odstranite tieto branching pravidla
-3. Odstranite otazku
-4. Overte ze scoring stale pokryva vsetky kategorie a DII indikatory
+Otázka môže mať viac hodnôt naraz, napr. `["ors_D", "dii"]` — počíta sa do oboch nezávisle.
 
 ---
 
-## 13. Validacne pravidla (checklist pred importom)
+## 7. `maps_to_risk` — Risk faktory (TDRI)
 
-Pred importovanim upravenej matice overte:
+| Hodnota | Risk faktor | Severity | Max penalty |
+|---------|-------------|----------|-------------|
+| `"RF01"` | Out-of-support core OS/DB | Critical | 15 |
+| `"RF02"` | Chýbajúce zálohy core dát | Critical | 15 |
+| `"RF03"` | Zálohy existujú, ale netestované | High | 8 |
+| `"RF04"` | Chýbajúci patch management | Critical | 10 |
+| `"RF05"` | Absencia MFA na kritických systémoch | Critical | 10 |
+| `"RF06"` | Single point of failure (infraštruktúra) | High | 8 |
+| `"RF07"` | Single point of failure (ľudia) | High | 8 |
+| `"RF08"` | Nezdokumentované/neowned systémy | Medium | 5 |
+| `"RF09"` | Žiadny BC/DR plán | High | 7 |
+| `"RF10"` | Žiadny asset inventory | Medium | 4 |
+| `"RF11"` | Žiadne logovanie/monitoring | Medium | 5 |
+| `"RF12"` | Out-of-support aplikácie (nie core) | Medium | 5 |
+| `"RF13"` | Nepripravenosť na povinnú e-fakturáciu (od 1.1.2027) | Medium | 6 |
+| `"RF14"` | Nepripravenosť na NIS2 (ak sa firmu týka) | Medium | 6 |
 
-- [ ] Vsetky `id` su unikatne
-- [ ] Kazda otazka ma platny `type` (`single_choice` alebo `multi_select`)
-- [ ] Kazda otazka ma aspon 2 `options`
-- [ ] Kazda option ma `value`, `label` a `score`
-- [ ] `score` hodnoty su cisla 0-100
-- [ ] `maps_to_score` je platna hodnota (pozri sekciu 6)
-- [ ] Branching `question_id` odkazuje na existujucu otazku
-- [ ] Branching `value` obsahuje hodnoty ktore existuju v referencovanej otazke
-- [ ] Indikativny kviz ma 10-15 otazok
-- [ ] Komplexny kviz pokryva vsetky moduly (A-F)
-- [ ] Vsetky 12 DII indikatorov su pokryte aspon 1 otazkou
-- [ ] JSON je validny (ziadne chybajuce ciarky, zatvorky, uvodzovky)
+Všetkých 14 faktorov je aktívne prepojených aspoň s jednou otázkou: RF06 cez `cx_B02` (`flag_risk` na všetkých odpovediach okrem novej no-SPOF možnosti `distributed`), RF12 cez `cx_D08_app_lifecycle`, RF13 cez `cx_DII02b`, RF14 cez novú otázku `cx_E08_nis2` (gated cez skip pravidlá na `cx_01`/`cx_02` len pre medium/large firmy v sektoroch manufacturing/transport_logistics/ict).
+
+Aktivácia faktora funguje dvoma nezávislými cestami:
+1. **Explicitná** — `flag_risk` branching pravidlo (plná penalizácia `maxPenalty × severityMultiplier`).
+2. **Odvodená** — akákoľvek otázka s `maps_to_risk` obsahujúcim daný RF, aj bez `flag_risk` pravidla; ak priemerné skóre súvisiacich odpovedí (vylučujúc "Neviem" a otázky, kde všetky možnosti majú `score: 0`) klesne pod 30, aktivuje sa s penalizáciou `0.8×maxPenalty`; pod 60 s `0.3×maxPenalty`.
 
 ---
 
-## 14. Tipy
+## 8. Konvencie pre ID otázok
 
-- **Jazyk:** Vsetky texty su v slovencine, bez diakritiky v hodnotach (`value`), s diakritikou v `label` a `text`
-- **Tooltip:** Pouzivajte pre zlozitejsie otazky. Pomaha respondentovi pochopit co presne sa pytame.
-- **Konzistencia:** Udrzujte rovnaky styl formulacie otazok (napr. vzdy formalne „vy")
-- **Pocet opcii:** 3-5 opcii je idealne. Viac ako 6 je neprehladne.
-- **Score distribucua:** Idealne rovanomerne (0, 25, 50, 75, 100). Nerovnomerne len ak je logicky dovod.
+### 8.1 Indikatívny kvíz
+
+Prevažne `ind_XX` (napr. `ind_01`), ale viaceré majú popisnú príponu pre čitateľnosť: `ind_06_integration`, `ind_09_server_age`, `ind_15_ai`. Číslovanie **nemusí byť súvislé/zoradené** s poradím v poli — poradie v poli je to, čo sa reálne zobrazí, nie číslo v ID. Pri editácii poradia otázok preto pohybujte celým objektom v poli, nie len číslom v ID.
+
+### 8.2 Komplexný kvíz
+
+Formát: `cx_[Modul][NN][voliteľná prípona]`
+
+Príklady: `cx_A01` (prvá otázka modulu A), `cx_A06_ai_automation`, `cx_DII02b` (variant b), `cx_F07_ai_governance`, `cx_ROI02`.
+
+### 8.3 Pravidlá pre ID
+
+- **Nemeniť existujúce ID** — branching pravidlá aj (v prípade ROI polí) `roiEngine.ts` naň odkazujú natvrdo.
+- Nové ID musí byť unikátne v celom súbore (naprieč oboma kvízmi).
+- Iba malé písmená, čísla a podtržník.
+
+---
+
+## 9. Ako pridať novú otázku
+
+1. Skopírujte existujúcu otázku podobného typu ako štartovaciu šablónu.
+2. Zmeňte `id` na nové unikátne (dodržte konvenciu zo sekcie 8).
+3. Upravte `question_sk`, `tooltip`, `options`.
+4. Nastavte `category`, `maps_to_score`, `maps_to_risk` podľa toho, kam má otázka prispievať.
+5. Ak otázka má byť vstupom pre ROI, **nestačí** len `maps_to_roi_model` — musíte upraviť aj `engines/roiEngine.ts` (`extractROIInputs`), keďže ROI vstupy sa čítajú podľa natvrdo napísaných ID.
+6. Overte, že `score` hodnoty dávajú zmysel (0 = najhoršie, 100 = najlepšie; výnimka: invertovaný multi_select, sekcia 4.3).
+7. Ak pridávate do komplexného kvízu, vložte ju do správneho `modules[].questions`.
+8. Otestujte v prehliadači — prejdite kvíz a overte, že sa otázka zobrazí v očakávanom poradí a branching (ak nejaký) funguje.
+9. **Synchronizujte kópiu:** upravte `data/questionBank.json` (zdroj pravdy, ktorý číta aplikácia) — `config/model/questionBank.json` je len editovateľná kópia, ktorú je potrebné manuálne prekopírovať späť do `data/`.
+
+---
+
+## 10. Ako odstrániť otázku
+
+> **Pozor:** Odstránenie otázky môže rozbiť branching pravidlá iných otázok.
+
+1. Nájdite všetky otázky, ktoré majú v `branching_rules[].target` ID tejto otázky.
+2. Upravte alebo odstráňte tieto pravidlá.
+3. Odstráňte otázku.
+4. Overte, že príslušná ODRM kategória / `dii` / `ai_readiness` bucket má stále aspoň niekoľko otázok (kategória bez otázok dostane skóre pri výpočte).
+
+---
+
+## 11. Validačný checklist pred importom
+
+- [ ] Všetky `id` sú unikátne naprieč `indicative_quiz` aj `complex_quiz`.
+- [ ] Každá otázka má `question_type` `"single_choice"` alebo `"multi_select"` (nič iné).
+- [ ] Každá otázka má aspoň 2 `options`, každá s `value`, `label`, `score`.
+- [ ] `maps_to_score`, `maps_to_risk`, `maps_to_roi_model` sú **polia** (aj keď prázdne `[]`), nie stringy.
+- [ ] `branching_rules[].condition` zodpovedá jednému zo 6 podporovaných tvarov (sekcia 5.1).
+- [ ] `branching_rules[].target` odkazuje na existujúce ID, ktoré je **za** aktuálnou otázkou v poli.
+- [ ] Invertovaný `multi_select` má `scoring_note` obsahujúci `"Invertované"`.
+- [ ] JSON je validný (over cez `ConvertFrom-Json` / `JSON.parse`, nie len vizuálne).
+- [ ] Zmena je prenesená z `config/model/questionBank.json` do `data/questionBank.json` (alebo naopak) — oba súbory musia byť identické.
+
+---
+
+## 12. Tipy
+
+- **Jazyk:** Texty v `question_sk`/`label`/`tooltip` so slovenskou diakritikou; `value` bez diakritiky, malé písmená, podtržníky.
+- **Tooltip:** Používajte pri technických pojmoch (MFA, RPO/RTO, cloud sofistikácia...).
+- **Konzistencia:** Formálne oslovenie ("vy"), rovnaký štýl formulácie naprieč otázkami.
+- **Počet opcií:** 3–5 je ideálne; nad 6 pôsobí neprehľadne.
+- **Pred odovzdaním:** vždy prejdite kvíz naživo (`npm run dev`) — statický JSON validátor nezachytí sémantické chyby (zlá `condition`, chýbajúci `target`).

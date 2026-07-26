@@ -34,6 +34,10 @@ export default function UserOwnResultView({ hash }: Props) {
       // We saved a PeerSnapshot in payload. Validate the shape minimally.
       const p = stored.payload as PeerSnapshot;
       if (p.hash === hash && typeof p.diiScore100 === 'number') {
+        // localStorage nie je dostupný pri SSR — čítanie musí prebehnúť po mounte,
+        // aby prvý klientský render zodpovedal serverovému (žiadny hydration mismatch).
+        // Ide o jediný, terminálny setState bez ďalších nadväzujúcich efektov.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setState({ kind: 'found', snapshot: p });
         return;
       }
@@ -43,9 +47,9 @@ export default function UserOwnResultView({ hash }: Props) {
 
   if (state.kind === 'loading') {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <div className="inline-flex items-center gap-2 text-slate-500 text-sm">
-          <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+      <div className="max-w-3xl mx-auto px-4 py-12 sm:py-16 text-center">
+        <div className="inline-flex items-center gap-2 text-[#6e6e73] text-sm">
+          <span className="w-2 h-2 rounded-full bg-[#86868b] animate-pulse" />
           Načítavam výsledok…
         </div>
       </div>
@@ -54,33 +58,37 @@ export default function UserOwnResultView({ hash }: Props) {
 
   if (state.kind === 'missing') {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
+      <div className="max-w-2xl mx-auto px-4 py-12 sm:py-16 text-center">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-6 rounded-3xl bg-amber-500/10 text-amber-700 flex items-center justify-center">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h1 className="text-2xl font-black text-slate-900 mb-3">
+        <h1 className="text-xl sm:text-2xl font-bold text-[#1d1d1f] mb-3 break-words">
           Výsledok nie je dostupný na tomto zariadení
         </h1>
-        <p className="text-slate-600 mb-2 leading-relaxed">
-          Hash <span className="font-mono text-slate-800">{hash}</span> sme nenašli ani v anonymizovanej vzorke,
+        <p className="text-[#6e6e73] mb-2 leading-relaxed">
+          {/* 16-znakový hash je jeden nezalomiteľný reťazec — bez break-all
+              pretečie odsek pri 320 px hneď, ako sa zväčší text. */}
+          Hash <span className="font-mono text-[#1d1d1f] break-all">{hash}</span> sme nenašli ani v anonymizovanej vzorke,
           ani v lokálnej pamäti tohto prehliadača.
         </p>
-        <p className="text-slate-500 mb-8 text-sm leading-relaxed">
+        <p className="text-[#6e6e73] mb-8 text-sm leading-relaxed">
           Výsledky vlastnej diagnostiky sú uložené iba lokálne v zariadení, kde ste kvíz vyplnili.
           Otvorte odkaz v rovnakom prehliadači, alebo si urobte novú diagnostiku.
         </p>
-        <div className="flex items-center justify-center gap-3 flex-wrap">
+        {/* Na mobile obe CTA cez celú šírku — „Prezerať vzorové výsledky“ sa
+            pri 320 px aj tak zalomí, takže vycentrovaný riadok vyzeral rozbito. */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-2xl font-bold hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all duration-200"
+            className="btn-apple-primary inline-flex items-center justify-center gap-2 w-full sm:w-auto px-7 py-3.5 rounded-full text-white font-semibold"
           >
             Začať novú diagnostiku
           </Link>
           <Link
             href="/peers"
-            className="inline-flex items-center gap-2 px-6 py-3 border-2 border-slate-200 text-slate-700 rounded-2xl font-bold hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-200"
+            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 border border-black/10 text-[#1d1d1f] rounded-full font-semibold hover:bg-black/5 sm:hover:-translate-y-0.5 transition-all duration-200"
           >
             Prezerať vzorové výsledky
           </Link>
@@ -100,48 +108,49 @@ export default function UserOwnResultView({ hash }: Props) {
   });
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8 space-y-6 sm:space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in-up">
-        <div className="flex items-center gap-4">
+        <div className="flex items-start sm:items-center gap-3 sm:gap-4">
           <div
-            className="w-12 h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30"
+            className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-2xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center"
             aria-hidden="true"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <div>
+          {/* min-w-0 — flex položka inak neklesne pod min-content šírku
+              a dlhý sektorový názov by roztlačil hlavičku mimo viewport. */}
+          <div className="min-w-0">
             <p className="text-xs font-bold text-emerald-600 uppercase tracking-wide mb-0.5">
               Váš výsledok
             </p>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#1d1d1f] break-words">
               {sectorLabel} &middot; {sizeLabel}
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Hash: <span className="font-mono text-slate-700">{hash}</span> &middot; {dateLabel}
+            <p className="text-sm text-[#6e6e73] mt-1 break-words">
+              Hash: <span className="font-mono text-[#1d1d1f] break-all">{hash}</span> &middot; {dateLabel}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up">
-        <ScoreCard label="DII Score" value={`${snapshot.diiScore100}`} unit="/100" subtitle={`${snapshot.diiScore12}/12 (DII raw)`} gradient="from-indigo-500 to-blue-600" />
-        <ScoreCard label="Operational Readiness" value={`${snapshot.orsScore}`} unit="/100" subtitle="ODRM model" gradient="from-cyan-500 to-teal-500" />
-        <ScoreCard label="Risk Index (TDRI)" value={`${snapshot.tdriScore}`} unit="/100" subtitle="Vyššie = horšie" gradient="from-rose-500 to-orange-500" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 animate-fade-in-up">
+        <ScoreCard label="DII Score" value={`${snapshot.diiScore100}`} unit="/100" subtitle={`${snapshot.diiScore12}/12 (DII raw)`} />
+        <ScoreCard label="Operational Readiness" value={`${snapshot.orsScore}`} unit="/100" subtitle="ODRM model" />
+        <ScoreCard label="Risk Index (TDRI)" value={`${snapshot.tdriScore}`} unit="/100" subtitle="Vyššie = horšie" />
         <ScoreCard
           label="Business Impact"
           value={new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(snapshot.businessImpactEur)}
           unit=""
           subtitle="EUR / rok (mid)"
-          gradient="from-emerald-500 to-green-600"
         />
       </div>
 
       <PeerComparisonPanel current={snapshot} />
       <QRCodeCard url={url} hash={hash} />
 
-      <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-5 text-sm text-slate-700 leading-relaxed">
+      <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 sm:p-5 text-sm text-[#1d1d1f] leading-relaxed">
         <p className="font-bold text-emerald-700 mb-1">Súkromie</p>
         <p>
           Tento výsledok je uložený iba lokálne v tomto prehliadači. Ak QR kód alebo odkaz
@@ -158,23 +167,25 @@ function ScoreCard({
   value,
   unit,
   subtitle,
-  gradient,
 }: {
   label: string;
   value: string;
   unit: string;
   subtitle: string;
-  gradient: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
-      <div className={`inline-block w-1 h-6 rounded-full bg-gradient-to-b ${gradient} mb-3`} aria-hidden="true" />
-      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">{label}</p>
-      <p className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-        {value}
-        <span className="text-sm font-bold text-slate-400 ml-1">{unit}</span>
+    <div className="bg-white rounded-2xl border border-black/5 shadow-sm p-3 sm:p-4 lg:p-5 min-w-0">
+      <div className="inline-block w-1 h-6 rounded-full bg-[#1d1d1f]/10 mb-3" aria-hidden="true" />
+      <p className="text-[11px] sm:text-xs font-bold text-[#6e6e73] uppercase tracking-wide mb-1.5 break-words">
+        {label}
       </p>
-      <p className="text-xs text-slate-500 mt-1.5">{subtitle}</p>
+      {/* Rovnaký prípad ako v /r/[hash]: sk-SK mena používa nezalomiteľné
+          medzery, takže „22 800 €“ pri text-2xl pretieklo bunku gridu. */}
+      <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#1d1d1f] tracking-tight tabular-nums break-words">
+        {value}
+        <span className="text-sm font-bold text-[#86868b] ml-1">{unit}</span>
+      </p>
+      <p className="text-xs text-[#6e6e73] mt-1.5 break-words">{subtitle}</p>
     </div>
   );
 }

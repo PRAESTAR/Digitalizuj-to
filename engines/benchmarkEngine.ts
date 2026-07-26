@@ -5,7 +5,9 @@ export function calculateBenchmarks(
   dii: DIIScore,
   ors: ORSScore,
   sector: string,
-  sizeBand: string
+  // TODO(IMPROVEMENT_CHECKLIST.md P1): orsVsSize/orsVsCountry porovnania zatiaľ
+  // nie sú implementované, hoci sizeBenchmarks dáta existujú — zámerne nepoužité.
+  _sizeBand: string
 ): BenchmarkResults {
   return {
     diiVsSk: calculateDIIBenchmark(dii, 'SK'),

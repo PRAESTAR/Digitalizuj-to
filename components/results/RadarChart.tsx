@@ -16,7 +16,7 @@ interface RadarChartProps {
 }
 
 export default function RadarChart({ categories }: RadarChartProps) {
-  const data = Object.entries(categories).map(([key, cat]) => ({
+  const data = Object.entries(categories).map(([, cat]) => ({
     category: cat.name.split(' ')[0],
     fullName: cat.name,
     score: Math.round(cat.score),

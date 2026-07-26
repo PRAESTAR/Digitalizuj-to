@@ -1,22 +1,25 @@
 # digitalizuj.to — Technical Architecture
 
-> Verzia: 1.0-MVP  
-> Dátum: 2026-04-08
+> Verzia: 1.1-MVP (revízia; pôvodná 1.0-MVP z 2026-04-08)
+> Dátum: 2026-07-24
+>
+> Rýchly prehľad s diagramami (Mermaid) je v [`README.md`](README.md#architektura) — tento dokument je hlbší technický detail (dátový model, výpočtové vzorce).
 
 ---
 
-## 1. Technologický stack (MVP)
+## 1. Technologický stack
 
 | Vrstva | Technológia | Dôvod |
 |--------|------------|-------|
-| Frontend | Next.js 14 + TypeScript | SSR, file-based routing, React ekosystém |
-| Styling | Tailwind CSS | Rýchly vývoj, konzistentný dizajn |
-| Charting | Recharts | Radar/hexagon chart, responzívne |
+| Frontend | Next.js 16 + TypeScript 5 | App Router, SSR/CSR, React ekosystém |
+| UI | React 19 | Komponentový model |
+| Styling | Tailwind CSS 4 | Rýchly vývoj, konzistentný dizajn |
+| Charting | Recharts 3 | Radar/hexagon chart, responzívne |
 | State | React Context + useReducer | Stačí pre MVP, žiadna externá závislosť |
-| Dáta | JSON-based (in-memory) | Pre MVP nie je potrebná databáza |
+| Dáta | JSON/TS-based (in-memory) | Pre MVP nie je potrebná databáza |
 | Export | Client-side PDF (html2canvas/jsPDF) | Jednoduchý export |
 
-**Rozhodnutie:** Pre MVP je databáza overkill. Otázky, scoring a benchmarky sú v JSON súboroch. Stav sa drží v pamäti (React state). Pre produkciu sa pridá Supabase/PostgreSQL.
+**Rozhodnutie:** Pre MVP je databáza overkill. Otázky, scoring a benchmarky sú v JSON/TS súboroch. Stav sa drží v pamäti (React state) a voliteľne v `localStorage` (trvalé odkazy). Pre produkciu sa pridá Supabase/PostgreSQL.
 
 ---
 
@@ -55,6 +58,12 @@
 │  │ - flagCrit   │  │ - scenarios  │  │ - prioritize │  │
 │  │ - aggregate  │  │ - confidence │  │ - roadmap    │  │
 │  └──────────────┘  └──────────────┘  └──────────────┘  │
+│                                                         │
+│  ┌──────────────┐                                      │
+│  │  AI Readiness│  (prierezový index — rovnaký princíp │
+│  │  Engine      │   ako Risk Engine, nie 7. kategória  │
+│  │ - calcAI     │   ODRM; pozri METHODOLOGY.md §5.4)   │
+│  └──────────────┘                                      │
 │                                                         │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │              Explainability Layer                  │   │
@@ -115,24 +124,21 @@ interface Question {
   question_type: QuestionType;
   weight: number;
   options?: QuestionOption[];
-  bands?: NumericBand[];
+  bands?: NumericBand[];       // pole existuje v type systéme, ale UI ho nečíta — nepoužívané
   max_score?: number;
+  scoring_note?: string;       // magic string "Invertované" prepína multi_select scoring
   branching_rules: BranchingRule[];
   evidence_type: string;
   maps_to_score: string[];
   maps_to_risk: string[];
-  maps_to_roi_model: string[];
-  tooltip?: string;
+  maps_to_roi_model: string[]; // popisné — roiEngine v skutočnosti číta podľa natvrdo napísaných ID
+  tooltip?: string | null;
   allow_unknown: boolean;
 }
 
-type QuestionType = 
-  | 'single_choice' 
-  | 'multi_select' 
-  | 'yes_no' 
-  | 'numeric_input'
-  | 'numeric_bands'
-  | 'maturity_scale';
+// Iba tieto dva typy sú implementované v QuestionCard.tsx.
+// 'yes_no', 'numeric_input', 'numeric_bands', 'maturity_scale' NIE SÚ podporené v UI.
+type QuestionType = 'single_choice' | 'multi_select';
 
 interface QuestionOption {
   value: string;
@@ -190,25 +196,28 @@ interface RoiAssumption {
   dataSource: 'self_reported' | 'benchmark_sector' | 'benchmark_default';
 }
 
-// ResultSnapshot — kompletný výsledok
+// ResultSnapshot — kompletný výsledok (reálny tvar, types/index.ts)
 interface ResultSnapshot {
   assessmentId: string;
+  modelVersion: ModelVersionInfo;   // questionBank/scoringConfig/benchmarkData verzie + timestamp
   dii: DIIScore;
   ors: ORSScore;
   tdri: TDRIScore;
+  aiReadiness: AIReadinessScore;     // pozri METHODOLOGY.md §5.4
   businessImpact: BusinessImpact;
   benchmarks: BenchmarkResults;
   recommendations: Recommendations;
-  auditTrail: AuditTrail;
 }
+// Pozn.: samostatný globálny "AuditTrail" typ neexistuje — auditovateľnosť je
+// implementovaná užšie, len pre Business Impact (pozri §6 nižšie).
 
-// Recommendation
+// Recommendation (reálne camelCase polia, nie snake_case)
 interface Recommendation {
   id: string;
   type: 'critical_risk' | 'quick_win' | 'strategic' | 'long_term';
   category: string;
-  title_sk: string;
-  description_sk: string;
+  titleSk: string;
+  descriptionSk: string;
   urgency: number;
   impact: number;
   effort: number;

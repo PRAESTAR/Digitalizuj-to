@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAssessment } from '@/context/AssessmentContext';
 import QuestionCard from '@/components/quiz/QuestionCard';
 import ProgressBar from '@/components/quiz/ProgressBar';
@@ -26,21 +27,21 @@ export default function QuizPage() {
   if (!assessment) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center animate-fade-in-up">
-        <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-gradient-to-r from-indigo-500 to-blue-600 flex items-center justify-center text-white text-2xl shadow-lg shadow-indigo-500/30">
+        <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-[#1d1d1f]/8 text-[#1d1d1f] flex items-center justify-center text-2xl">
           ?
         </div>
-        <h1 className="text-2xl font-black text-slate-900 mb-4">
+        <h1 className="text-2xl font-bold text-[#1d1d1f] mb-4">
           Žiadne aktívne hodnotenie
         </h1>
-        <p className="text-slate-600 mb-6">
+        <p className="text-[#6e6e73] mb-6">
           Najprv si vyberte typ hodnotenia na hlavnej stránke.
         </p>
-        <a
+        <Link
           href="/"
-          className="inline-flex px-8 py-3.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-2xl font-bold hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all duration-200"
+          className="btn-apple-primary inline-flex items-center gap-2 px-8 py-3.5 rounded-full text-white font-semibold"
         >
           Späť na úvod
-        </a>
+        </Link>
       </div>
     );
   }
@@ -63,15 +64,17 @@ export default function QuizPage() {
     : 'Komplexná diagnostika';
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-3xl mx-auto px-4 pt-16 pb-6 sm:pt-8 sm:pb-8">
       {/* Quiz header */}
       <div className="mb-6 animate-fade-in-up flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/30">
+        {/* shrink-0 — bez neho sa ikona pri dlhom názve a zväčšenom texte
+            stlačí na elipsu namiesto toho, aby sa zalomil nadpis. */}
+        <div className="w-9 h-9 flex-shrink-0 rounded-xl bg-[#1d1d1f]/8 text-[#1d1d1f] flex items-center justify-center">
           <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
         </div>
-        <h1 className="text-lg font-black text-slate-800">{quizTitle}</h1>
+        <h1 className="text-base sm:text-lg font-bold text-[#1d1d1f] min-w-0 break-words">{quizTitle}</h1>
       </div>
 
       <ProgressBar
@@ -88,9 +91,12 @@ export default function QuizPage() {
       />
 
       <div className="mt-8 text-center animate-fade-in">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-slate-100">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-xs text-slate-500 font-medium">
+        {/* Text sa na mobile zalomí do viacerých riadkov, preto rounded-2xl a
+            zarovnanie vľavo; bodka potrebuje flex-shrink-0, inak ju zalomený
+            text stlačí na nulovú šírku. */}
+        <div className="inline-flex items-start sm:items-center gap-2 px-4 py-2 rounded-2xl sm:rounded-full bg-white border border-black/5 text-left">
+          <span className="w-2 h-2 mt-1 sm:mt-0 flex-shrink-0 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs text-[#6e6e73] font-medium">
             Vaše odpovede sa spracovávajú lokálne. Žiadne dáta sa neodosielajú na server.
           </span>
         </div>

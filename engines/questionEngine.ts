@@ -1,4 +1,4 @@
-import type { Question, QuizDefinition, Answer, BranchingRule, Assessment } from '@/types';
+import type { Question, QuizDefinition, Answer } from '@/types';
 import questionBankData from '@/data/questionBank.json';
 
 const questionBank = questionBankData as {

@@ -2,8 +2,8 @@
 
 **Metodika merania digitálnej zrelosti SME — Adaptívny model DAP**
 
-> Dátum: 2026-07-23 (revízia; pôvodný návrh 2026-04-17)  
-> Status: Návrh pre MVP implementáciu  
+> Dátum: 2026-07-24 (revízia pre release 1.0.0; pôvodný návrh 2026-04-17)  
+> Status: Implementované — release 1.0.0  
 > Verzia: viazaná na build celej platformy (viď footer webu)  
 > Benchmark kotva: Eurostat `isoc_e_dii`, prieskum 2025, DII verzia 3
 
@@ -360,7 +360,7 @@ ročný_€_dopad = ušetrené_hodiny × plná_hodinová_cena
 
 ### 6.3 Hodinová cena práce — vždy benchmark, nie otázka
 
-Dotazník sa **nepýta** na hodinovú cenu práce vo firme — je to citlivý údaj, respondenti ho odhadujú nepresne, a v praxi spôsoboval nekonzistenciu (indikatívny a komplexný kvíz sa pýtali na odlišne definovanú cenu — hrubú vs. plnú). Namiesto toho ROI model vždy počíta s **priemernou plnou hodinovou cenou práce na Slovensku** (Eurostat `lc_lci_lev`, aktuálne 19,8 €/h — pozri `ROI_MODEL.md` §7). Toto je vedomý trade-off: nižšia presnosť pre firmy s výrazne pod-/nadpriemernými mzdami výmenou za vyššiu completion rate a jednoduchší, dôveryhodnejší dotazník.
+Dotazník sa **nepýta** na hodinovú cenu práce vo firme — je to citlivý údaj, respondenti ho odhadujú nepresne, a v praxi spôsoboval nekonzistenciu (indikatívny a komplexný kvíz sa pýtali na odlišne definovanú cenu — hrubú vs. plnú). Namiesto toho ROI model vždy počíta s **priemernou plnou hodinovou cenou práce v IT/telekomunikačnom sektore na Slovensku** (Eurostat `lc_lci_lev`, NACE J, aktuálne 30,8 €/h — pozri `ROI_MODEL.md` §7). IT sektor namiesto celého hospodárstva preto, že procesy, ktoré platforma pomáha automatizovať, typicky rieši alebo zastrešuje IT/technický tím. Toto je vedomý trade-off: nižšia presnosť pre firmy s výrazne pod-/nadpriemernými mzdami výmenou za vyššiu completion rate a jednoduchší, dôveryhodnejší dotazník.
 
 ---
 
@@ -369,7 +369,7 @@ Dotazník sa **nepýta** na hodinovú cenu práce vo firme — je to citlivý ú
 ### 7.1 Dva režimy
 
 1. **Indikatívny kvíz** (15 otázok): Rýchly screening. Výsledok = orientačné skóre + rozhodnutie či pokračovať.
-2. **Komplexný kvíz** (47 otázok v banke, reálne 43–47 podľa vetvenia): Hlbšia diagnostika rozdelená do modulov.
+2. **Komplexný kvíz** (50 otázok v banke, reálne 43–49 podľa vetvenia): Hlbšia diagnostika rozdelená do modulov.
 
 ### 7.2 Branching princípy
 
@@ -413,9 +413,9 @@ Detailný popis je v `BENCHMARK_SPEC.md`. Tu je prehľad:
 - Operačnú zrelosť po kategóriách.
 - Risk index vs. typická firma rovnakej veľkosti.
 
-### 8.3 MVP disclaimer
+### 8.3 Disclaimer k benchmark dátam
 
-Pre MVP používame **statické benchmark hodnoty** odvodené z verejných Eurostat dát. Tieto sú verzované a explicitne označené ako približné.
+Používame **statické benchmark hodnoty** odvodené z verejných Eurostat dát. Tieto sú verzované a explicitne označené ako približné.
 
 ---
 
@@ -446,7 +446,7 @@ Pre MVP používame **statické benchmark hodnoty** odvodené z verejných Euros
 
 **Rozhodnutie:** 
 - Indikatívny kvíz (15 otázok) = nízka záťaž, nižšia presnosť.
-- Komplexný kvíz (43–47 otázok) = vyššia záťaž, vyššia presnosť.
+- Komplexný kvíz (43–49 otázok) = vyššia záťaž, vyššia presnosť.
 - Branching znižuje reálny počet otázok.
 
 ### 9.4 DII mapovanie nie je 1:1
@@ -470,9 +470,9 @@ Pre MVP používame **statické benchmark hodnoty** odvodené z verejných Euros
 
 ### 9.6 AI pripravenosť a regulačný kontext (2026)
 
-**Medzera:** AI je v modeli zachytená len ako DII premenná č. 12. ODRM nemá samostatnú AI dimenziu (data readiness pre AI, governance AI use-casov, AI zručnosti) — pritom adopcia AI je od 2025 najrýchlejšie rastúca os digitalizácie (EÚ 20,0 % podnikov, SR 18,0 %, medziročne +67 %; cieľ Digitálnej dekády 75 % do 2030).
+**Pôvodná medzera (vyriešená v 1.0.0):** AI bola v modeli zachytená len ako DII premenná č. 12, bez samostatnej dimenzie v ODRM — pritom adopcia AI je od 2025 najrýchlejšie rastúca os digitalizácie (EÚ 20,0 % podnikov, SR 18,0 %, medziročne +67 %; cieľ Digitálnej dekády 75 % do 2030).
 
-**Plán:** rozšíriť kategórie C (data readiness pre AI) a F (AI governance/zručnosti) o dimenzie AI pripravenosti; zvážiť samostatnú kategóriu G po pilotnej validácii.
+**Riešenie:** namiesto rozšírenia kategórií C/F alebo pridania 7. kategórie (čo by si vyžiadalo prerozdelenie váh a nový, Eurostatom nepodložený benchmark) pribudol **AI & Automatizácia Readiness Index** — samostatný prierezový výstup rovnakej architektúry ako Technical Debt & Risk Index (§5.4). Počíta sa z otázok naprieč kategóriami A (automatizácia procesov), F (AI governance) a DII vrstvou (využívanie AI), má vlastnú kartu vo výsledkoch aj vlastné odporúčania. 6-osový ODRM radar a Eurostat DII benchmark zostali nezmenené.
 
 **Regulačné časové okná relevantné pre odporúčania:**
 - **NIS2 / zákon č. 366/2024 Z. z.** — účinný od 1. 1. 2025 (bezpečnostné opatrenia do 12 mesiacov od registrácie NBÚ; vyhláška č. 227/2025 Z. z. od 1. 9. 2025).
@@ -491,19 +491,19 @@ Pre MVP používame **statické benchmark hodnoty** odvodené z verejných Euros
 
 ## 10. Čo je hotové, čo je aproximácia, čo zostáva otvorené
 
-### Hotové pre MVP
+### Hotové pre release 1.0.0
 - ✅ Dvojvrstvový model (DII + ODRM)
-- ✅ 6 kategórií s definíciou a maturity škálou
-- ✅ 4 výstupné skóre (DII, ODRM, Risk Index, Business Impact)
+- ✅ 6 kategórií ODRM s definíciou a maturity škálou
+- ✅ 5 nezávislých výstupných skóre (DII, ORS, AI & Automatizácia Readiness, Technical Debt & Risk Index, Business Impact)
 - ✅ Default váhy
-- ✅ Princípy branching logiky
-- ✅ Princípy ROI modelu
+- ✅ Branching logika (`skip`/`flag_risk`; `include` je v aktuálnej verzii enginu no-op a v otázkovej banke sa nepoužíva — podmienená viditeľnosť sa autoruje cez invertované `skip` páry, viď `QUESTION_BANK_GUIDE.md` §5.2)
+- ✅ ROI model s fixnou benchmarkovou hodinovou cenou práce
 
 ### Aproximácie
 - ⚠️ Váhy kategórií sú expertný odhad, nie empiricky validované (chýba sensitivity analýza — viď checklist)
 - ⚠️ DII mapovanie je aproximácia originálneho Eurostat modelu; MVP navyše priemeruje otázky bez per-indikátorovej agregácie (DII1–DII12)
 - ⚠️ Benchmark hodnoty sú statické (Eurostat isoc_e_dii 2025 + expertné odhady), verzované, s ročnou aktualizačnou politikou
-- ⚠️ ROI model používa zjednodušené predpoklady (bez investičných nákladov a adopčnej krivky; výstup = ročný run-rate po plnej implementácii); hodinová cena práce je vždy fixný priemer SR, nie self-reported hodnota (viď 6.3)
+- ⚠️ ROI model používa zjednodušené predpoklady (bez investičných nákladov a adopčnej krivky; výstup = ročný run-rate po plnej implementácii); hodinová cena práce je vždy fixný priemer IT sektora SR, nie self-reported hodnota (viď 6.3)
 - ⚠️ Niektoré otázky mapujú súčasne DII aj ODRM vrstvu — prekryv vrstiev zatiaľ nie je zdokumentovaný per otázka (riziko korelácie vrstiev „by construction")
 
 ### Otvorené pre budúcnosť

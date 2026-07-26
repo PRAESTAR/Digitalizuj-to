@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 import { execSync } from "child_process";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 function getGitHash() {
   try {
@@ -123,6 +126,20 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  /**
+   * Trvalé presmerovania zo starých, nejazykových adries. Pred zavedením
+   * viacjazyčnosti žila stránka na /peers, /changelog atď. — tie adresy sú
+   * odkazované zvonku aj zaindexované, takže musia skončiť 301-kou na
+   * slovenskú mutáciu, nie 404-kou. Koreň / rieši middleware.
+   */
+  async redirects() {
+    const legacyPaths = ["peers", "changelog", "quiz", "results"];
+    return legacyPaths.map((p) => ({
+      source: `/${p}`,
+      destination: `/sk/${p}`,
+      permanent: true,
+    }));
+  },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

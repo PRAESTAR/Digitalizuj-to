@@ -49,13 +49,15 @@ Odhaduje potenciálny business dopad digitalizácie na základe:
 
 ### 2.2 Benchmark fallback hodnoty
 
-> **Zmena (verzia 1.1):** Otázka na hodinovú cenu práce (`ind_15` / `cx_ROI01`) bola z dotazníka **odstránená** — je to citlivý údaj a väčšina respondentov ho odhaduje nepresne. ROI model teraz vždy počíta s priemernou hodinovou cenou práce na Slovensku (viď nižšie), nie so self-reported hodnotou. Toto zjednodušenie znižuje presnosť pre firmy s výrazne podpriemernými/nadpriemernými mzdami, ale zvyšuje completion rate a odstraňuje nekonzistenciu medzi definíciami "hrubá" vs. "plná" cena práce, ktorá predtým existovala medzi oboma kvízmi.
+> **Zmena (verzia 1.1):** Otázka na hodinovú cenu práce (`ind_15` / `cx_ROI01`) bola z dotazníka **odstránená** — je to citlivý údaj a väčšina respondentov ho odhaduje nepresne. ROI model teraz vždy počíta s priemernou hodinovou cenou práce (viď nižšie), nie so self-reported hodnotou. Toto zjednodušenie znižuje presnosť pre firmy s výrazne podpriemernými/nadpriemernými mzdami, ale zvyšuje completion rate a odstraňuje nekonzistenciu medzi definíciami "hrubá" vs. "plná" cena práce, ktorá predtým existovala medzi oboma kvízmi.
+>
+> **Zmena (verzia 1.0.0):** Benchmark prepnutý z priemeru **celého hospodárstva SR** na priemer **IT/telekomunikačného sektora SR** (NACE J) — procesy, ktoré platforma pomáha automatizovať, typicky rieši alebo zastrešuje IT/technický tím, a nástroj cielime na rozhodovanie o digitalizačných investíciách. Presný zdroj a kontrolný súčet v §7.
 
 ```json
 {
   "hourly_cost_eur": {
-    "default": 19.8,
-    "note": "Plná hodinová cena práce vrátane odvodov — vždy priemer SR, nepýta sa ako otázka. Zdroj: Eurostat lc_lci_lev 2025, celé hospodárstvo, podniky 10+ (19,8 €/h; admin/podporné služby NACE N: 15,2 €/h). Odvodový multiplikátor zamestnávateľa od 1. 1. 2025: 1,362. Revízia: ročne (marcová publikácia Eurostatu)."
+    "default": 30.8,
+    "note": "Plná hodinová cena práce vrátane odvodov — vždy priemer IT/telekomunikačného sektora SR (NACE J), nepýta sa ako otázka. Zdroj: Eurostat lc_lci_lev 2025, SK, NACE J Informácie a komunikácia (30,8 €/h celková cena práce; z toho mzdy 22,4 €/h). Revízia: ročne (aprílová publikácia Eurostatu)."
   },
   "process_benchmarks": {
     "invoicing": {
@@ -143,13 +145,36 @@ ročný_€_dopad = celkové_ušetrené_hodiny × hodinová_cena
 
 // Scenáre
 konzervatívny_dopad = ročný_€_dopad × 0.40  // predpoklad: 40% realization rate
-stredný_dopad = ročný_€_dopad × 0.65       // predpoklad: 65% realization rate
-optimistický_dopad = ročný_€_dopad × 0.85  // predpoklad: 85% realization rate
+reálny_dopad        = ročný_€_dopad × 0.65  // predpoklad: 65% realization rate
+optimistický_dopad  = ročný_€_dopad × 0.85  // predpoklad: 85% realization rate
 ```
 
 **Poznámky k implementácii (v1.1):**
 - Headline `ročný_€_dopad` v implementácii **zahŕňa aj úspory z error cost modelu** (§3.5); error zložka je zároveň vykazovaná samostatne v `errorCostReduction`.
-- Všetky hodnoty sú **ročný run-rate po plnej implementácii** — model nezahŕňa adopčnú krivku (typicky 6–12 mesiacov), reálny dopad v 1. roku bude nižší.
+- Všetky hodnoty sú **ročný run-rate po plnej implementácii**. Krivka nábehu k tomuto run-rate je modelovaná samostatne (§3.6) — reálny kumulatívny dopad v prvých mesiacoch bude nižší.
+
+### 3.6 Krivky kumulatívnej úspory (ramp-up model)
+
+Namiesto jedného ročného čísla sa vo výsledku zobrazujú **tri krivky** kumulatívnej úspory v čase (`SavingsCurveChart`), analogicky k projekcii výnosu pri investovaní — konzervatívny/reálny/optimistický scenár sa v čase rozchádzajú.
+
+```
+mesačná_run_rate[scenár] = ročný_€_dopad[scenár] / 12
+
+// Lineárny nábeh k plnej mesačnej sadzbe počas rampUpMonths[scenár] mesiacov
+mesačná_realizácia[scenár, mesiac] = mesačná_run_rate[scenár] × min(mesiac / rampUpMonths[scenár], 1)
+
+kumulatívna_úspora[scenár, mesiac] = Σ mesačná_realizácia[scenár, k] pre k = 1..mesiac
+```
+
+| Scenár | rampUpMonths | Interpretácia |
+|--------|--------------|----------------|
+| Optimistický | 3 | Rýchla, úspešná implementácia dosiahne plný prínos do 3 mesiacov. |
+| Reálny | 6 | Typický priebeh — plný prínos do pol roka. |
+| Konzervatívny | 9 | Pomalší, opatrný rollout — plný prínos až po 9 mesiacoch. |
+
+Horizont grafu: 24 mesiacov (`savingsProjectionHorizonMonths`). Hodnoty `rampUpMonths` a `savingsProjectionHorizonMonths` sú v `data/scoringConfig.ts` / `config/model/scoringConfig.json`.
+
+**Dôležité:** toto je zjednodušený, ilustratívny predpoklad (lineárny nábeh), nie empiricky kalibrovaná adopčná krivka — účelom je vizuálne odlíšiť rýchlosť realizácie medzi scenármi, nie presne predpovedať mesačný cash-flow. Ročné headline čísla (§3.3) zostávajú primárnym, auditovateľným odhadom; krivka je doplnková vizualizácia.
 
 ### 3.4 Risk-adjusted faktor
 
@@ -186,8 +211,8 @@ Kde:
   "assessment_id": "uuid",
   "inputs": {
     "employee_count": 45,
-    "hourly_cost_eur": 19.8,
-    "hourly_cost_source": "SK priemer (Eurostat 2025) — vždy fixné, nepýta sa",
+    "hourly_cost_eur": 30.8,
+    "hourly_cost_source": "SK priemer IT sektora — NACE J (Eurostat 2025) — vždy fixné, nepýta sa",
     "processes_assessed": ["invoicing", "reporting", "approval_workflows"],
     "data_completeness": 0.65
   },
@@ -283,14 +308,14 @@ Digitalizačné projekty typicky dosiahnu 30–80 % identifikovaného potenciál
 | Scenár | Realization Rate | Kedy použiť |
 |--------|-----------------|-------------|
 | Konzervatívny | 40 % | Default pre zobrazenie. Bezpečný odhad. |
-| Stredný | 65 % | Hlavný odhad pre firmy s dobrou governance (F ≥ 50). |
+| Reálny | 65 % | Hlavný odhad pre firmy s dobrou governance (F ≥ 50). |
 | Optimistický | 85 % | Len pre firmy s vysokou execution capability (F ≥ 75). |
 
 ### 5.3 Governance adjustment
 
 ```
 Ak category_score[F] >= 75:
-  zobraz všetky tri scenáre, highlight stredný
+  zobraz všetky tri scenáre, highlight reálny
 Ak category_score[F] >= 50:
   zobraz všetky tri scenáre, highlight konzervatívny
 Ak category_score[F] < 50:
@@ -305,7 +330,7 @@ Ak category_score[F] < 50:
 ### 6.1 Čo model nezachytáva
 
 - Jednorazové investičné náklady na digitalizáciu.
-- Časová os realizácie a adopčná krivka (kedy sa benefity prejavia — výstup je run-rate po plnej implementácii).
+- Presná (empiricky kalibrovaná) adopčná krivka — §3.6 obsahuje len zjednodušený lineárny nábeh pre vizualizáciu, nie skutočný projektový harmonogram.
 - Príjmové benefity (vyšší obrat vďaka digitalizácii).
 - Kvalitatívne benefity (spokojnosť zamestnancov, zákaznícka skúsenosť).
 
@@ -329,11 +354,15 @@ Ak category_score[F] < 50:
 
 | Vstup | Hodnota | Zdroj | Rok |
 |-------|---------|-------|-----|
-| Priemerná hodinová cena práce SR (celé hospodárstvo) | 19,8 €/h | Eurostat `lc_lci_lev` (publ. 3/2026) | 2025 |
-| — admin a podporné služby (NACE N) | 15,2 €/h | Eurostat `lc_lci_lev` | 2025 |
+| **Hodinová cena práce IT sektora SR (NACE J) — použité v ROI modeli** | **30,8 €/h** | Eurostat `lc_lci_lev` (SK, NACE J, publ. 4/2026) | 2025 |
+| — z toho mzdy a platy (D11) | 22,4 €/h | Eurostat `lc_lci_lev` | 2025 |
+| — nemzdové náklady (odvody, benefity, školenia) | 8,4 €/h (27,3 %) | Eurostat `lc_lci_lev` | 2025 |
+| Priemerná hrubá mesačná mzda NACE J (celé odvetvie) | 2 664 €/mes. (Q1 2026) | ŠÚ SR DATAcube, tabuľka pr0205qs | 2026 |
+| Kontrolný súčet — Trexima ISCP, priemer 4 IT profesií (vývojári, analytici, programátori, web dev) | ~2 933 €/mes. hrubého | TREXIMA Bratislava — Informačný systém o cene práce (ISCP), Q3 2025 | 2025 |
+| Priemerná hodinová cena práce SR — celé hospodárstvo (kontext, nepoužíva sa priamo) | 19,8 €/h | Eurostat `lc_lci_lev` | 2025 |
 | — priemer EÚ (kontext) | 34,9 €/h | Eurostat `lc_lci_lev` | 2025 |
-| Priemerná hrubá mesačná mzda SR | 1 620 € | ŠÚ SR (publ. 3/2026) | 2025 |
-| Odvodový multiplikátor zamestnávateľa | 1,362 (36,2 %) | zákony č. 461/2003 a 580/2004 Z. z. (zdravotné 11 % od 1. 1. 2025) | 2025–2026 |
-| Minimálna mzda SR | 915 €/mes (5,259 €/h) | MPSVR SR | 2026 |
+| Odvodový multiplikátor zamestnávateľa (kontext, nepoužíva sa — Eurostat cena práce ho už zahŕňa) | 1,362 (36,2 %) | zákony č. 461/2003 a 580/2004 Z. z. | 2025–2026 |
 
-**Politika aktualizácie:** ročne po marcovej publikácii Eurostat lc_lci_lev a ŠÚ SR ročných miezd. Eurostat hodinová cena práce už zahŕňa odvody zamestnávateľa — nepoužívať dvojité násobenie multiplikátorom.
+**Prečo IT sektor namiesto celého hospodárstva:** procesy, ktoré platforma pomáha automatizovať (fakturácia, integrácie, reporting, bezpečnosť), typicky navrhuje, zavádza alebo zastrešuje IT/technický tím firmy — a nástroj cielime na rozhodovanie o digitalizačných investíciách, kde je relevantná cena IT kapacity, nie priemerná mzda naprieč celou firmou.
+
+**Politika aktualizácie:** ročne po aprílovej publikácii Eurostat `lc_lci_lev`. Eurostat hodinová cena práce už zahŕňa odvody zamestnávateľa — nepoužívať dvojité násobenie multiplikátorom.

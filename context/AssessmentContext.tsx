@@ -7,7 +7,6 @@ import {
   getNextQuestion,
   evaluateBranching,
   calculateAnswerScore,
-  isQuizComplete,
   getProgress,
 } from '@/engines/questionEngine';
 import { calculateDII, calculateORS } from '@/engines/scoringEngine';

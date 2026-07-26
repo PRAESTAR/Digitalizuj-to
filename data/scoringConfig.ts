@@ -1,7 +1,7 @@
-import type { ScoringConfig } from '@/types';
+import type { ScoringConfig, ScenarioValues } from '@/types';
 
 export const scoringConfig: ScoringConfig = {
-  version: '1.3-MVP',
+  version: '1.4-MVP',
   diiMethodologyVersion: 'DII v3 (Eurostat isoc_e_dii, prieskum 2025)',
   categoryWeights: {
     A: 0.20,
@@ -81,15 +81,21 @@ export const riskFactorDefinitions = [
   { id: 'RF10', name: 'Žiadny asset inventory', maxPenalty: 4, severity: 'medium' as const },
   { id: 'RF11', name: 'Žiadne logovanie/monitoring', maxPenalty: 5, severity: 'medium' as const },
   { id: 'RF12', name: 'Out-of-support aplikácie (nie core)', maxPenalty: 5, severity: 'medium' as const },
+  { id: 'RF13', name: 'Nepripravenosť na povinnú e-fakturáciu (od 1.1.2027)', maxPenalty: 6, severity: 'medium' as const },
+  { id: 'RF14', name: 'Nepripravenosť na NIS2 (ak sa firmu týka)', maxPenalty: 6, severity: 'medium' as const },
 ];
 
 // Hodinová cena práce pre ROI výpočet — už sa nepýtame firmu (citlivý údaj, zbytočná
-// záťaž respondenta); vždy používame priemer SR, keďže ROI má slúžiť ako orientačný
-// odhad, nie presnú kalkuláciu na základe interných mzdových dát.
-// Zdroj: Eurostat lc_lci_lev 2025 — SK celé hospodárstvo, plná cena práce vrátane
-// odvodov zamestnávateľa (multiplikátor 1,362 od 1. 1. 2025). EÚ priemer pre kontext: 34,9 €/h.
-// Revízia: ročne (marcová publikácia Eurostatu).
-export const defaultHourlyCostEur = 19.8;
+// záťaž respondenta); vždy používame priemer IT/telekomunikačného sektora SR, keďže
+// procesy, ktoré appka pomáha automatizovať, typicky rieši alebo zastrešuje IT/technický
+// tím a nástroj cielime na rozhodovanie o digitalizačných investíciách.
+// Zdroj: Eurostat lc_lci_lev 2025 — SK, NACE J (Informácie a komunikácia), celková cena
+// práce vrátane odvodov zamestnávateľa (D1_D4_MD5 = 30,8 €/h; z toho mzdy D11 = 22,4 €/h,
+// nemzdové náklady 8,4 €/h). Kontrolný súčet: Trexima ISCP priemer IT profesií (vývojári,
+// analytici, programátori) ~2 933 €/mes. hrubého × odvodový multiplikátor 1,362 ≈ 23 €/h
+// (wages-only) — rádovo konzistentné s Eurostat D11. Revízia: ročne (aprílová publikácia
+// Eurostatu, dataset lc_lci_lev).
+export const defaultHourlyCostEur = 30.8;
 
 // Procesné benchmarky sú interné expertné odhady (frekvencie, časy, automatizovateľnosť) —
 // zatiaľ bez externého zdroja; každý výstup ROI ich označuje ako benchmark v audit traile.
@@ -151,3 +157,24 @@ export const manualShareFromMaturity: Record<number, number> = {
   3: 0.15,
   4: 0.05,
 };
+
+// Realizačné scenáre pre Business Impact — akú časť teoreticky identifikovaného
+// potenciálu firma reálne dosiahne (viď ROI_MODEL.md §5).
+export const realizationRates: ScenarioValues = {
+  conservative: 0.40,
+  mid: 0.65,
+  optimistic: 0.85,
+};
+
+// Krivky úspory (SavingsCurveChart): počet mesiacov lineárneho nábehu k plnému
+// ročnému run-rate pre daný scenár — rýchlejšia realizácia je typicky spojená
+// s vyššou mierou úspešnej implementácie, preto optimistic < mid < conservative.
+// Zjednodušený, ilustratívny predpoklad (nie empiricky kalibrovaná adopčná krivka).
+export const rampUpMonthsByScenario: ScenarioValues = {
+  conservative: 9,
+  mid: 6,
+  optimistic: 3,
+};
+
+// Horizont zobrazenej krivky kumulatívnej úspory.
+export const savingsProjectionHorizonMonths = 24;

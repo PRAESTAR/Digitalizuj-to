@@ -4,13 +4,13 @@
 
 Metodicky obhajitelna platforma na meranie urovne digitalizacie firiem, identifikaciu rizik a generovanie prioritizovanych odporucani. Postavena na EU benchmark ramci (DII) a vlastnom Operational Digital Readiness Modeli.
 
-> **Verzia:** 1.0.0-pre-alpha | **Stav:** MVP | **Jazyk rozhrania:** Slovencina
+> **Verzia:** 1.1.0 | **Stav:** Release | **Jazyk rozhrania:** Slovencina
 
 ---
 
 ## Co to robi
 
-Firma vyplni adaptivny dotaznik (15 alebo 45+ otazok) a dostane:
+Firma vyplni adaptivny dotaznik (15 alebo 43-49 otazok) a dostane:
 
 | Vystup | Rozsah | Ucel |
 |--------|--------|------|
@@ -68,6 +68,105 @@ Vsetko bezi lokalne v prehliadaci — ziadne data sa neodosilaju na server.
 
 ---
 
+## Architektura
+
+### Technologicka architektura
+
+Ako na seba naväzujú jednotlivé vrstvy — od UI po dátové súbory, ktoré poháňajú celý model:
+
+```mermaid
+flowchart TD
+    subgraph UI["UI vrstva — Next.js 16 App Router + React 19"]
+        Pages["Stránky: /, /quiz, /results, /peers, /r/hash, /changelog"]
+        Comp["Komponenty: quiz/*, results/*, ui/*"]
+    end
+
+    subgraph State["Stavová vrstva"]
+        Ctx["AssessmentContext — React Context + useReducer"]
+    end
+
+    subgraph Engines["Business logika — engines/"]
+        QE["questionEngine — branching, výber otázok"]
+        SE["scoringEngine — DII + ORS"]
+        RE["riskEngine — TDRI"]
+        AE["aiReadinessEngine — AI & Automatizácia"]
+        ROE["roiEngine — Business Impact"]
+        BE["benchmarkEngine — SK/EU/sektor porovnanie"]
+        REC["recommendationEngine — odporúčania + roadmapa"]
+    end
+
+    subgraph Data["Dátová vrstva — data/ + config/model/"]
+        QB["questionBank.json"]
+        SC["scoringConfig.ts"]
+        BD["benchmarkData.ts"]
+    end
+
+    Types["types/index.ts — zdieľané TypeScript typy"]
+
+    Pages --> Comp --> Ctx
+    Ctx --> QE
+    Ctx --> SE
+    Ctx --> RE
+    Ctx --> AE
+    Ctx --> ROE
+    Ctx --> BE
+    Ctx --> REC
+    QE --> QB
+    SE --> SC
+    RE --> SC
+    AE --> SC
+    ROE --> SC
+    BE --> BD
+    Types -.typuje.-> Ctx
+    Types -.typuje.-> Engines
+```
+
+**Kľúčové rozhodnutia:**
+- **Žiadny backend, žiadna databáza** — celá aplikácia beží client-side v prehliadači; otázky, scoring aj benchmarky sú statické JSON/TS súbory bundlované s appkou.
+- **Engines sú čisté funkcie** (`answers, questions -> Score`) — žiadny interný state, ľahko testovateľné a auditovateľné (audit trail = spätná rekonštrukcia z tých istých vstupov).
+- **`config/model/` je editovateľná kópia** `data/` súborov pre netechnických editorov obsahu — synchronizácia je zatiaľ manuálna (viď `IMPROVEMENT_CHECKLIST.md`).
+
+### Ako appka funguje (aplikačný tok)
+
+Cesta jedného vyhodnotenia — od príchodu na stránku po zdieľateľný odkaz:
+
+```mermaid
+flowchart TD
+    A["Užívateľ príde na úvodnú stránku"] --> B{"Výber typu diagnostiky"}
+    B -->|"Indikatívny — 15 otázok"| C["questionEngine načíta indicative_quiz"]
+    B -->|"Komplexný — 43-49 otázok"| D["questionEngine načíta complex_quiz"]
+    C --> E["Adaptívny dotazník — QuestionCard"]
+    D --> E
+    E --> F{"Vyhodnotenie branching_rules"}
+    F -->|"skip"| E
+    F -->|"flag_risk"| G["Risk flag uložený do AssessmentContext"]
+    F -->|"ďalšia otázka"| E
+    G --> E
+    E --> H["Všetky otázky zodpovedané / vetvou preskočené"]
+    H --> I["computeResult() v AssessmentContext"]
+    I --> J["scoringEngine: DII + ORS"]
+    I --> K["riskEngine: TDRI"]
+    I --> L["aiReadinessEngine: AI Readiness"]
+    I --> M["roiEngine: Business Impact"]
+    I --> N["benchmarkEngine: SK / EÚ / sektor"]
+    J --> O["recommendationEngine: odporúčania + roadmapa"]
+    K --> O
+    L --> O
+    M --> O
+    N --> O
+    O --> P["Výsledkový dashboard — ScoreCards, RadarChart, ExecutiveSummary, RiskPanel, BusinessImpactPanel, BenchmarkComparison"]
+    P --> Q{"Voliteľné: zdieľať výsledok"}
+    Q -->|"áno"| R["resultHash + toPeerSnapshot() uloží anonymizovaný snapshot do localStorage"]
+    R --> S["Trvalý odkaz /r/hash + QR kód"]
+```
+
+**Poznámky k toku:**
+- Celý cyklus beží v jednom `useReducer` v `AssessmentContext.tsx` — žiadne API volania, žiadna latencia.
+- Všetkých 6 engine výstupov (DII, ORS, TDRI, AI Readiness, Business Impact, Benchmark) sa počíta z rovnakej odpovedí sady nezávisle od seba — `recommendationEngine` ich až následne skladá do jedného odporúčacieho balíka.
+- Zdieľaný odkaz (`/r/[hash]`) obsahuje len anonymizovaný agregát (skóre, kategórie) — nie jednotlivé odpovede; plný výsledok zostáva len v `localStorage` pôvodného prehliadača.
+
+---
+
 ## Spustenie
 
 ```bash
@@ -109,7 +208,7 @@ digitalizuj/
 |   |   +-- ProgressBar.tsx      # Progress bar s modulom
 |   |
 |   +-- results/
-|       |-- ScoreCards.tsx       # 4 hlavne skore karty (DII, ORS, TDRI, BIP)
+|       |-- ScoreCards.tsx       # 5 hlavnych skore kariet (DII, AI, ORS, TDRI, BIP)
 |       |-- RadarChart.tsx       # Radarovy graf 6 ODRM kategorii
 |       |-- ExecutiveSummary.tsx  # Silne stranky, rizika, quick wins
 |       |-- RiskPanel.tsx        # TDRI vizualizacia risk faktorov
@@ -124,6 +223,7 @@ digitalizuj/
 |   |-- questionEngine.ts        # Branching logika, vyber dalsej otazky
 |   |-- scoringEngine.ts         # DII + ORS vypocet, kategoriove skore
 |   |-- riskEngine.ts            # TDRI vypocet, risk faktor evaluacia
+|   |-- aiReadinessEngine.ts     # AI & Automatizacia Readiness vypocet
 |   |-- roiEngine.ts             # Business impact vypocet, scenare
 |   |-- benchmarkEngine.ts       # Porovnanie voči benchmark datam
 |   +-- recommendationEngine.ts  # Generovanie prioritizovanych odporucani
@@ -132,6 +232,10 @@ digitalizuj/
 |   |-- questionBank.json        # Matica otazok (indikativny + komplexny)
 |   |-- scoringConfig.ts         # Vahy, prahy, risk faktory, ROI benchmarky
 |   +-- benchmarkData.ts         # Benchmark data (SK/EU, sektory, velkosti)
+|
+|-- lib/
+|   |-- resultHash.ts            # Generovanie/validacia hashu pre trvale odkazy
+|   +-- snapshotMapper.ts        # ResultSnapshot -> anonymizovany PeerSnapshot
 |
 |-- config/model/                # Editovatelna konfiguracia modelu
 |   |-- README.md                # Sprievodca priecinkom
@@ -163,14 +267,14 @@ digitalizuj/
 
 ### Adaptivny dotaznik
 - **Indikativny kviz** — 15 otazok, 5-7 minut, rychly screening
-- **Komplexny kviz** — 45+ otazok, 15-20 minut, hlbsia diagnostika
-- Branching logika (`skip_if`, `include_if`, `flag_risk`) — otazky sa prisposobuju odpovediam
+- **Komplexny kviz** — 43-49 otazok (adaptivne, z 50 definovanych v banke), 15-20 minut, hlbsia diagnostika
+- Branching logika (`action: skip` / `flag_risk` na `branching_rules`) — otazky sa prisposobuju odpovediam
 - Moznost "Neviem" pri kazdej otazke s transparentnym handlingom
 
 ### Scoring engine
 - **5 nezavislych vystupov** — DII, ORS, AI & Automatizacia Readiness, TDRI, Business Impact
 - **Bezpecnostna penalizacia** — ak kategoria E < 30 bodov, ORS sa penalizuje az -30 %
-- **12 risk faktorov** (RF01-RF12) s critical/high/medium severity
+- **14 risk faktorov** (RF01-RF14) s critical/high/medium severity
 - Kazde skore je spatne rozlozitelne na odpovede a pravidla (audit trail)
 
 ### Dashboard
@@ -248,4 +352,4 @@ Proprietary. (c) PRAESTAR.
 
 ---
 
-<sub>Verzia: 1.1.0-pre-alpha | Metodika: DII-Compatible + ODRM v1.1-MVP | Benchmark: Eurostat DII 2025 (isoc_e_dii, 2025-DII-v3)</sub>
+<sub>Verzia: 1.1.0 | Metodika: DII-Compatible + ODRM v1.4-MVP | Benchmark: Eurostat DII 2025 (isoc_e_dii, 2025-DII-v3)</sub>

@@ -206,6 +206,26 @@ export interface CalculationAuditEntry {
   dataSource: string;
 }
 
+/** Jeden bod na krivke kumulatívnej úspory (mesiac 0 = štart, hodnoty v EUR). */
+export interface SavingsCurvePoint {
+  month: number;
+  conservative: number;
+  mid: number;
+  optimistic: number;
+}
+
+/**
+ * Časová projekcia kumulatívnej úspory pre 3 scenáre — lineárny nábeh
+ * k plnému ročnému run-rate počas `rampUpMonths[scenár]` mesiacov, potom
+ * lineárny rast pri plnej mesačnej sadzbe. Zjednodušený, ilustratívny model
+ * (nie empiricky kalibrovaná adopčná krivka) — pozri disclaimers.
+ */
+export interface SavingsProjection {
+  horizonMonths: number;
+  rampUpMonths: ScenarioValues;
+  points: SavingsCurvePoint[];
+}
+
 export interface BusinessImpact {
   timeSavings: {
     hoursPerYear: ScenarioValues;
@@ -221,6 +241,7 @@ export interface BusinessImpact {
     confidence: number;
     confidenceLabelSk: string;
   };
+  savingsProjection: SavingsProjection;
   riskReduction: {
     currentLevel: string;
     potentialLevel: string;

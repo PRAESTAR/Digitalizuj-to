@@ -5,31 +5,74 @@
  * - looking up a peer snapshot in the public PEER_DATA table
  * - looking up the user's own private result in localStorage
  *
- * Hashes are 12 hex chars (~48 bits of entropy) — small enough to read
- * aloud, large enough that brute-forcing through unrelated results is
- * not feasible at this dataset size.
+ * Formát: 16 znakov base62 (veľké aj malé písmená + číslice), zobrazovaných
+ * v štyroch skupinách po 4 — napr. Rzd7 JM0B wV0U 6znB. Vyzerá to ako bežný
+ * API token a je to 62^16 ≈ 95 bitov entropie, teda výrazne viac než
+ * predchádzajúcich 12 hex znakov (48 bitov).
+ *
+ * Vedomý kompromis: rozlišovanie veľkosti písmen a znaky ako 0/O alebo l/1
+ * znamenajú, že hash sa zle diktuje po telefóne. Je to zámerné — primárny
+ * spôsob zdieľania je QR kód a tlačidlo Kopírovať, nie prepis z papiera.
+ *
+ * V URL a v localStorage kľúči sa hash používa vždy bez oddeľovačov;
+ * skupiny sú čisto vec zobrazenia (viď formatHashGroups).
  */
 
-const HEX = '0123456789abcdef';
+/** Base62 — veľké aj malé písmená a číslice, ako pri bežnom API tokene. */
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const HASH_LENGTH = 16;
 
-/** Cryptographically random 12-char hex hash. */
+/** Nový formát: 16 znakov base62. */
+const HASH_RE = /^[A-Za-z0-9]{16}$/;
+
+/**
+ * Staršie 12-znakové hex hashe — odkazy vygenerované pred zmenou formátu
+ * musia naďalej fungovať (žijú v localStorage a v už zdieľaných URL).
+ */
+const LEGACY_HASH_RE = /^[0-9a-f]{12}$/;
+
+/**
+ * Kryptograficky náhodný 16-znakový hash.
+ *
+ * 256 NIE JE násobkom 62, takže obyčajné `byte % 62` by nebolo rovnomerné —
+ * hodnoty 0–7 (teda A–H) by padali o ~1,6 % častejšie než zvyšok abecedy.
+ * Preto odmietame bajty od 248 vyššie (248 = 4 × 62) a ťaháme znova; tým je
+ * rozdelenie presne rovnomerné a entropia je plných log2(62) bitov na znak.
+ */
 export function generateHash(): string {
+  const chars: string[] = [];
+
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    const bytes = new Uint8Array(6); // 6 bytes = 12 hex chars
-    crypto.getRandomValues(bytes);
-    return Array.from(bytes)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
+    const MAX = 248; // najväčší násobok 62, ktorý sa zmestí do bajtu
+    while (chars.length < HASH_LENGTH) {
+      const batch = new Uint8Array(HASH_LENGTH);
+      crypto.getRandomValues(batch);
+      for (let i = 0; i < batch.length && chars.length < HASH_LENGTH; i++) {
+        if (batch[i] < MAX) chars.push(ALPHABET[batch[i] % 62]);
+      }
+    }
+    return chars.join('');
   }
-  // Fallback for environments without WebCrypto.
-  let out = '';
-  for (let i = 0; i < 12; i++) out += HEX[Math.floor(Math.random() * 16)];
-  return out;
+
+  // Fallback pre prostredia bez WebCrypto (nekryptografický — viď dokumentácia).
+  for (let i = 0; i < HASH_LENGTH; i++) {
+    chars.push(ALPHABET[Math.floor(Math.random() * 62)]);
+  }
+  return chars.join('');
 }
 
-/** Validate hash format — 12 hex characters. */
+/** Validate hash format — nový 16-znakový aj starší 12-znakový hex. */
 export function isValidHash(hash: string): boolean {
-  return /^[0-9a-f]{12}$/.test(hash);
+  return HASH_RE.test(hash) || LEGACY_HASH_RE.test(hash);
+}
+
+/**
+ * Rozdelí hash na skupiny po 4 znakoch pre zobrazenie (4 × 4 políčka).
+ * Staršie 12-znakové hashe vyjdú ako 3 skupiny — to je v poriadku, sú to
+ * dobiehajúce odkazy, nie nový formát.
+ */
+export function formatHashGroups(hash: string): string[] {
+  return hash.match(/.{1,4}/g) ?? [hash];
 }
 
 const STORAGE_PREFIX = 'digitalizuj.result.';

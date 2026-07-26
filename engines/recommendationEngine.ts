@@ -113,8 +113,10 @@ function generateCriticalRisks(tdri: TDRIScore): Recommendation[] {
 
 function generateQuickWins(
   ors: ORSScore,
-  answers: Answer[],
-  questions: Question[]
+  // answers/questions prijímané pre budúce answer-level podmienky (zatiaľ neimplementované,
+  // viď RECOMMENDATION_RULES.md §10) — zámerne nepoužité.
+  _answers: Answer[],
+  _questions: Question[]
 ): Recommendation[] {
   const recs: Recommendation[] = [];
   const cats = ors.categories;
@@ -194,8 +196,9 @@ function generateQuickWins(
 
 function generateStrategic(
   ors: ORSScore,
-  answers: Answer[],
-  questions: Question[]
+  // pozri poznámku pri generateQuickWins vyššie
+  _answers: Answer[],
+  _questions: Question[]
 ): Recommendation[] {
   const recs: Recommendation[] = [];
   const cats = ors.categories;

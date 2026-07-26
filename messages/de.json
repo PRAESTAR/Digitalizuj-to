@@ -1,0 +1,137 @@
+{
+  "common": {
+    "siteName": "digitalizuj.to",
+    "skipToContent": "Zum Inhalt springen",
+    "languageSwitcher": "Sprache",
+    "back": "Zurück",
+    "backHome": "Zurück zur Startseite",
+    "loading": "Wird geladen…",
+    "minutes": "Minuten"
+  },
+  "hero": {
+    "eyebrow": "Benchmark: Adaptives DAP-Modell · Eurostat DII",
+    "titleLead": "Wie digital",
+    "titleAccent": "reif",
+    "titleTail": "ist Ihr Unternehmen?",
+    "subtitle": "Messen Sie Ihren Digitalisierungsgrad, decken Sie verborgene Risiken auf und erhalten Sie priorisierte Empfehlungen — bereit für das Zeitalter der künstlichen Intelligenz.",
+    "ctaPrimary": "Diagnose starten",
+    "ctaSecondary": "Was Sie genau erhalten",
+    "specDii": "DII-Score",
+    "specDiiValue": "0–100 vs. EU & SK",
+    "specRisk": "Risikoindex",
+    "specRiskValue": "technische Schulden",
+    "specImpact": "Business Impact",
+    "specImpactValue": "geschätzte Einsparungen in €"
+  },
+  "card": {
+    "title": "Ihre Ergebniskarte",
+    "live": "live im Browser",
+    "operationalMaturity": "Operative Reife",
+    "diiScore": "DII-Score",
+    "risk": "Risiko",
+    "savingsPerYear": "Einsparung/Jahr",
+    "riskMedium": "Mittel",
+    "riskHigh": "Hoch",
+    "riskLow": "Niedrig",
+    "riskCritical": "Kritisch"
+  },
+  "quizSelector": {
+    "heading": "Wählen Sie Ihre Diagnose",
+    "subheading": "Schnelles Screening oder tiefere Analyse — Sie entscheiden",
+    "recommended": "Empfohlen",
+    "indicative": {
+      "title": "Orientierungs-Check",
+      "duration": "5-7 Minuten",
+      "description": "Schnelles Screening der digitalen Reife. Orientierendes Ergebnis mit den wichtigsten Empfehlungen.",
+      "bullet1": "Max. 15 Fragen",
+      "bullet2": "Orientierender Digitalisierungs-Score",
+      "bullet3": "Identifikation der Hauptrisiken",
+      "cta": "Screening starten"
+    },
+    "complex": {
+      "title": "Umfassende Diagnose",
+      "duration": "15-20 Minuten",
+      "description": "Tiefere Analyse mit detailliertem Ergebnis. Adaptive Fragen je nach Ihren Antworten.",
+      "bullet1": "Detailprofil über 6 Kategorien",
+      "bullet2": "Risikoindex und ROI-Schätzung",
+      "bullet3": "Priorisierte Roadmap",
+      "cta": "Diagnose starten"
+    }
+  },
+  "whatYouGet": {
+    "heading": "Was Sie erhalten",
+    "subheading": "Ein umfassender Blick auf Ihre digitale Reife",
+    "radarTitle": "Radarprofil",
+    "radarText": "Prozesse, Systeme, Daten, Infrastruktur, Sicherheit, Governance — visuelle Übersicht über 6 Achsen.",
+    "riskTitle": "Risikoindex",
+    "riskText": "Eigenständiger Index für technische Schulden. Kritische Risiken verschwinden nicht im Gesamtscore.",
+    "impactTitle": "Business Impact",
+    "impactText": "Transparente Schätzung der jährlichen Einsparungen, aufgeschlüsselt nach Prozessen, Szenarien und Audit Trail."
+  },
+  "methodology": {
+    "heading": "Zur Methodik",
+    "body": "Die Bewertung ruht auf zwei Ebenen: dem DII-Compatible Layer (Benchmark gegenüber dem EU Digital Intensity Index) und dem Operational Digital Readiness Model (tatsächliche operative digitale Reife). Die Fragen sind adaptiv — sie passen sich Ihren Antworten an (Adaptives DAP-Modell). Jeder Score ist nachvollziehbar und rückwärts zerlegbar.",
+    "tagDii": "DII Eurostat",
+    "tagOdrm": "ODRM-Modell",
+    "tagDap": "Adaptives DAP-Modell",
+    "build": "Build"
+  },
+  "quiz": {
+    "title": "Diagnose der digitalen Reife",
+    "questionOf": "Frage von {total}",
+    "continue": "Weiter",
+    "skip": "Weiß nicht / Überspringen",
+    "tooltipLabel": "Erläuterung der Frage",
+    "multiSelectHint": "Wählen Sie alles Zutreffende",
+    "localNotice": "Ihre Antworten werden lokal verarbeitet. Es werden keine Daten an einen Server gesendet.",
+    "emptyTitle": "Kein aktiver Test",
+    "emptyText": "Wählen Sie auf der Startseite eine Diagnoseart aus."
+  },
+  "results": {
+    "title": "Diagnoseergebnisse",
+    "newAssessment": "Neue Bewertung",
+    "answersCount": "{count} Antworten",
+    "indicativeLabel": "Orientierende Bewertung",
+    "complexLabel": "Umfassende Diagnose",
+    "emptyTitle": "Keine Ergebnisse",
+    "emptyText": "Schließen Sie zuerst den Diagnosetest ab.",
+    "emptyCta": "Bewertung starten",
+    "maturityProfile": "Profil der digitalen Reife",
+    "auditTrail": "Audit Trail",
+    "auditTrailSubtitle": "Vollständige Aufzeichnung der Antworten und der Berechnung zur Nachvollziehbarkeit.",
+    "scrollHint": "Tabelle seitlich scrollen →"
+  },
+  "share": {
+    "title": "Ihr permanenter Link",
+    "subtitle": "Scannen Sie den QR-Code oder teilen Sie den Link — das Ergebnis ist nur über diesen Hash erreichbar.",
+    "hashLabel": "Ergebnis-Hash",
+    "urlLabel": "URL",
+    "copy": "Link kopieren",
+    "copied": "Kopiert",
+    "qrAlt": "QR-Code für Ergebnis {hash}",
+    "generating": "QR wird erzeugt…",
+    "privacyTitle": "Datenschutz",
+    "privacyText": "Dieses Ergebnis ist nur lokal in diesem Browser gespeichert. Wenn Sie den QR-Code oder Link teilen, sieht die Gegenseite nur einen anonymisierten Snapshot, der Ihr Unternehmen nicht mehr identifizieren kann."
+  },
+  "footer": {
+    "tagline": "Adaptives DAP-Modell · DII-Compatible + ODRM",
+    "benchmark": "Benchmark: Eurostat DII 2025 (ISOC_E_DII)",
+    "peers": "Peer-Ergebnisse",
+    "changelog": "Changelog",
+    "textSize": "Textgröße",
+    "textSizeStandard": "Standard-Textgröße (100 %)",
+    "textSizeLarge": "Vergrößerter Text (125 %)",
+    "textSizeLargest": "Größter Text (150 %)",
+    "adBanner": "Brauchen Sie Digitalisierung?"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "text": "Die gesuchte Seite existiert nicht oder wurde verschoben. Prüfen Sie die Adresse oder kehren Sie zur Startseite zurück."
+  },
+  "error": {
+    "title": "Etwas ist schiefgelaufen",
+    "text": "Bei der Verarbeitung Ihrer Anfrage ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+    "retry": "Erneut versuchen",
+    "errorId": "Fehler-ID"
+  }
+}

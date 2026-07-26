@@ -1,149 +1,201 @@
 # digitalizuj.to — Recommendation Rules
 
-> Verzia: 1.0-MVP  
-> Dátum: 2026-04-08
+> Verzia: 2.0 (prepísané podľa reálnej implementácie pre release 1.0.0; nahrádza 1.0-MVP)
+> Dátum: 2026-07-24
+>
+> **Prečo revízia:** Pôvodná verzia 1.0-MVP popisovala plánované pravidlá (answer-level podmienky ako `invoicing == "manual"`, kategórie C/D, `benchmark_note` s konkrétnymi percentami), ktoré `engines/recommendationEngine.ts` nikdy neimplementoval. Tento dokument teraz opisuje **presne to, čo kód reálne robí** — vrátane medzier, ktoré zostávajú otvorené (označené nižšie a v `IMPROVEMENT_CHECKLIST.md`).
 
 ---
 
 ## 1. Princíp generovania odporúčaní
 
-Odporúčania sú generované na základe:
-1. **Skóre kategórií** — najslabšie kategórie = najväčšie príležitosti.
-2. **Risk faktorov** — kritické riziká = najurgentnejšie akcie.
-3. **ROI potenciálu** — procesy s najväčším potenciálom úspor.
-4. **Quick win logiky** — čo prinesie rýchly výsledok s nízkym úsilím.
-
----
-
-## 2. Kategorizácia odporúčaní
-
-### 2.1 Typy
-
-| Typ | Popis | Horizont |
-|-----|-------|----------|
-| `critical_risk` | Okamžitá akcia — bezpečnostné/prevádzkové riziko | 0–3 mesiace |
-| `quick_win` | Nízke úsilie, rýchly viditeľný výsledok | 0–3 mesiace |
-| `strategic` | Väčšia iniciatíva s vyšším dopadom | 3–12 mesiacov |
-| `long_term` | Transformačné zmeny | 12+ mesiacov |
-
-### 2.2 Prioritizácia
+`generateRecommendations(answers, questions, ors, tdri, dii, aiReadiness)` vracia:
 
 ```
-priority_score = urgency × impact × (1 / effort)
-
-Kde:
-  urgency: 1-5 (5 = okamžité, 1 = môže počkať)
-  impact: 1-5 (5 = zásadný dopad, 1 = marginálny)
-  effort: 1-5 (1 = minimálne úsilie, 5 = veľký projekt)
+{
+  strengths,              // Strength[]
+  criticalRisks,          // Recommendation[] — z TDRI risk faktorov
+  quickWins,               // Recommendation[] — top 5 podľa priorityScore
+  strategicInitiatives,    // Recommendation[] — top 3 podľa priorityScore
+  longTermInitiatives,     // Recommendation[] — všetky
+  roadmap: { immediate0_3m, medium3_12m, longTerm12mPlus }  // string[] ID
+}
 ```
 
----
-
-## 3. Pravidlá pre Critical Risk odporúčania
-
-Tieto sa generujú automaticky na základe TDRI risk faktorov:
-
-| Trigger | Odporúčanie | Urgency | Impact |
-|---------|-------------|---------|--------|
-| RF01: Out-of-support OS/DB | "Naplánujte migráciu z [systém] na podporovanú verziu. Systém mimo podpory nedostáva bezpečnostné záplaty." | 5 | 5 |
-| RF02: Chýbajúce zálohy | "Okamžite nasaďte zálohovanie kritických dát s off-site kópiou. Bez záloh je vaša firma existenčne ohrozená." | 5 | 5 |
-| RF03: Netestované zálohy | "Naplánujte test obnovy zo zálohy. Zálohy bez testovania sú nespoľahlivé." | 4 | 4 |
-| RF04: Chýbajúci patching | "Zaveďte pravidelný patch management. Neaktualizované systémy sú ľahký cieľ útočníkov." | 5 | 4 |
-| RF05: Absencia MFA | "Nasaďte MFA na všetkých kritických systémoch (e-mail, VPN, admin). Je to najefektívnejšia bezpečnostná investícia." | 5 | 5 |
-| RF06: Single point of failure (infra) | "Identifikujte a eliminujte single point of failure vo vašej infraštruktúre." | 4 | 4 |
-| RF07: Key person dependency | "Zdokumentujte kritické znalosti a cross-trainujte tím. Závislosť na jednom človeku je prevádzkové riziko." | 4 | 4 |
-| RF09: Žiadny BC/DR | "Vytvorte aspoň základný BC/DR plán a otestujte ho." | 4 | 4 |
+Odporúčania sa generujú z **fixnej sady pravidiel** naviazaných na kategóriové skóre ORS, aktívne TDRI risk faktory a AI Readiness — **nie** z odpovedí na konkrétne otázky (`answers`/`questions` parametre sa v `generateQuickWins`/`generateStrategic` prijímajú, ale v tele funkcie sa nepoužívajú). Cielenie na konkrétnu odpoveď (napr. "faktúry sú manuálne") momentálne nie je implementované.
 
 ---
 
-## 4. Pravidlá pre Quick Win odporúčania
+## 2. Typy a horizonty
 
-Generované na základe kategóriových skóre a odpovedí:
+| Typ | Popis | Horizont v roadmape |
+|-----|-------|----------------------|
+| `critical_risk` | Z aktívnych TDRI risk faktorov s penaltou ≥ 5 | 0–3 mesiace |
+| `quick_win` | Nízke úsilie, kategóriový prah | 0–3 mesiace |
+| `strategic` | Väčšia iniciatíva, kategóriový prah | 3–12 mesiacov |
+| `long_term` | Transformačné zmeny, celkové ORS | 12+ mesiacov |
 
-| Podmienka | Odporúčanie | Impact | Effort |
-|-----------|-------------|--------|--------|
-| A < 40 && approval_workflow == "email" | "Digitalizujte schvaľovacie procesy — jednoduchý workflow nástroj môže ušetriť hodiny týždenne." | 3 | 2 |
-| A < 50 && invoicing == "manual" | "Automatizujte fakturáciu — prepojte objednávky s účtovným systémom." | 4 | 2 |
-| B < 40 && integration == "none" | "Prepojte najpoužívanejšie systémy — aj jednoduchý connector zníži ručný prepis." | 3 | 2 |
-| C < 30 | "Nastavte automatizované reporty z existujúcich systémov — nemusíte kupovať BI, stačí využiť čo máte." | 3 | 1 |
-| D < 40 && remote == "no" | "Umožnite vzdialený prístup — VPN alebo cloud nástroje zvýšia flexibilitu." | 3 | 2 |
-| E < 40 && mfa == "none" | "Nasaďte MFA — je to rýchle, lacné a zásadne zvýši bezpečnosť." | 5 | 1 |
-| F < 30 && ownership == "nobody" | "Určite zodpovednú osobu za IT a digitalizáciu. Bez ownership sa nič neudeje." | 3 | 1 |
+### 2.1 Skutočný vzorec prioritizácie
 
----
+Kritické riziká:
+```
+priorityScore = (severity === 'critical' ? 5 : 4) × 5 / 2
+```
+t.j. presne **12.5** pre critical severity, **10** pre high/medium (nie `urgency × impact / effort` z pôvodnej dokumentácie — `effort` je vždy natvrdo `2`, `impact` sa do vzorca nedostane).
 
-## 5. Pravidlá pre Strategic odporúčania
-
-| Podmienka | Odporúčanie | Horizont |
-|-----------|-------------|----------|
-| A < 50 && employee_count > 20 | "Implementujte ERP alebo integrovaný podnikový systém pre riadenie procesov." | 3–12 mes. |
-| B < 50 && systems_count > 3 | "Vytvorte integračnú stratégiu — definujte source of truth a prepojte systémy." | 3–12 mes. |
-| C < 50 && employee_count > 30 | "Nasaďte BI nástroj pre data-driven rozhodovanie." | 6–12 mes. |
-| D < 40 && infra == "onprem" | "Pripravte migračný plán do cloudu alebo hybrid modelu." | 6–12 mes. |
-| E < 50 | "Vypracujte bezpečnostnú stratégiu vrátane policy, incident response a pravidelného auditu." | 3–12 mes. |
-| F < 40 | "Vytvorte digitalizačnú roadmapu s prioritami, rozpočtom a KPI." | 3–6 mes. |
+Quick win / strategic / long-term odporúčania majú `urgency`, `impact`, `effort`, `priorityScore` **natvrdo nastavené na fixné hodnoty per pravidlo** (tabuľky nižšie) — nepočítajú sa dynamicky.
 
 ---
 
-## 6. Pravidlá pre Long-term odporúčania
+## 3. Critical Risk odporúčania
 
-| Podmienka | Odporúčanie | Horizont |
-|-----------|-------------|----------|
-| ORS > 60 && ai_usage == "none" | "Zvážte pilotné nasadenie AI pre automatizáciu repetitívnych úloh." | 12+ mes. |
-| A > 60 && C < 40 | "Investujte do dátovej platformy — máte dobré procesy, ale nevyužívate dáta." | 12+ mes. |
-| Celkový ORS > 70 | "Zvážte digitálnu transformáciu business modelu — máte dostatočnú základňu." | 12+ mes. |
+Generujú sa z `tdri.factors` — podmienka: `factor.active && factor.penalty >= 5`.
+
+**Šablóna existuje iba pre 7 z 14 risk faktorov.** Ak faktor prejde prahom `penalty >= 5`, ale nemá šablónu (RF06, RF08, RF10, RF11, RF12, RF13, RF14), **žiadne odporúčanie sa nevygeneruje** — faktor sa napriek tomu môže zobraziť v `tdri.topRisks` ako top riziko bez zodpovedajúcej akcie.
+
+| RF | Odporúčanie (titleSk) | Šablóna existuje? |
+|----|------------------------|---------------------|
+| RF01 | "Migrácia z nepodporovaného OS/systému" | ✅ |
+| RF02 | "Okamžite nasaďte zálohovanie" | ✅ |
+| RF03 | "Otestujte obnovu zo zálohy" | ✅ |
+| RF04 | "Zaveďte pravidelný patch management" | ✅ |
+| RF05 | "Nasaďte MFA na kritických systémoch" | ✅ |
+| RF06 | — | ❌ chýba |
+| RF07 | "Eliminujte závislosť na jednom človeku" | ✅ |
+| RF08 | — | ❌ chýba |
+| RF09 | "Vytvorte BC/DR plán" | ✅ |
+| RF10 | — | ❌ chýba |
+| RF11 | — | ❌ chýba |
+| RF12 | — | ❌ chýba |
+| RF13 | — | ❌ chýba |
+| RF14 | — | ❌ chýba |
+
+Všetky critical risk odporúčania majú `category: 'E'` bez ohľadu na skutočnú doménu rizika (napr. RF01/RF06 sú infraštruktúrne, RF07 je governance) — kategorizácia v UI preto vždy zoskupí tieto odporúčania pod bezpečnosť.
+
+**Medzera:** Medium-severity faktory (max penalty 4–6) nikdy nedosiahnu prah `penalty >= 5` cez aktívnu cestu (`0.6 × maxPenalty`, max `0.6 × 6 = 3.6`) ani cez odvodenú (`0.8 × maxPenalty`, max `0.8 × 6 = 4.8`) — takže RF08/RF10/RF11/RF12/RF13/RF14 **nemôžu matematicky** vygenerovať critical-risk odporúčanie, aj keby šablónu mali.
 
 ---
 
-## 7. Roadmapa odporúčaní
+## 4. Quick Win odporúčania
 
-Výstup vždy obsahuje roadmapu v troch horizontoch:
+Fixná sada 5 pravidiel podľa kategóriového skóre + 1 nové pravidlo pre AI:
 
-### 0–3 mesiace (Okamžité akcie)
-- Všetky critical_risk odporúčania.
-- Top 3 quick wins (podľa priority_score).
+| Podmienka | ID | Odporúčanie | u / i / e | priorityScore |
+|-----------|-----|-------------|-----------|----------------|
+| `A.score < 40` | `rec_qw_process_auto` | "Digitalizujte kľúčové procesy" | 4/4/2 | 8 |
+| `B.score < 40` | `rec_qw_integration` | "Prepojte najpoužívanejšie systémy" | 3/4/2 | 6 |
+| `C.score < 30` | `rec_qw_reporting` | "Nastavte automatizované reporty" | 3/3/1 | 9 |
+| `F.score < 30` | `rec_qw_ownership` | "Určite zodpovednú osobu za digitalizáciu" | 3/3/1 | 9 |
+| `E.score < 50` | `rec_qw_security_basics` | "Zabezpečte základnú kybernetickú hygienu" | 5/5/1 | 25 |
+| `aiReadiness.score ≤ 25` (meraná) | `rec_ai_start` | "Začnite experimentovať s AI nástrojmi" | 3/4/1 | 12 |
 
-### 3–12 mesiacov (Strategické iniciatívy)
-- Top 3 strategic odporúčania.
-- Risk mitigácie strednej priority.
+**Kategória D nemá žiadne quick-win pravidlo** — firma so slabou infraštruktúrou/cloudom (D < akéhokoľvek prahu) z tejto sekcie nedostane nič.
 
-### 12+ mesiacov (Transformácia)
-- Long-term odporúčania.
-- Príležitosti nadstavby.
+**Duplicita:** `rec_qw_security_basics` (E < 50) sa typicky spustí spolu s critical-risk odporúčaniami RF02/RF04/RF05 (tie isté oblasti — MFA, zálohy, patching) pre tú istú firmu — používateľ môže vidieť prekrývajúce sa rady v `criticalRisks` aj `quickWins` súčasne.
+
+Zobrazuje sa top 5 podľa `priorityScore` (`.slice(0, 5)`).
 
 ---
 
-## 8. Formát odporúčania
+## 5. Strategic odporúčania
 
-Každé odporúčanie obsahuje:
+Fixná sada 4 pravidiel + 2 pre AI:
 
+| Podmienka | ID | Odporúčanie | priorityScore |
+|-----------|-----|-------------|----------------|
+| `A.score < 50` | `rec_str_erp` | "Implementujte integrovaný podnikový systém" | 3.75 |
+| `B.score < 50` | `rec_str_integration` | "Vytvorte integračnú stratégiu" | 4 |
+| `E.score < 50` | `rec_str_security` | "Vypracujte bezpečnostnú stratégiu" | 5.3 |
+| `F.score < 40` | `rec_str_roadmap` | "Vytvorte digitalizačnú roadmapu" | 6 |
+| `aiReadiness.score` 26–55 (meraná) | `rec_ai_scale` | "Rozšírte AI z experimentov do produkcie" | 4 |
+| `aiReadiness.score` > 55 (meraná) | `rec_ai_govern` | "Formalizujte AI governance" | 3 |
+
+**Kategórie C a D nemajú žiadne strategické pravidlo.** Zobrazuje sa top 3 podľa `priorityScore` (`.slice(0, 3)`).
+
+---
+
+## 6. Long-term odporúčania
+
+| Podmienka | ID | Odporúčanie |
+|-----------|-----|-------------|
+| `ors.scorePenalized > 60` **a** (cx_DII03 chýba/"Neviem" **alebo** explicitne `value === 'none'`) | `rec_lt_ai` | "Zvážte pilotné nasadenie AI" |
+| `ors.scorePenalized > 70` | `rec_lt_transformation` | "Digitálna transformácia business modelu" |
+
+Vracajú sa **všetky**, nie len top N. Pôvodne dokumentované pravidlo `A > 60 && C < 40 → dátová platforma` **neexistuje** v kóde.
+
+---
+
+## 7. Roadmapa
+
+```
+immediate0_3m  = ID všetkých criticalRisks + top 3 quickWins
+medium3_12m    = ID top 3 strategicInitiatives
+longTerm12mPlus = ID všetkých longTermInitiatives
+```
+
+**Neexistuje** samostatná úroveň "risk mitigácie strednej priority" v `medium3_12m` — medium-severity riziká (RF08/RF10/RF11/RF12/RF13/RF14) sa nikam do roadmapy nedostanú (viď §3, matematicky nedosiahnuteľný prah).
+
+---
+
+## 8. Silné stránky (`strengths`)
+
+| Podmienka | Text |
+|-----------|------|
+| Ktorákoľvek ORS kategória `score >= 70` | `"{názov kategórie}: Nadpriemerná úroveň ({skóre}/100)"` |
+| `tdri.score <= 15` | "Nízky technologický dlh — dobre riadená infraštruktúra a bezpečnosť" |
+| `dii.score100 >= 75` | "Vysoká digitálna intenzita — aktívne využívanie digitálnych nástrojov" |
+| `aiReadiness.score >= 70` (meraná) | "Vyspelé využitie AI — firma je v tejto oblasti pred väčšinou trhu" |
+
+---
+
+## 9. Skutočný formát odporúčania (TypeScript, `types/index.ts`)
+
+```ts
+interface Recommendation {
+  id: string;
+  type: 'critical_risk' | 'quick_win' | 'strategic' | 'long_term';
+  category: string;
+  titleSk: string;
+  descriptionSk: string;
+  urgency: number;
+  impact: number;
+  effort: number;
+  priorityScore: number;
+  horizon: string;
+  triggeredBy: string[];
+  sourceAnswers: string[];
+  expectedOutcome?: string;
+}
+```
+
+**Pole `benchmark_note` neexistuje** — pôvodná dokumentácia obsahovala nezdrojované tvrdenia ("93 % firiem má MFA") v tomto poli; boli odstránené, keďže Eurostat DII adopciu MFA nemeria a interné dáta na takéto tvrdenie zatiaľ nemáme.
+
+Reálny príklad (critical risk):
 ```json
 {
-  "id": "rec_001",
+  "id": "rec_risk_RF05",
   "type": "critical_risk",
   "category": "E",
-  "title": "Nasaďte MFA na kritických systémoch",
-  "description": "Viacfaktorové overenie je najefektívnejší spôsob ochrany pred neoprávneným prístupom. Nasaďte ho minimálne na e-mail, VPN a admin rozhrania.",
+  "titleSk": "Nasaďte MFA na kritických systémoch",
+  "descriptionSk": "Implementujte viacfaktorové overenie minimálne na e-mail, VPN a admin rozhrania. Je to najefektívnejšia bezpečnostná investícia.",
   "urgency": 5,
   "impact": 5,
-  "effort": 1,
-  "priority_score": 25.0,
-  "horizon": "0-3 months",
-  "triggered_by": ["RF05"],
-  "source_answers": ["cx_E01"],
-  "expected_outcome": "Zníženie rizika neoprávneného prístupu o ~80 %",
-  "benchmark_note": "93 % firiem s vysokou digitálnou intenzitou má MFA nasadené."
+  "effort": 2,
+  "priorityScore": 12.5,
+  "horizon": "0-3 mesiace",
+  "triggeredBy": ["RF05"],
+  "sourceAnswers": ["ind_10"],
+  "expectedOutcome": "Zníženie rizika: Absencia MFA na kritických systémoch"
 }
 ```
 
 ---
 
-## 9. Silné stránky
+## 10. Roadmapa vylepšení (mimo rozsahu MVP)
 
-Okrem slabín a odporúčaní výstup identifikuje aj silné stránky:
-
-| Podmienka | Silná stránka |
-|-----------|---------------|
-| Kategória ≥ 70 | "Kategória [X] je nad priemerom — firma má silnú základňu v tejto oblasti." |
-| TDRI < 15 | "Nízky technologický dlh — firma má dobre riadenú infraštruktúru." |
-| DII > 75 | "Vysoká digitálna intenzita — firma aktívne využíva digitálne nástroje." |
+Pravidlá, ktoré by dávali produkt viac na mieru konkrétnej firme, ale zatiaľ nie sú implementované (sledované v `IMPROVEMENT_CHECKLIST.md` P1):
+- Answer-level podmienky (napr. `invoicing == 'manual'` → konkrétne odporúčanie na fakturáciu).
+- Firmografické brány (napr. odporúčanie ERP len pre `employee_count > 20`, aby sa 3-osobovej firme neodporúčal veľký systém).
+- Strategické/quick-win pravidlá pre kategórie C a D.
+- Šablóny pre RF06/RF08/RF10/RF11/RF12/RF13/RF14.
+- Regulačný kontext v odporúčaniach (NIS2 scope-check, termín povinnej e-fakturácie 2027).

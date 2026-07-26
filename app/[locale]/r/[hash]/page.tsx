@@ -6,7 +6,7 @@ import {
   SECTOR_LABELS_SK,
   SIZE_BAND_LABELS_SK,
 } from '@/data/peerData';
-import { isValidHash } from '@/lib/resultHash';
+import { isValidHash, formatHashGroups } from '@/lib/resultHash';
 import PeerComparisonPanel from '@/components/customer/PeerComparisonPanel';
 import QRCodeCard from '@/components/customer/QRCodeCard';
 import UserOwnResultView from '@/components/customer/UserOwnResultView';
@@ -25,11 +25,23 @@ export async function generateMetadata({
   params: Params;
 }): Promise<Metadata> {
   const { hash } = await params;
+
+  if (!isValidHash(hash)) {
+    return {
+      title: 'Výsledok nenájdený',
+      robots: { index: false, follow: false },
+    };
+  }
+
   const peer = getPeerByHash(hash);
 
   if (!peer) {
+    // Valid hash format, but not part of the public peer benchmark table —
+    // it may still be a real result stored in the visitor's own localStorage
+    // (rendered client-side by UserOwnResultView). We cannot check that
+    // from the server, so avoid a misleading "not found" title here.
     return {
-      title: 'Výsledok nenájdený',
+      title: 'Váš výsledok diagnostiky',
       robots: { index: false, follow: false },
     };
   }
@@ -75,54 +87,60 @@ export default async function ResultByHashPage({
   });
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 pt-16 pb-6 sm:pt-8 sm:pb-8 space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in-up">
-        <div className="flex items-center gap-4">
+        <div className="flex items-start sm:items-center gap-3 sm:gap-4">
           <div
-            className="w-12 h-12 rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30"
+            className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-2xl bg-[#1d1d1f]/8 text-[#1d1d1f] flex items-center justify-center"
             aria-hidden="true"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </div>
-          <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-0.5">
+          {/* min-w-0 — bez neho flex položka nikdy neklesne pod svoju
+              min-content šírku a dlhý sektorový názov roztlačí celú hlavičku. */}
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-[#86868b] uppercase tracking-wide mb-0.5">
               Anonymizovaný výsledok
             </p>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#1d1d1f] break-words">
               {sectorLabel} &middot; {sizeLabel}
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Hash: <span className="font-mono text-slate-700">{hash}</span> &middot; {dateLabel}
+            <p className="text-sm text-[#6e6e73] mt-1 break-words">
+              Hash:{' '}
+              {/* Skupiny sú spojené obyčajnou medzerou, takže hash sa pri
+                  zväčšenom texte zalomí medzi štvoricami. break-words (nie
+                  break-all) — zalomenie vnútri štvorice až ako posledná možnosť. */}
+              <span className="font-mono text-[#1d1d1f] tracking-[0.12em] break-words">
+                {formatHashGroups(hash).join(' ')}
+              </span>{' '}
+              &middot; {dateLabel}
             </p>
           </div>
         </div>
       </div>
 
       {/* Score cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 animate-fade-in-up">
         <ScoreCard
           label="DII Score"
           value={`${peer.diiScore100}`}
           unit="/100"
           subtitle={`${peer.diiScore12}/12 (DII raw)`}
-          gradient="from-indigo-500 to-blue-600"
         />
         <ScoreCard
           label="Operational Readiness"
           value={`${peer.orsScore}`}
           unit="/100"
           subtitle="ODRM model"
-          gradient="from-cyan-500 to-teal-500"
         />
         <ScoreCard
           label="Risk Index (TDRI)"
           value={`${peer.tdriScore}`}
           unit="/100"
           subtitle="Vyššie = horšie"
-          gradient="from-rose-500 to-orange-500"
         />
         <ScoreCard
           label="Business Impact"
@@ -133,7 +151,6 @@ export default async function ResultByHashPage({
           }).format(peer.businessImpactEur)}
           unit=""
           subtitle="EUR / rok (mid)"
-          gradient="from-emerald-500 to-green-600"
         />
       </div>
 
@@ -144,8 +161,8 @@ export default async function ResultByHashPage({
       <QRCodeCard url={url} hash={hash} />
 
       {/* Disclaimer */}
-      <div className="rounded-2xl bg-slate-50 border border-slate-200 p-5 text-sm text-slate-600 leading-relaxed">
-        <p className="font-bold text-slate-700 mb-1">O tomto zobrazení</p>
+      <div className="rounded-3xl bg-white border border-black/5 p-4 sm:p-5 text-sm text-[#6e6e73] leading-relaxed">
+        <p className="font-bold text-[#1d1d1f] mb-1">O tomto zobrazení</p>
         <p>
           Toto je anonymizovaný snapshot výsledku z testovacieho vzorky 50 firiem na Slovensku.
           Žiadne identifikačné údaje firmy sa neukladajú a nezobrazujú. Stránka je dostupná iba
@@ -161,28 +178,30 @@ function ScoreCard({
   value,
   unit,
   subtitle,
-  gradient,
 }: {
   label: string;
   value: string;
   unit: string;
   subtitle: string;
-  gradient: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+    <div className="rounded-3xl bg-white border border-black/5 shadow-sm p-3 sm:p-4 lg:p-5 min-w-0">
       <div
-        className={`inline-block w-1 h-6 rounded-full bg-gradient-to-b ${gradient} mb-3`}
+        className="inline-block w-1 h-6 rounded-full bg-[#1d1d1f]/15 mb-3"
         aria-hidden="true"
       />
-      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+      <p className="text-[11px] sm:text-xs font-bold text-[#86868b] uppercase tracking-wide mb-1.5 break-words">
         {label}
       </p>
-      <p className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+      {/* Business Impact („22 800 €“) potreboval pri text-2xl 109 px v 102 px
+          bunke. Menšie mobilné písmo + break-words: hodnota už nerozťahuje
+          stĺpec gridu a nepretečie kartu ani pri zväčšenom texte.
+          Pozor: sk-SK formát používa nezalomiteľné medzery, preto break-words. */}
+      <p className="text-xl sm:text-2xl lg:text-3xl font-black text-[#1d1d1f] tracking-tight tabular-nums break-words">
         {value}
-        <span className="text-sm font-bold text-slate-400 ml-1">{unit}</span>
+        <span className="text-sm font-bold text-[#86868b] ml-1">{unit}</span>
       </p>
-      <p className="text-xs text-slate-500 mt-1.5">{subtitle}</p>
+      <p className="text-xs text-[#6e6e73] mt-1.5 break-words">{subtitle}</p>
     </div>
   );
 }
