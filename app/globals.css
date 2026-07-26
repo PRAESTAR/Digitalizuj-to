@@ -368,12 +368,23 @@ body {
 .aurora-blob-b { animation: aurora-drift-b 26s ease-in-out infinite; }
 .aurora-blob-c { animation: aurora-drift-c 24s ease-in-out infinite; }
 
-/* Nechá aurora wash rozplynúť sa smerom nadol namiesto tvrdého orezania na
-   hranici sekcie (overflow-hidden) — bez tohto vzniká viditeľný "šev" tam,
-   kde hero končí a ďalšia sekcia (plochá biela) začína. */
-.aurora-wash-fade {
-  mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
+/* Pozadie celej úvodnej stránky.
+   Predtým mala hero sekcia vlastné #fbfbfd a nasledujúce sekcie dedili biele
+   body, takže na ich hranici stál tvrdý krok z krémovej na čistú bielu. Presne
+   na tom istom mieste zároveň dohasínala aurora maska — dva švy ležali na sebe
+   a rez pôsobil, že stránka je rozdelená na dva kusy. Teraz je to jeden spojitý
+   gradient a hranicu sekcie nemá čo prezradiť. */
+.page-wash {
+  background: linear-gradient(to bottom, #fbfbfd 0px, #fdfdfe 620px, #ffffff 1200px);
+}
+
+/* Dohasínanie aurora blobov. Zámerne v PIXELOCH, nie v percentách: výška
+   stránky sa líši podľa jazyka (nemčina je dlhšia) a percentá by v každej
+   lokalizácii posunuli dohasínanie inam. Farba tak drží ešte hlboko za
+   hranicou hero sekcie a prechod pôsobí celistvo. */
+.page-aurora-fade {
+  mask-image: linear-gradient(to bottom, black 0px, black 900px, transparent 1600px);
+  -webkit-mask-image: linear-gradient(to bottom, black 0px, black 900px, transparent 1600px);
 }
 
 /* Plocha karty rozdelená na 4 ZVISLÉ pásy zubatými "trhacími" líniami. Pásy sa

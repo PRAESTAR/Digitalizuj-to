@@ -60,26 +60,37 @@ export default async function Home({
   const t = await getTranslations();
 
   return (
-    <div>
+    /* `isolate` robí z obalu stacking context, inak by vrstvy so záporným
+       z-indexom spadli až za jeho vlastné pozadie a neboli by vidieť. */
+    <div className="relative isolate page-wash">
+      {/* Aurora bloby — dekorácia hornej časti. Sedia na úrovni celej stránky,
+          nie v hero sekcii: keď boli vnútri hero a maskované na jeho výšku,
+          farba končila presne na hranici sekcie a spolu s krokom pozadia to
+          stránku opticky rozpolilo. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 overflow-hidden pointer-events-none page-aurora-fade"
+      >
+        <div className="aurora-blob aurora-blob-a w-[40rem] h-[40rem] bg-[#0a84ff]/[0.08] -top-40 -left-32" />
+        <div className="aurora-blob aurora-blob-b w-[34rem] h-[34rem] bg-[#bf5af2]/[0.08] top-0 -right-32" />
+        {/* Posunutý nižšie, nech farba presahuje cez hranicu hero sekcie. */}
+        <div className="aurora-blob aurora-blob-c w-[28rem] h-[28rem] bg-[#ff375f]/[0.05] top-[26rem] left-1/3" />
+      </div>
+
+      {/* Stopa kurzora — samostatná vrstva, BEZ masky, aby fungovala na celej
+          stránke. `fixed` zámerne: kurzor je ukotvený vo viewporte, takže
+          plátno stačí veľkosti okna. Na celú výšku stránky by pri dpr 2 išlo
+          o desiatky MB pamäte navyše. */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <PointerAurora />
+      </div>
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       {/* Hero */}
-      <section className="hero-timeline relative overflow-hidden bg-[#fbfbfd] text-[#1d1d1f]">
-        {/* Soft pastel wash — very low-opacity, no dark glow. Masked fade-out
-            at the bottom so it dissolves into the next section instead of
-            being hard-clipped at the section boundary. */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none aurora-wash-fade">
-          <div className="aurora-blob aurora-blob-a w-[40rem] h-[40rem] bg-[#0a84ff]/[0.08] -top-40 -left-32" />
-          <div className="aurora-blob aurora-blob-b w-[34rem] h-[34rem] bg-[#bf5af2]/[0.08] top-0 -right-32" />
-          <div className="aurora-blob aurora-blob-c w-[28rem] h-[28rem] bg-[#ff375f]/[0.05] -bottom-40 left-1/3" />
-          {/* Svetelná stopa za kurzorom. Zámerne vnútri tejto vrstvy, aby ju
-              dole orezal ten istý mask fade ako statické bloby — inak by na
-              hranici sekcie vznikol ostrý šev, ktorý sme už raz odstraňovali. */}
-          <PointerAurora />
-        </div>
-
+      <section className="hero-timeline relative overflow-hidden text-[#1d1d1f]">
         <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-20 md:pt-28 md:pb-24">
           <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-14 lg:gap-10 items-center">
             {/* Copy column */}
@@ -149,7 +160,11 @@ export default async function Home({
       </section>
 
       {/* What you get */}
-      <section id="what-you-get" className="bg-white py-20">
+      {/* Bez vlastného bg-white: pozadie stránky je v tomto mieste už čistá
+          biela (gradient ju dosiahne na 1200 px, sekcia začína na ~1426 px),
+          takže vizuálne je to zhodné — ale nepriehľadná výplň by prekryla
+          stopu kurzora, ktorá leží na -z-10. */}
+      <section id="what-you-get" className="py-20">
         <div className="max-w-5xl mx-auto px-4">
           <div className="text-center mb-14">
             <h2 className="text-3xl font-bold text-[#1d1d1f] mb-3">
