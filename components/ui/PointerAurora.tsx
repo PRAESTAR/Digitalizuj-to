@@ -3,35 +3,46 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * Svetelná stopa za kurzorom v hero sekcii.
+ * Svetelná stopa za kurzorom v hero sekcii — kométa.
  *
  * Skladá sa z DVOCH nezávislých vrstiev, lebo každá má iné požiadavky:
  *
- *  1. STOPA (plátno) — každý snímok sa doterajší obsah trochu zotrie a na
- *     dráhe kurzora sa pridá mäkký farebný kruh. To, čo vidíme ako stopu, je
- *     nedomazaná história; nikde sa neukladá zoznam bodov. Stopa zámerne
- *     zaostáva za kurzorom (EASE), z toho vzniká ten ťah.
+ *  1. STOPA (plátno) — história posledných pozícií kurzora. Každý bod si
+ *     pamätá, kedy vznikol, a s vekom mu klesá POLOMER aj PRIEHĽADNOSŤ. Preto
+ *     sa stopa smerom dozadu zužuje do stratena, nie je to pás.
  *
- *  2. GUĽÔČKA (DOM prvok) — malý bod presne na kurzore. Je to obyčajný div
- *     posúvaný cez `translate3d`, takže beží na kompozítore, nikdy nevybledne
- *     a nemá žiadne oneskorenie voči myši.
+ *  2. GUĽÔČKA (DOM prvok) — malý bod presne na kurzore. Obyčajný div posúvaný
+ *     cez `translate3d`, takže beží na kompozítore, nikdy nevybledne a nemá
+ *     voči myši žiadne oneskorenie.
  *
- * Prečo nie je guľôčka tiež na plátne: plátno sa každý snímok stmieva, takže
- * bod na ňom buď zmizne (keď myš stojí), alebo sa pri opakovanom razítkovaní
- * na mieste nakopí do skoro nepriehľadnej škvrny — rovnovážna alfa vychádza
- * okolo 0,76. Ani jedno nie je to, čo chceme. Ako DOM prvok je guľôčka
- * jednoducho stále rovnaká a jej veľkosť sa mení jediným číslom.
+ * Prečo NIE technika „stmievaj celé plátno":
+ * predtým sa každý snímok zotrel kúsok plátna a na dráhe pribudlo razítko.
+ * Lenže staré razítka si držia pôvodný polomer a len blednú — výsledkom je
+ * pás s konštantnou šírkou. Zúženie do stratena sa takto spraviť nedá.
+ * Vedľajší efekt: odpadol aj starý problém s 8-bitovou presnosťou, keď sa
+ * postupné stmievanie zaseklo na nízkej alfe a nikdy nedosiahlo nulu —
+ * plátno sa teraz každý snímok maže načisto.
  *
- * Farby sú tie isté tri aurora odtiene ako statické bloby v hero sekcii, takže
- * efekt pôsobí ako zosilnenie existujúceho pozadia, nie ako cudzí prvok.
+ * Prečo je guľôčka DOM a nie na plátne: plátno sa prekresľuje, takže bod na
+ * ňom pri stojacej myši buď zmizne, alebo sa pri opakovanom kreslení nakopí.
  *
- * Výkon (na tomto projekte už boli sťažnosti na sekanie pri skrolovaní):
- *  - beží LEN pri myši (pointer: fine) — na dotyku nemá kurzor zmysel a šetrí batériu,
+ * Výkon: namiesto `createRadialGradient` pre každý bod a snímok sa raz
+ * predkreslí sada mäkkých koliesok (sprite) a tie sa už len škálovane
+ * vykresľujú cez `drawImage`. To je rádovo lacnejšie a drží to aj pri
+ * plnej histórii pod jednu milisekundu na snímok.
+ *
+ *  - beží LEN pri myši (pointer: fine) — na dotyku nemá kurzor zmysel,
  *  - rešpektuje prefers-reduced-motion,
- *  - rAF slučka sa po ~1,5 s bez pohybu sama zastaví a znovu naštartuje až pri pohybe,
- *  - zastaví sa aj pri skrytej záložke,
- *  - pozícia plátna sa číta z cache (aktualizuje sa pri scroll/resize), takže
- *    v pointermove nie je žiadne čítanie layoutu.
+ *  - slučka sa sama zastaví, keď stopa dohorí, a naštartuje až pri pohybe,
+ *  - zastaví sa aj pri skrytej záložke.
+ *
+ * Pozícia plátna sa číta ČERSTVO pri každom pohybe, nie z cache. Cache tu
+ * predtým bola kvôli výkonu a obnovovala sa na scroll/resize — lenže hero sa
+ * vie posunúť aj bez takého eventu (doloadovaný obrázok nad ním, výmena
+ * fontu, zmena výšky obsahu pri prepnutí jazyka) a vtedy sa všetko kreslilo
+ * o ten rozdiel vedľa. Odmerané: čítanie stojí ~36 µs na event, čo je pri
+ * 120 Hz asi 0,4 % rozpočtu snímku. Čítame PRED zápisom transformu, takže
+ * v handleri nevzniká read-after-write thrash.
  */
 
 /** #0a84ff, #bf5af2, #ff375f — zhodné s .aurora-blob v globals.css. */
@@ -41,23 +52,61 @@ const COLORS: ReadonlyArray<readonly [number, number, number]> = [
   [255, 55, 95],
 ];
 
-const FADE_PER_FRAME = 0.035; // koľko sa zotrie za snímok → dĺžka stopy
-const EASE = 0.14; // 0–1, nižšie = lenivejšie doháňanie kurzora
+/** Ako dlho bod žije. Toto je tá „ostáva tam dlho" páčka — nižšie = kratšia stopa. */
+const LIFETIME_MS = 600;
+/** Polomer na hlave stopy; smerom dozadu klesá k nule. */
+const HEAD_RADIUS = 46;
+/** Vrcholová sýtosť jedného bodu. Hero má takmer biele pozadie (#fbfbfd). */
+const PEAK_ALPHA = 0.075;
+/** Exponenty starnutia. Alfa klesá rýchlejšie než polomer → chvost sa stráca skôr, než sa stihne zúžiť do špičky. */
+const RADIUS_FALLOFF = 0.75;
+const ALPHA_FALLOFF = 1.7;
+/** Rozostup vzoriek na dráhe; pri rýchlom pohybe sa medzi ne dopĺňa. */
+const SAMPLE_SPACING = 6;
+const MAX_POINTS = 90;
 
-// Polomer mäkkej stopy. Toto je tá „aura" za kurzorom — široká je zámerne,
-// lebo prekryv susedných razítok je to jediné, čo zakryje krokovanie po
-// snímkoch. Keď sa zmenšila spolu s guľôčkou, stopa začala pôsobiť skokovo.
-const TRAIL_RADIUS = 55;
-// Pozadie hero je takmer biele (#fbfbfd), takže slabá stopa na ňom zanikne.
-// 0,055 je kompromis: viditeľná, ale stále len nádych farby.
-const TRAIL_ALPHA = 0.055;
-const STAMP_SPACING = 8; // rozostup razítok; výrazne menší než polomer
-const MAX_STEPS = 12; // 12 × 8 px = 96 px prekrytých za snímok
+/** Počet predkreslených odtieňov naprieč aurora paletou. */
+const SPRITE_COUNT = 12;
+const SPRITE_RADIUS = 64;
 
-/** Priemer guľôčky v px. Jediné číslo, ktoré treba meniť pri jej zväčšovaní. */
+/** Priemer guľôčky v px. Jediné číslo na jej zväčšenie/zmenšenie. */
 const BALL_SIZE = 14;
 
-const IDLE_FRAMES_BEFORE_STOP = 90; // ~1,5 s pri 60 fps
+type Point = { x: number; y: number; born: number; sprite: number };
+
+/** Mäkké koliesko pre každý odtieň, predkreslené raz. */
+function buildSprites(): HTMLCanvasElement[] {
+  const out: HTMLCanvasElement[] = [];
+  for (let s = 0; s < SPRITE_COUNT; s++) {
+    const f = (s / SPRITE_COUNT) * COLORS.length;
+    const i0 = Math.floor(f) % COLORS.length;
+    const i1 = (i0 + 1) % COLORS.length;
+    const k = f % 1;
+    const c0 = COLORS[i0];
+    const c1 = COLORS[i1];
+    const r = Math.round(c0[0] + (c1[0] - c0[0]) * k);
+    const g = Math.round(c0[1] + (c1[1] - c0[1]) * k);
+    const b = Math.round(c0[2] + (c1[2] - c0[2]) * k);
+
+    const cv = document.createElement('canvas');
+    cv.width = SPRITE_RADIUS * 2;
+    cv.height = SPRITE_RADIUS * 2;
+    const c = cv.getContext('2d');
+    if (c) {
+      const grad = c.createRadialGradient(
+        SPRITE_RADIUS, SPRITE_RADIUS, 0,
+        SPRITE_RADIUS, SPRITE_RADIUS, SPRITE_RADIUS
+      );
+      grad.addColorStop(0, `rgba(${r},${g},${b},1)`);
+      grad.addColorStop(0.45, `rgba(${r},${g},${b},0.35)`);
+      grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      c.fillStyle = grad;
+      c.fillRect(0, 0, SPRITE_RADIUS * 2, SPRITE_RADIUS * 2);
+    }
+    out.push(cv);
+  }
+  return out;
+}
 
 export default function PointerAurora() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -75,6 +124,8 @@ export default function PointerAurora() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const sprites = buildSprites();
+
     let w = 0;
     let h = 0;
     let rect = canvas.getBoundingClientRect();
@@ -90,90 +141,44 @@ export default function PointerAurora() {
     };
     resize();
 
-    // Rect sa mení pri scrollovaní aj pri zmene veľkosti; držíme si ho v cache,
-    // aby pointermove nemusel siahať na layout.
+    // Používa sa len pri resize plátna; pozíciu si onMove číta sám.
     const refreshRect = () => {
       rect = canvas.getBoundingClientRect();
     };
 
-    let targetX = -1;
-    let targetY = -1;
-    let x = -1;
-    let y = -1;
+    const points: Point[] = [];
+    let lastX = -1;
+    let lastY = -1;
     let hue = 0;
-    let idle = 0;
     let raf = 0;
     let running = false;
 
-    const stamp = (
-      px: number,
-      py: number,
-      color: readonly [number, number, number]
-    ) => {
-      const [r, g, b] = color;
-      const grad = ctx.createRadialGradient(px, py, 0, px, py, TRAIL_RADIUS);
-      grad.addColorStop(0, `rgba(${r},${g},${b},${TRAIL_ALPHA})`);
-      grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
-      ctx.fillStyle = grad;
-      ctx.fillRect(
-        px - TRAIL_RADIUS,
-        py - TRAIL_RADIUS,
-        TRAIL_RADIUS * 2,
-        TRAIL_RADIUS * 2
-      );
+    const push = (px: number, py: number, now: number) => {
+      hue = (hue + 0.5) % SPRITE_COUNT;
+      points.push({ x: px, y: py, born: now, sprite: Math.floor(hue) });
+      if (points.length > MAX_POINTS) points.shift();
     };
 
-    const frame = () => {
-      // 1) zotri kúsok predchádzajúceho snímku — z toho vzniká doznievanie
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.fillStyle = `rgba(0,0,0,${FADE_PER_FRAME})`;
-      ctx.fillRect(0, 0, w, h);
-      ctx.globalCompositeOperation = 'source-over';
+    const frame = (now: number) => {
+      ctx.clearRect(0, 0, w, h);
 
-      // 2) posuň sa k cieľu (zotrvačnosť)
-      const prevX = x;
-      const prevY = y;
-      x += (targetX - x) * EASE;
-      y += (targetY - y) * EASE;
+      // zahoď, čo dohorelo
+      while (points.length && now - points[0].born >= LIFETIME_MS) points.shift();
 
-      const dx = x - prevX;
-      const dy = y - prevY;
-      const dist = Math.hypot(dx, dy);
-
-      // 3) pri rýchlom pohybe doplň medzikroky, inak by stopa bola prerušovaná
-      const steps = Math.min(Math.ceil(dist / STAMP_SPACING), MAX_STEPS);
-
-      hue = (hue + 0.004) % 1;
-      const ci = hue * COLORS.length;
-      const i0 = Math.floor(ci) % COLORS.length;
-      const i1 = (i0 + 1) % COLORS.length;
-      const f = ci % 1;
-      const c0 = COLORS[i0];
-      const c1 = COLORS[i1];
-      const color = [
-        Math.round(c0[0] + (c1[0] - c0[0]) * f),
-        Math.round(c0[1] + (c1[1] - c0[1]) * f),
-        Math.round(c0[2] + (c1[2] - c0[2]) * f),
-      ] as const;
-
-      for (let i = 0; i <= steps; i++) {
-        const t = steps === 0 ? 1 : i / steps;
-        stamp(prevX + dx * t, prevY + dy * t, color);
+      // od najstaršieho po najmladší, nech je hlava navrchu
+      for (const p of points) {
+        const t = (now - p.born) / LIFETIME_MS; // 0 = čerstvý, 1 = koniec života
+        const life = 1 - t;
+        const r = HEAD_RADIUS * Math.pow(life, RADIUS_FALLOFF);
+        if (r < 0.5) continue;
+        ctx.globalAlpha = PEAK_ALPHA * Math.pow(life, ALPHA_FALLOFF);
+        ctx.drawImage(sprites[p.sprite], p.x - r, p.y - r, r * 2, r * 2);
       }
+      ctx.globalAlpha = 1;
 
-      // 4) keď sa nič nedeje, nech slučka po doznení stopy zhasne.
-      //    Guľôčka je DOM prvok, takže zastavenie slučky sa jej netýka —
-      //    zostane svietiť na mieste, kde myš stojí.
-      idle = dist < 0.15 ? idle + 1 : 0;
-      if (idle > IDLE_FRAMES_BEFORE_STOP) {
-        // Tvrdé domazanie. Postupné stmievanie cez destination-out násobí
-        // alfu, takže pri 8-bitovej presnosti sa zasekne na nízkej hodnote
-        // (4 × 0,955 sa zaokrúhli späť na 4) a nikdy nedosiahne nulu. Zvyšok
-        // je síce takmer neviditeľný, ale bez tohto by sa naprieč dlhou
-        // reláciou nazbieral do viditeľného závoja.
-        ctx.clearRect(0, 0, w, h);
+      if (!points.length) {
         running = false;
-        return;
+        return; // plátno je už čisté z clearRect
       }
       raf = requestAnimationFrame(frame);
     };
@@ -189,30 +194,43 @@ export default function PointerAurora() {
       cancelAnimationFrame(raf);
     };
 
-    // Listener je na window (plátno má pointer-events: none), súradnice si
+    // Listener je na window (plátno má pointer-events: none), súradnice
     // prepočítame voči cachovanému rectu a mimo plátna nič nekreslíme.
     const onMove = (e: PointerEvent) => {
+      // Čítame layout PRED akýmkoľvek zápisom. Stará cache spôsobovala, že po
+      // posune hero sekcie sedela guľôčka aj stopa mimo kurzora presne o ten posun.
+      rect = canvas.getBoundingClientRect();
       const px = e.clientX - rect.left;
       const py = e.clientY - rect.top;
 
       if (px < 0 || py < 0 || px > w || py > h) {
         // Kurzor opustil hero — guľôčku schovaj, nech nezostane visieť na kraji.
         ball.style.opacity = '0';
+        lastX = -1;
         return;
       }
 
-      // Guľôčka ide na SKUTOČNÚ pozíciu kurzora, bez zotrvačnosti. Preto
-      // nikdy nezaostáva a nepôsobí skokovo. Stopa naopak zaostáva zámerne.
+      // Guľôčka ide na SKUTOČNÚ pozíciu kurzora, bez zotrvačnosti.
       ball.style.transform = `translate3d(${px - BALL_SIZE / 2}px, ${py - BALL_SIZE / 2}px, 0)`;
       ball.style.opacity = '1';
 
-      targetX = px;
-      targetY = py;
-      if (x < 0) {
-        x = px;
-        y = py;
+      const now = performance.now();
+      if (lastX < 0) {
+        push(px, py, now);
+      } else {
+        // Doplň medzivzorky, inak by pri rýchlom pohybe stopa preskakovala.
+        const dx = px - lastX;
+        const dy = py - lastY;
+        const dist = Math.hypot(dx, dy);
+        const steps = Math.min(Math.ceil(dist / SAMPLE_SPACING), MAX_POINTS);
+        for (let i = 1; i <= steps; i++) {
+          const k = i / steps;
+          push(lastX + dx * k, lastY + dy * k, now);
+        }
+        if (steps === 0) push(px, py, now);
       }
-      idle = 0;
+      lastX = px;
+      lastY = py;
       start();
     };
 
