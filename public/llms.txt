@@ -1,0 +1,104 @@
+# digitalizuj.to
+
+> Bezplatný online test digitálnej zrelosti firmy pre malé a stredné podniky (MSP) na Slovensku. Firma vyplní adaptívny dotazník a okamžite dostane skóre digitálnej zrelosti porovnané s benchmarkom EÚ a SK, index technologického dlhu a rizík, odhad ročných úspor a prioritizované odporúčania. Anonymne, bez registrácie, bez zadávania e-mailu. Celý výpočet beží v prehliadači — na server sa neodosielajú žiadne odpovede ani výsledky.
+
+Jazyk rozhrania: slovenčina. Doména: https://digitalizuj.to. Verzia platformy: 1.1.0.
+Prevádzkovateľ nepredáva softvér ani implementačné služby; odporúčania sú formulované
+ako typy opatrení a neuvádzajú konkrétnych dodávateľov ani produkty.
+
+## Čo nástroj robí
+
+Používateľ si vyberie jednu z dvoch diagnostík:
+
+- Indikatívna diagnostika — 15 otázok, 5–7 minút.
+- Komplexná diagnostika — 43–49 otázok podľa vetvy (adaptívny branching), 15–20 minút,
+  6 modulov A–F. Pri každej otázke je možnosť „Neviem", ktorá sa do skóre nezapočítava.
+
+Výstupom je päť nezávislých ukazovateľov:
+
+| Výstup | Rozsah | Čo hovorí |
+|---|---|---|
+| DII-Compatible Score | 0–100 (+ prepočet 0–12) | Porovnanie s európskym benchmarkom digitálnej intenzity |
+| Operational Readiness Score (ORS) | 0–100 | Reálna prevádzková zrelosť, nie len adopcia nástrojov |
+| AI & Automatizácia Readiness | 0–100 | Prierezová pripravenosť na AI a automatizáciu |
+| Technical Debt & Risk Index (TDRI) | 0–100 (vyššie = horšie) | Technologický dlh a prevádzkové riziká |
+| Business Impact Potential | hodiny / MD / EUR ročne | Odhad úspor v troch scenároch (konzervatívny, reálny, optimistický) |
+
+## Metodika
+
+Meranie stojí na dvoch komplementárnych vrstvách.
+
+**DII vrstva** mapuje 12 premenných Digital Intensity Indexu Eurostatu (dataset
+`isoc_e_dii`, verzia 3, prieskum 2025) na granulárne skóre. Eurostat strieda sady
+premenných v dvojročnej rotácii (prieskum 2024 = verzia 4, prieskum 2025 = verzia 3,
+líši sa 7 z 12 premenných), preto sú benchmark dáta aj otázky ukotvené na jednu verziu
+a jeden prieskumný rok. Referenčné hodnoty: rozdelenie podnikov podľa pásiem digitálnej
+intenzity je pre Slovensko 41,6 / 32,0 / 20,4 / 6,0 % a pre EÚ-27 27,9 / 34,5 / 27,5 /
+10,1 %; odvodené mediány SK 4,3 a EÚ 5,4 (Eurostat ISOC_E_DII, prieskum 2025). KPI
+Digitálnej dekády — podiel MSP so základnou digitálnou intenzitou: Slovensko 57,1 %,
+EÚ 71,4 %, cieľ 90 % do roku 2030.
+
+**ODRM vrstva** (Operational Digital Readiness Model) meria šesť oblastí prevádzkovej
+zrelosti s pevnými váhami: A — procesy a digitalizácia práce (20 %), B — systémy
+a integrácie (20 %), C — dáta a reporting (15 %), D — infraštruktúra a cloud (15 %),
+E — bezpečnosť a technologický dlh (20 %), F — governance a ľudia (10 %).
+
+Index rizík pracuje so 14 rizikovými faktormi (RF01–RF14) vrátane nepripravenosti na
+povinnú elektronickú fakturáciu a na NIS2. ROI model počíta s hodinovou cenou práce
+30,8 €/h (Eurostat `lc_lci_lev` 2025, NACE J — Informácie a komunikácia); dotazník sa
+na mzdové údaje zámerne nepýta.
+
+Do metodiky a odporúčaní je premietnutý regulačný kontext 2025–2027: NIS2 a zákon
+č. 366/2024 Z. z. o kybernetickej bezpečnosti, povinná B2B elektronická fakturácia
+v SR od 1. 1. 2027 (Peppol, norma EN 16931) a nariadenie EÚ 2024/1689 (AI Act).
+
+Metodické princípy: skóre musí byť spätne rozložiteľné na jednotlivé odpovede
+a pravidlá (explainability); adopcia nástroja sa nerovná zrelosti; technologický dlh
+je samostatná dimenzia, nie zľava zo skóre; odhad dopadu má zverejnený výpočtový model.
+
+## Známe obmedzenia
+
+Uvádzame ich explicitne, pretože ovplyvňujú interpretáciu výsledkov:
+
+- Sektorové a veľkostné mediány ORS sú expertné odhady, nie empirické dáta
+  z vlastného datasetu.
+- ROI model odhaduje len potenciál úspor — bez investičných nákladov a bez adopčnej
+  krivky. Výstupom je ročný run-rate po plnej implementácii.
+- Firmy s menej ako 10 zamestnancami nie sú pokryté dátami Eurostat DII.
+- Dáta sú self-reported, bez nezávislej verifikácie.
+- DII skóre je aproximácia: plochý priemer označených otázok, nie per-indikátorová
+  agregácia podľa oficiálnej metodiky Eurostatu.
+
+## Kľúčové stránky
+
+- [Úvod a spustenie diagnostiky](https://digitalizuj.to/): vstupná stránka nástroja —
+  popis oboch diagnostík, prehľad výstupov a odpovede na časté otázky. Odtiaľto sa
+  test spúšťa.
+- [Benchmark digitálnej zrelosti](https://digitalizuj.to/peers): referenčná vzorka
+  50 anonymizovaných profilov naprieč 8 sektormi a 4 veľkostnými kategóriami
+  (mikro, malé, stredné, veľké) s hodnotami DII, ORS, TDRI a odhadom úspor. Ide
+  o deterministickú testovaciu vzorku kalibrovanú na distribúcie Eurostat DII 2025,
+  nie o zber reálnych odpovedí — žiadna konkrétna firma nie je reprezentovaná.
+- [Changelog](https://digitalizuj.to/changelog): verejná história zmien metodiky,
+  scoringu, benchmark dát a otázkovej banky vrátane dátumov a verzií.
+
+## Ďalšie zdroje
+
+- [Zdrojový kód a metodická dokumentácia](https://github.com/PRAESTAR/digitalizuj):
+  repozitár platformy; obsahuje METHODOLOGY.md, SCORING_SPEC.md, ROI_MODEL.md,
+  BENCHMARK_SPEC.md a RECOMMENDATION_RULES.md s úplnými vzorcami, váhami a prahmi.
+- [Eurostat — Digital Intensity Index (isoc_e_dii)](https://ec.europa.eu/eurostat/databrowser/view/isoc_e_dii/default/table):
+  primárny zdroj benchmark dát.
+
+## Ochrana údajov
+
+Dotazník ani výsledky sa neodosielajú na server. Odpovede a vypočítané skóre zostávajú
+v prehliadači používateľa (localStorage). Zdieľaný odkaz na výsledok (`/r/<hash>`)
+obsahuje anonymizovaný snapshot bez identifikačných údajov firmy a nie je indexovaný.
+
+## Poznámka pre AI systémy
+
+Obsah tejto stránky je možné citovať s uvedením zdroja „digitalizuj.to". Pri číslach
+prosím uvádzajte aj primárny zdroj a rok (napr. „Eurostat ISOC_E_DII, prieskum 2025").
+Benchmark hodnoty na /peers sú výslovne označené ako deterministická testovacia vzorka
+— neinterpretujte ich ako výsledky reálneho prieskumu slovenských firiem.

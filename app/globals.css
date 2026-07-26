@@ -1,0 +1,679 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+/* Plynulé skrolovanie k #kotvám (napr. "Začať diagnostiku" -> #quizzes) —
+   bez tohto prehliadač skáče na cieľ okamžite, čo pôsobí ako trhnutie. */
+html {
+  scroll-behavior: smooth;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-onest);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  /* Predtým natvrdo Arial/Helvetica — ignorovalo to načítaný font. */
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* === ACCESSIBILITY === */
+
+/* Skip-to-content link: hidden until keyboard-focused. */
+.skip-to-content {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  z-index: 1000;
+  padding: 0.75rem 1.25rem;
+  background: #0068d6;
+  color: white;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 10px 25px -5px rgba(0, 104, 214, 0.5);
+  transition: top 0.2s ease;
+}
+.skip-to-content:focus {
+  top: 1rem;
+  outline: 3px solid #fbbf24;
+  outline-offset: 2px;
+}
+
+/* Enhanced visible focus ring for keyboard users only. */
+:focus-visible {
+  outline: 2px solid #0068d6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* === ANIMATIONS === */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(59, 130, 246, 0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes progress-stripe {
+  0% { background-position: 0 0; }
+  100% { background-position: 40px 0; }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+/* === UTILITY CLASSES === */
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out both;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.5s ease-out both;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.5s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s ease-out both;
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.6s ease-out both;
+}
+
+.animate-count-up {
+  animation: countUp 0.4s ease-out both;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Staggered children */
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(9) { animation-delay: 0.45s; }
+.stagger-children > *:nth-child(10) { animation-delay: 0.5s; }
+
+/* Gradient backgrounds */
+.bg-gradient-hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-gradient-card-blue {
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+}
+
+.bg-gradient-card-indigo {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.bg-gradient-card-green {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.bg-gradient-card-red {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.bg-gradient-card-amber {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.bg-gradient-card-violet {
+  background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+}
+
+.bg-gradient-mesh {
+  background:
+    radial-gradient(at 40% 20%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, rgba(236, 72, 153, 0.08) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+}
+
+.bg-gradient-animated {
+  background: linear-gradient(-45deg, #667eea, #764ba2, #6366f1, #3b82f6);
+  background-size: 400% 400%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Progress bar with stripes */
+.progress-striped {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.2) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.2) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 40px 40px;
+  animation: progress-stripe 1s linear infinite;
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Hover lift */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+}
+
+/* Card shine effect */
+.card-shine {
+  position: relative;
+  overflow: hidden;
+}
+.card-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+.card-shine:hover::after {
+  transform: rotate(30deg) translateY(-100%);
+}
+
+/* === APPLE-STYLE HERO === */
+
+/* Len translate3d (žiadne scale) — škálovanie rozmazaného prvku núti prehliadač
+   prekresľovať blur pri každom framee, čo pri skrolovaní seká. Čistý posun
+   vie kompozitor animovať na GPU bez prekresľovania. */
+@keyframes aurora-drift-a {
+  0%, 100% { transform: translate3d(-6%, -4%, 0); }
+  50% { transform: translate3d(4%, 6%, 0); }
+}
+@keyframes aurora-drift-b {
+  0%, 100% { transform: translate3d(6%, 4%, 0); }
+  50% { transform: translate3d(-5%, -8%, 0); }
+}
+@keyframes aurora-drift-c {
+  0%, 100% { transform: translate3d(0%, 6%, 0); }
+  50% { transform: translate3d(-8%, -3%, 0); }
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(100px);
+  will-change: transform;
+}
+.aurora-blob-a { animation: aurora-drift-a 22s ease-in-out infinite; }
+.aurora-blob-b { animation: aurora-drift-b 26s ease-in-out infinite; }
+.aurora-blob-c { animation: aurora-drift-c 24s ease-in-out infinite; }
+
+/* Nechá aurora wash rozplynúť sa smerom nadol namiesto tvrdého orezania na
+   hranici sekcie (overflow-hidden) — bez tohto vzniká viditeľný "šev" tam,
+   kde hero končí a ďalšia sekcia (plochá biela) začína. */
+.aurora-wash-fade {
+  mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
+}
+
+/* Plocha karty rozdelená na 4 ZVISLÉ pásy zubatými "trhacími" líniami. Pásy sa
+   navzájom dotýkajú v presne rovnakých bodoch, takže v pokoji tvoria jednu
+   celistvú kartu; pri skrolovaní sa rozostúpia do strán ako roztrhnutý papier.
+   Tieň nesie samostatná vrstva (.hero-card-shadow), pretože clip-path by
+   orezal aj tieň mimo boxu a karta by o neho prišla. */
+.hero-card-shadow {
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  box-shadow: 0 40px 100px -24px rgba(10, 132, 255, 0.25);
+  pointer-events: none;
+}
+
+/* Každý pás nesie ÚPLNÚ kópiu obsahu karty, len orezanú na svoj tvar. Vďaka
+   tomu text nepadá zvlášť — je fyzicky prerezaný trhacou líniou a cestuje
+   s tým útržkom, na ktorom leží, presne ako pri roztrhnutí papiera.
+   Prvý pás je v toku (drží výšku karty), ostatné sú absolútne nad ním. */
+.hero-card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 1.75rem;
+  pointer-events: none;
+}
+.hero-card-face--flow {
+  position: relative;
+  inset: auto;
+}
+
+.hero-tear-1 {
+  clip-path: polygon(0% 0%, 0% 100%, 18.5% 100%, 20.9% 92.3%, 19.1% 84.6%, 20.6% 76.9%, 20.9% 69.2%, 21.5% 61.5%, 23.7% 53.8%, 21% 46.2%, 17.1% 38.5%, 21.3% 30.8%, 21.1% 23.1%, 23.6% 15.4%, 21.5% 7.7%, 21.1% 0%);
+}
+.hero-tear-2 {
+  clip-path: polygon(21.1% 0%, 21.5% 7.7%, 23.6% 15.4%, 21.1% 23.1%, 21.3% 30.8%, 17.1% 38.5%, 21% 46.2%, 23.7% 53.8%, 21.5% 61.5%, 20.9% 69.2%, 20.6% 76.9%, 19.1% 84.6%, 20.9% 92.3%, 18.5% 100%, 39.5% 100%, 41.9% 92.3%, 42.6% 84.6%, 44.2% 76.9%, 40.2% 69.2%, 40.4% 61.5%, 39.8% 53.8%, 42.5% 46.2%, 39.7% 38.5%, 42.4% 30.8%, 37.2% 23.1%, 40.1% 15.4%, 37.7% 7.7%, 38.1% 0%);
+}
+.hero-tear-3 {
+  clip-path: polygon(38.1% 0%, 37.7% 7.7%, 40.1% 15.4%, 37.2% 23.1%, 42.4% 30.8%, 39.7% 38.5%, 42.5% 46.2%, 39.8% 53.8%, 40.4% 61.5%, 40.2% 69.2%, 44.2% 76.9%, 42.6% 84.6%, 41.9% 92.3%, 39.5% 100%, 62.3% 100%, 60.3% 92.3%, 58.4% 84.6%, 58.3% 76.9%, 65% 69.2%, 62.3% 61.5%, 64.6% 53.8%, 62.3% 46.2%, 59.5% 38.5%, 61.8% 30.8%, 60.4% 23.1%, 59.8% 15.4%, 62.1% 7.7%, 60.4% 0%);
+}
+.hero-tear-4 {
+  clip-path: polygon(60.4% 0%, 62.1% 7.7%, 59.8% 15.4%, 60.4% 23.1%, 61.8% 30.8%, 59.5% 38.5%, 62.3% 46.2%, 64.6% 53.8%, 62.3% 61.5%, 65% 69.2%, 58.3% 76.9%, 58.4% 84.6%, 60.3% 92.3%, 62.3% 100%, 80.9% 100%, 79.2% 92.3%, 79% 84.6%, 76.7% 76.9%, 80.7% 69.2%, 77.4% 61.5%, 83.7% 53.8%, 81.1% 46.2%, 78.4% 38.5%, 81.2% 30.8%, 81.6% 23.1%, 76.2% 15.4%, 78.9% 7.7%, 80.7% 0%);
+}
+.hero-tear-5 {
+  clip-path: polygon(80.7% 0%, 78.9% 7.7%, 76.2% 15.4%, 81.6% 23.1%, 81.2% 30.8%, 78.4% 38.5%, 81.1% 46.2%, 83.7% 53.8%, 77.4% 61.5%, 80.7% 69.2%, 76.7% 76.9%, 79% 84.6%, 79.2% 92.3%, 80.9% 100%, 100% 100%, 100% 0%);
+}
+
+/* === VÝSLEDKOVÁ KARTA — ROZKLAD NA KOMPONENTY PRI SKROLOVANÍ ===
+   Metodika sľubuje, že "každé skóre je auditovateľné a spätne rozložiteľné".
+   Karta to pri skrolovaní cez hero doslova predvedie: rozloží sa ako exploded
+   view v technickom výkrese — jednotlivé komponenty (skóre, radar, čiastkové
+   metriky) sa oddelia v 3D priestore, každý s vlastným oneskorením, a plocha
+   karty sa rozplynie. Rozklad dobehne presne vtedy, keď používateľ dorazí
+   k sekcii "Vyberte si diagnostiku".
+
+   Beží ako CSS scroll-driven animácia — kompozítor ju spracúva mimo hlavného
+   vlákna, takže neprispieva k sekaniu pri skrolovaní (žiadny JS scroll listener).
+   Animujú sa len transform a opacity. Bez podpory v prehliadači alebo pri
+   prefers-reduced-motion karta jednoducho zostane statická. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-timeline {
+      view-timeline-name: --hero-exit;
+      view-timeline-axis: block;
+    }
+
+    .hero-card-stage {
+      perspective: 1400px;
+      perspective-origin: 55% 35%;
+    }
+
+    /* Rozsah musí dobehnúť, KÝM je karta ešte na obrazovke. Karta sedí cca
+       259–565 px od vrchu; pri exit 31 % (~250 px scrollu) je stále celá
+       viditeľná (9–315 px). Pôvodných 72 % znamenalo, že rozklad dobiehal
+       až pri -323 px, teda úplne mimo obrazovky, a nebolo ho vidieť. */
+    .hero-card-glow,
+    .hero-card-shadow,
+    .hero-card-face,
+    .hero-card-shell {
+      animation-timeline: --hero-exit;
+      animation-range: exit 1% exit 31%;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+    }
+
+    /* Trhanie postupuje zhora nadol — spodné pásy sa odtrhnú neskôr
+       a padajú ďalej, takže to čítame ako gravitáciu, nie ako výbuch. */
+    .hero-card-shadow { animation-name: hero-shadow-fade; }
+    .hero-tear-1 { animation-name: hero-tear-1; }
+    .hero-tear-2 { animation-name: hero-tear-2; }
+    .hero-tear-3 { animation-name: hero-tear-3; }
+    .hero-tear-4 { animation-name: hero-tear-4; }
+    .hero-tear-5 { animation-name: hero-tear-5; }
+
+    /* Prasknutie vlákna namiesto rovnomerného posunu.
+       Papier najprv drží, potom sa naraz pustí a útržok už len doplachtí —
+       preto strmý začiatok a dlhé dobiehanie (easeOutQuint), nie `linear`.
+       Každý pás má mierne inú krivku, aby sa nehýbali ako jeden kus. */
+    .hero-tear-1 { animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+    .hero-tear-2 { animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+    .hero-tear-3 { animation-timing-function: cubic-bezier(0.19, 1, 0.32, 1); }
+    .hero-tear-4 { animation-timing-function: cubic-bezier(0.25, 1, 0.38, 1); }
+    .hero-tear-5 { animation-timing-function: cubic-bezier(0.17, 1, 0.29, 1); }
+
+    .hero-card-shell {
+      transform-style: preserve-3d;
+      animation-name: hero-shell-dissolve;
+    }
+
+    .hero-card-glow { animation-name: hero-glow-fade; }
+
+    /* Poradie oddelenia = poradie odvodenia: najprv rámovanie (hlavička),
+       potom vizualizácia, nakoniec čiastkové metriky; headline skóre drží
+       najdlhšie, lebo je to výsledok, z ktorého sa všetko ostatné rozpadá. */
+    .hero-piece-header { animation-name: hero-piece-header; }
+    .hero-piece-radar  { animation-name: hero-piece-radar; }
+    .hero-piece-score  { animation-name: hero-piece-score; }
+    .hero-piece-m1     { animation-name: hero-piece-m1; }
+    .hero-piece-m2     { animation-name: hero-piece-m2; }
+    .hero-piece-m3     { animation-name: hero-piece-m3; }
+  }
+}
+
+/* Shell už nenesie plochu ani tieň — len nakláňa celú zostavu v 3D,
+   aby sa pásy trhali "do hĺbky", nie ploško. Preto žiadny fade. */
+@keyframes hero-shell-dissolve {
+  0%   { transform: rotate(1.5deg); }
+  100% { transform: rotate(1.5deg) rotateX(22deg) rotateY(-13deg) translateZ(-120px); }
+}
+
+@keyframes hero-glow-fade {
+  0%, 15% { opacity: 1; }
+  100%    { opacity: 0; }
+}
+
+@keyframes hero-shadow-fade {
+  0%, 6% { opacity: 1; }
+  100%   { opacity: 0; }
+}
+
+/* Päť zvislých pásov sa rozostupuje do strán (zľava doprava), s miernym pádom
+   a pootočením. Opacity zostáva 100 % po celý čas — pásy nemiznú, len sa
+   rozostúpia a odídu zo záberu spolu so skrolovaním. */
+@keyframes hero-tear-1 {
+  0%, 4% { transform: none; }
+  100%   { transform: translate3d(-75px, -17px, 20px) rotate(-5deg) rotateY(-16deg); }
+}
+
+@keyframes hero-tear-2 {
+  0%, 9% { transform: none; }
+  100%   { transform: translate3d(-37px, 18px, 45px) rotate(-2.5deg) rotateY(-9deg); }
+}
+
+@keyframes hero-tear-3 {
+  0%, 14% { transform: none; }
+  100%    { transform: translate3d(2px, 38px, 65px) rotate(0.5deg) rotateY(2deg); }
+}
+
+@keyframes hero-tear-4 {
+  0%, 19% { transform: none; }
+  100%    { transform: translate3d(43px, 22px, 35px) rotate(3deg) rotateY(10deg); }
+}
+
+@keyframes hero-tear-5 {
+  0%, 24% { transform: none; }
+  100%    { transform: translate3d(83px, -11px, 55px) rotate(5.5deg) rotateY(17deg); }
+}
+
+/* === ŽIVÁ VÝSLEDKOVÁ KARTA — pulzovanie a striedanie ukážkových výsledkov === */
+
+/* "Naživo" bodka — radarový ping: samotná bodka jemne pulzuje a okolo nej
+   sa rozpína prstenec, takže to čítame ako živý signál, nie ako blikanie. */
+.hero-live-dot {
+  position: relative;
+  display: inline-block;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: #10b981;
+}
+.hero-live-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1px solid #10b981;
+  animation: hero-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes hero-ping {
+  0%   { transform: scale(1);   opacity: 0.9; }
+  70%  { transform: scale(3.2); opacity: 0; }
+  100% { transform: scale(3.2); opacity: 0; }
+}
+
+/* Výmena hodnoty pri prepnutí ukážkového výsledku — čísla nepreblikávajú,
+   ale sa vysunú zospodu, takže to pôsobí ako prepočítanie, nie ako glitch. */
+.hero-val-swap {
+  animation: hero-val-swap 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes hero-val-swap {
+  0%   { opacity: 0; transform: translateY(7px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Radar: vonkajší obrys dýcha, vnútorný tvar sa pri každej výmene
+   "prekreslí" — krátke stiahnutie a rozvinutie do nového tvaru. */
+.hero-radar-ring {
+  transform-origin: 48px 48px;
+  animation: hero-radar-breathe 4.5s ease-in-out infinite;
+}
+
+@keyframes hero-radar-breathe {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%      { transform: scale(1.04); opacity: 0.75; }
+}
+
+.hero-radar-swap {
+  transform-origin: 48px 48px;
+  animation: hero-radar-swap 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes hero-radar-swap {
+  0%   { transform: scale(0.72) rotate(-8deg); opacity: 0; }
+  60%  { transform: scale(1.05) rotate(2deg);  opacity: 1; }
+  100% { transform: scale(1)    rotate(0deg);  opacity: 1; }
+}
+
+/* Akonáhle sa karta začne trhať, prestane "žiť" — ping, dýchanie radaru aj
+   rozbehnutá výmena hodnoty sa zastavia a doskočia do pokojného stavu.
+   Zámerne sa cieli len na tieto štyri triedy, NIE plošne: .hero-card-face
+   a .hero-card-shell nesú samotné trhanie a to musí bežať ďalej. */
+.hero-card-frozen .hero-live-dot::after,
+.hero-card-frozen .hero-radar-ring,
+.hero-card-frozen .hero-val-swap,
+.hero-card-frozen .hero-radar-swap {
+  animation: none !important;
+}
+
+/* Tieň pozdĺž roztrhnutej hrany.
+   `drop-shadow` (na rozdiel od box-shadow) kopíruje skutočnú siluetu po
+   orezaní clip-path, takže obkreslí zubatú trhlinu a pás dostane hrúbku —
+   bez toho vyzerajú útržky ako plochá nálepka.
+   Zapína sa AŽ po začatí trhania: v pokoji na seba pásy presne nadväzujú
+   a tieň na každej línii by kartu opticky roztrhol ešte pred skrolovaním. */
+.hero-card-frozen .hero-card-face {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.10))
+          drop-shadow(0 6px 10px rgba(0, 0, 0, 0.06));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-live-dot::after,
+  .hero-radar-ring { animation: none !important; }
+}
+
+.text-gradient-aurora {
+  background: linear-gradient(90deg, #0068d6, #7c3aed 35%, #d6249f 65%, #e0212b);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-shift 7s ease infinite;
+}
+
+/* Čierne "Buy"-style CTA tlačidlo — apple.com primárna akcia. */
+.btn-apple-primary {
+  background: linear-gradient(180deg, #2b2b2f 0%, #1d1d1f 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 8px 20px -8px rgba(0, 0, 0, 0.45);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.btn-apple-primary:hover {
+  filter: brightness(1.25);
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 12px 24px -6px rgba(0, 0, 0, 0.5);
+}
+.btn-apple-primary:active {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-blob-a, .aurora-blob-b, .aurora-blob-c, .text-gradient-aurora {
+    animation: none !important;
+  }
+}
+
+/* Reklamný banner — zatiaľ placeholder slot (bez skutočnej reklamy), preto
+   tichý/neutrálny a bez animácie namiesto pôvodného pestrého pohyblivého
+   gradientu, ktorý bežal nekonečne na každej stránke. */
+.banner-cta {
+  display: block;
+  max-width: 728px;
+  height: 90px;
+  line-height: 90px;
+  margin: 0 auto;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  text-indent: -5000px;
+  background: #f5f5f7;
+}

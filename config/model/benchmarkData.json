@@ -1,0 +1,112 @@
+{
+  "_comment": "Benchmark dáta pre digitalizuj.to — editovateľná verzia. POZOR: runtime číta data/benchmarkData.ts — po úprave tohto súboru treba hodnoty preniesť aj tam (plán: build-time kontrola konzistencie).",
+  "_version": "2025-DII-v3",
+  "_source": "Eurostat isoc_e_dii (prieskum 2025, DII v3) + expertné odhady (ORS, sektory, veľkosti)",
+  "_last_updated": "2026-07-23",
+  "_update_policy": "Ročne, do 3 mesiacov od decembrovej publikácie Eurostat ICT usage in enterprises.",
+
+  "countryBenchmarks": {
+    "_comment": "DII distribúcia: Eurostat isoc_e_dii, prieskum 2025 (DII verzia 3), podniky 10+ zamestnancov, NACE C10-S951 bez K, vintage 2026-02-27. Mediány odvodené interpoláciou z distribúcie (BENCHMARK_SPEC.md §3.3). ORS mediány = expertné odhady.",
+    "SK": {
+      "diiDistribution": {
+        "_comment": "Eurostat kódy: E_DI3_VLO 41.61 %, E_DI3_LO 31.98 %, E_DI3_HI 20.43 %, E_DI3_VHI 5.98 % (súčet = 1.00)",
+        "very_low": 0.416,
+        "low": 0.32,
+        "high": 0.204,
+        "very_high": 0.06
+      },
+      "diiMedianScore": 4.3,
+      "orsEstimatedMedian": 38
+    },
+    "EU27": {
+      "diiDistribution": {
+        "_comment": "Eurostat kódy: E_DI3_VLO 27.89 %, E_DI3_LO 34.52 %, E_DI3_HI 27.54 %, E_DI3_VHI 10.05 % (súčet = 1.00)",
+        "very_low": 0.279,
+        "low": 0.345,
+        "high": 0.275,
+        "very_high": 0.101
+      },
+      "diiMedianScore": 5.4,
+      "orsEstimatedMedian": 44
+    }
+  },
+
+  "sectorBenchmarks": {
+    "_comment": "DII a ORS mediány podľa sektorov (NACE Rev.2). Expertné odhady — Eurostat nepublikuje DII medián po sektoroch. V UI sa zobrazujú s disclaimerom.",
+    "manufacturing": {
+      "label": "Výroba",
+      "diiMedian": 4.8,
+      "orsEstimatedMedian": 40
+    },
+    "wholesale_retail": {
+      "label": "Veľkoobchod a maloobchod",
+      "diiMedian": 5.2,
+      "orsEstimatedMedian": 42
+    },
+    "professional_services": {
+      "label": "Profesionálne služby",
+      "diiMedian": 6.5,
+      "orsEstimatedMedian": 50
+    },
+    "construction": {
+      "label": "Stavebníctvo",
+      "diiMedian": 3.5,
+      "orsEstimatedMedian": 30
+    },
+    "transport_logistics": {
+      "label": "Doprava a logistika",
+      "diiMedian": 4.0,
+      "orsEstimatedMedian": 35
+    },
+    "accommodation_food": {
+      "label": "Ubytovanie a stravovanie",
+      "diiMedian": 4.5,
+      "orsEstimatedMedian": 33
+    },
+    "ict": {
+      "label": "IT a telekomunikácie",
+      "diiMedian": 8.5,
+      "orsEstimatedMedian": 65
+    },
+    "other": {
+      "label": "Ostatné",
+      "diiMedian": 4.5,
+      "orsEstimatedMedian": 38
+    }
+  },
+
+  "sizeBenchmarks": {
+    "_comment": "Expertné odhady. Kontext Eurostat 2025 (aspoň základná digitálna intenzita): SME 10-249: SK 57.1 % vs EÚ 71.4 %; veľké 250+: SK 89.4 % vs EÚ 96.4 %. Mikrofirmy Eurostat nepokrýva.",
+    "micro": {
+      "label": "Mikro (1-9 zamestnancov)",
+      "diiMedian": 3.2,
+      "orsEstimatedMedian": 28,
+      "note": "Eurostat nepokrýva, expertný odhad"
+    },
+    "small": {
+      "label": "Malá (10-49 zamestnancov)",
+      "diiMedian": 4.5,
+      "orsEstimatedMedian": 38
+    },
+    "medium": {
+      "label": "Stredná (50-249 zamestnancov)",
+      "diiMedian": 6.8,
+      "orsEstimatedMedian": 52
+    },
+    "large": {
+      "label": "Veľká (250+ zamestnancov)",
+      "diiMedian": 8.0,
+      "orsEstimatedMedian": 60,
+      "note": "Expertný odhad (mimo SME segmentu)"
+    }
+  },
+
+  "gapLabels": {
+    "_comment": "Popisky pre benchmarkové porovnanie podľa odchýlky. Prahy platia pre 0-100 škálu (ORS); pre DII gap na škále 0-12 engine používa prepočítané prahy ±0.6 / ±2.4 (= 5 % / 20 % z 12).",
+    "strongly_above": { "minGap": 20, "label": "Výrazne nad priemerom" },
+    "above": { "minGap": 5, "label": "Nad priemerom" },
+    "average": { "minGap": -5, "label": "V okolí priemeru" },
+    "below": { "minGap": -20, "label": "Pod priemerom" },
+    "strongly_below": { "minGap": null, "label": "Výrazne pod priemerom" }
+  }
+}

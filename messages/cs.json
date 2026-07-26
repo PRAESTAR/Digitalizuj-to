@@ -1,0 +1,137 @@
+{
+  "common": {
+    "siteName": "digitalizuj.to",
+    "skipToContent": "Přeskočit na obsah",
+    "languageSwitcher": "Jazyk",
+    "back": "Zpět",
+    "backHome": "Zpět na úvod",
+    "loading": "Načítám…",
+    "minutes": "minut"
+  },
+  "hero": {
+    "eyebrow": "Benchmark: Adaptivní model DAP · Eurostat DII",
+    "titleLead": "Jak digitálně",
+    "titleAccent": "zralá",
+    "titleTail": "je vaše firma?",
+    "subtitle": "Změřte úroveň digitalizace, odhalte skrytá rizika a získejte prioritizovaná doporučení — připraveni na éru umělé inteligence.",
+    "ctaPrimary": "Začít diagnostiku",
+    "ctaSecondary": "Co přesně dostanete",
+    "specDii": "DII skóre",
+    "specDiiValue": "0–100 vs. EU & SK",
+    "specRisk": "Risk Index",
+    "specRiskValue": "technologický dluh",
+    "specImpact": "Business Impact",
+    "specImpactValue": "odhad úspor v €"
+  },
+  "card": {
+    "title": "Vaše výsledková karta",
+    "live": "živě v prohlížeči",
+    "operationalMaturity": "Provozní zralost",
+    "diiScore": "DII skóre",
+    "risk": "Riziko",
+    "savingsPerYear": "Úspora/rok",
+    "riskMedium": "Střední",
+    "riskHigh": "Vysoké",
+    "riskLow": "Nízké",
+    "riskCritical": "Kritické"
+  },
+  "quizSelector": {
+    "heading": "Vyberte si diagnostiku",
+    "subheading": "Rychlý screening nebo hlubší analýza — záleží na vás",
+    "recommended": "Doporučené",
+    "indicative": {
+      "title": "Indikativní kvíz",
+      "duration": "5-7 minut",
+      "description": "Rychlý screening digitální zralosti. Orientační výsledek s hlavními doporučeními.",
+      "bullet1": "Max. 15 otázek",
+      "bullet2": "Orientační skóre digitalizace",
+      "bullet3": "Identifikace hlavních rizik",
+      "cta": "Začít screening"
+    },
+    "complex": {
+      "title": "Komplexní diagnostika",
+      "duration": "15-20 minut",
+      "description": "Hlubší analýza s detailním výsledkem. Adaptivní otázky podle vašich odpovědí.",
+      "bullet1": "Detailní profil v 6 kategoriích",
+      "bullet2": "Risk index a ROI odhad",
+      "bullet3": "Prioritizovaná roadmapa",
+      "cta": "Začít diagnostiku"
+    }
+  },
+  "whatYouGet": {
+    "heading": "Co získáte",
+    "subheading": "Komplexní pohled na vaši digitální zralost",
+    "radarTitle": "Radarový profil",
+    "radarText": "Procesy, systémy, data, infrastruktura, bezpečnost, governance — vizuální přehled v 6 osách.",
+    "riskTitle": "Risk Index",
+    "riskText": "Samostatný index technologického dluhu. Kritická rizika nezmizí v celkovém skóre.",
+    "impactTitle": "Business Impact",
+    "impactText": "Transparentní odhad ročních úspor s rozpadem na procesy, scénáře a audit trail."
+  },
+  "methodology": {
+    "heading": "O metodice",
+    "body": "Hodnocení stojí na dvou vrstvách: DII-Compatible Layer (benchmark vůči EU Digital Intensity Index) a Operational Digital Readiness Model (reálná provozně-digitální zralost). Otázky jsou adaptivní — přizpůsobují se vašim odpovědím (Adaptivní model DAP). Každé skóre je auditovatelné a zpětně rozložitelné.",
+    "tagDii": "DII Eurostat",
+    "tagOdrm": "ODRM Model",
+    "tagDap": "Adaptivní model DAP",
+    "build": "build"
+  },
+  "quiz": {
+    "title": "Diagnostika digitální zralosti",
+    "questionOf": "Otázka z {total}",
+    "continue": "Pokračovat",
+    "skip": "Nevím / Přeskočit",
+    "tooltipLabel": "Vysvětlení otázky",
+    "multiSelectHint": "Vyberte vše, co platí",
+    "localNotice": "Vaše odpovědi se zpracovávají lokálně. Žádná data se neodesílají na server.",
+    "emptyTitle": "Žádný aktivní kvíz",
+    "emptyText": "Vyberte si typ diagnostiky na úvodní stránce."
+  },
+  "results": {
+    "title": "Výsledky diagnostiky",
+    "newAssessment": "Nové hodnocení",
+    "answersCount": "{count} odpovědí",
+    "indicativeLabel": "Indikativní hodnocení",
+    "complexLabel": "Komplexní diagnostika",
+    "emptyTitle": "Žádné výsledky",
+    "emptyText": "Nejprve dokončete diagnostický kvíz.",
+    "emptyCta": "Začít hodnocení",
+    "maturityProfile": "Profil digitální zralosti",
+    "auditTrail": "Audit Trail",
+    "auditTrailSubtitle": "Kompletní záznam odpovědí a výpočtu pro auditovatelnost.",
+    "scrollHint": "Tabulku posunete do strany →"
+  },
+  "share": {
+    "title": "Váš permanentní odkaz",
+    "subtitle": "Naskenujte QR kód nebo sdílejte odkaz — výsledek je dostupný jen přes tento hash.",
+    "hashLabel": "Hash výsledku",
+    "urlLabel": "URL",
+    "copy": "Zkopírovat odkaz",
+    "copied": "Zkopírováno",
+    "qrAlt": "QR kód pro výsledek {hash}",
+    "generating": "Generuji QR…",
+    "privacyTitle": "Soukromí",
+    "privacyText": "Tento výsledek je uložen pouze lokálně v tomto prohlížeči. Pokud QR kód nebo odkaz sdílíte, druhá strana uvidí jen anonymizovaný snapshot, který už nedokáže identifikovat vaši firmu."
+  },
+  "footer": {
+    "tagline": "Adaptivní model DAP · DII-Compatible + ODRM",
+    "benchmark": "Benchmark: Eurostat DII 2025 (ISOC_E_DII)",
+    "peers": "Peer výsledky",
+    "changelog": "Changelog",
+    "textSize": "Velikost textu",
+    "textSizeStandard": "Standardní velikost textu (100 %)",
+    "textSizeLarge": "Zvětšený text (125 %)",
+    "textSizeLargest": "Největší text (150 %)",
+    "adBanner": "Potřebujete digitalizovat?"
+  },
+  "notFound": {
+    "title": "Stránka nenalezena",
+    "text": "Hledaná stránka neexistuje nebo byla přesunuta. Zkontrolujte adresu, nebo se vraťte na úvod."
+  },
+  "error": {
+    "title": "Něco se pokazilo",
+    "text": "Při zpracování vašeho požadavku nastala neočekávaná chyba. Zkuste to prosím znovu.",
+    "retry": "Zkusit znovu",
+    "errorId": "ID chyby"
+  }
+}

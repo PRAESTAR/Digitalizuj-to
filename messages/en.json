@@ -1,0 +1,137 @@
+{
+  "common": {
+    "siteName": "digitalizuj.to",
+    "skipToContent": "Skip to content",
+    "languageSwitcher": "Language",
+    "back": "Back",
+    "backHome": "Back to home",
+    "loading": "Loading…",
+    "minutes": "minutes"
+  },
+  "hero": {
+    "eyebrow": "Benchmark: Adaptive DAP model · Eurostat DII",
+    "titleLead": "How digitally",
+    "titleAccent": "mature",
+    "titleTail": "is your company?",
+    "subtitle": "Measure your level of digitalisation, uncover hidden risks and get prioritised recommendations — ready for the age of artificial intelligence.",
+    "ctaPrimary": "Start the assessment",
+    "ctaSecondary": "What exactly you get",
+    "specDii": "DII score",
+    "specDiiValue": "0–100 vs. EU & SK",
+    "specRisk": "Risk Index",
+    "specRiskValue": "technical debt",
+    "specImpact": "Business Impact",
+    "specImpactValue": "estimated savings in €"
+  },
+  "card": {
+    "title": "Your result card",
+    "live": "live in your browser",
+    "operationalMaturity": "Operational maturity",
+    "diiScore": "DII score",
+    "risk": "Risk",
+    "savingsPerYear": "Savings/year",
+    "riskMedium": "Medium",
+    "riskHigh": "High",
+    "riskLow": "Low",
+    "riskCritical": "Critical"
+  },
+  "quizSelector": {
+    "heading": "Choose your assessment",
+    "subheading": "A quick screening or a deeper analysis — it's up to you",
+    "recommended": "Recommended",
+    "indicative": {
+      "title": "Indicative quiz",
+      "duration": "5-7 minutes",
+      "description": "A quick screening of digital maturity. An indicative result with the main recommendations.",
+      "bullet1": "Max. 15 questions",
+      "bullet2": "Indicative digitalisation score",
+      "bullet3": "Identification of the main risks",
+      "cta": "Start screening"
+    },
+    "complex": {
+      "title": "Comprehensive assessment",
+      "duration": "15-20 minutes",
+      "description": "A deeper analysis with a detailed result. Adaptive questions based on your answers.",
+      "bullet1": "Detailed profile across 6 categories",
+      "bullet2": "Risk index and ROI estimate",
+      "bullet3": "Prioritised roadmap",
+      "cta": "Start the assessment"
+    }
+  },
+  "whatYouGet": {
+    "heading": "What you get",
+    "subheading": "A comprehensive view of your digital maturity",
+    "radarTitle": "Radar profile",
+    "radarText": "Processes, systems, data, infrastructure, security, governance — a visual overview across 6 axes.",
+    "riskTitle": "Risk Index",
+    "riskText": "A standalone technical-debt index. Critical risks don't disappear inside an overall score.",
+    "impactTitle": "Business Impact",
+    "impactText": "A transparent estimate of annual savings, broken down by process, scenario and audit trail."
+  },
+  "methodology": {
+    "heading": "About the methodology",
+    "body": "The assessment rests on two layers: the DII-Compatible Layer (benchmarked against the EU Digital Intensity Index) and the Operational Digital Readiness Model (actual operational digital maturity). Questions are adaptive — they adjust to your answers (Adaptive DAP model). Every score is auditable and can be decomposed back to its inputs.",
+    "tagDii": "DII Eurostat",
+    "tagOdrm": "ODRM model",
+    "tagDap": "Adaptive DAP model",
+    "build": "build"
+  },
+  "quiz": {
+    "title": "Digital maturity assessment",
+    "questionOf": "Question of {total}",
+    "continue": "Continue",
+    "skip": "Don't know / Skip",
+    "tooltipLabel": "Explanation of the question",
+    "multiSelectHint": "Select all that apply",
+    "localNotice": "Your answers are processed locally. No data is sent to any server.",
+    "emptyTitle": "No active assessment",
+    "emptyText": "Choose an assessment type on the home page."
+  },
+  "results": {
+    "title": "Assessment results",
+    "newAssessment": "New assessment",
+    "answersCount": "{count} answers",
+    "indicativeLabel": "Indicative assessment",
+    "complexLabel": "Comprehensive assessment",
+    "emptyTitle": "No results",
+    "emptyText": "Complete the assessment first.",
+    "emptyCta": "Start the assessment",
+    "maturityProfile": "Digital maturity profile",
+    "auditTrail": "Audit trail",
+    "auditTrailSubtitle": "A complete record of answers and calculations for auditability.",
+    "scrollHint": "Scroll the table sideways →"
+  },
+  "share": {
+    "title": "Your permanent link",
+    "subtitle": "Scan the QR code or share the link — the result is only reachable through this hash.",
+    "hashLabel": "Result hash",
+    "urlLabel": "URL",
+    "copy": "Copy link",
+    "copied": "Copied",
+    "qrAlt": "QR code for result {hash}",
+    "generating": "Generating QR…",
+    "privacyTitle": "Privacy",
+    "privacyText": "This result is stored only locally in this browser. If you share the QR code or link, the other party sees only an anonymised snapshot that can no longer identify your company."
+  },
+  "footer": {
+    "tagline": "Adaptive DAP model · DII-Compatible + ODRM",
+    "benchmark": "Benchmark: Eurostat DII 2025 (ISOC_E_DII)",
+    "peers": "Peer results",
+    "changelog": "Changelog",
+    "textSize": "Text size",
+    "textSizeStandard": "Standard text size (100%)",
+    "textSizeLarge": "Larger text (125%)",
+    "textSizeLargest": "Largest text (150%)",
+    "adBanner": "Need to digitalise?"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "The page you're looking for doesn't exist or has moved. Check the address, or go back to the home page."
+  },
+  "error": {
+    "title": "Something went wrong",
+    "text": "An unexpected error occurred while processing your request. Please try again.",
+    "retry": "Try again",
+    "errorId": "Error ID"
+  }
+}
