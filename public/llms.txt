@@ -2,7 +2,10 @@
 
 > Bezplatný online test digitálnej zrelosti firmy pre malé a stredné podniky (MSP) na Slovensku. Firma vyplní adaptívny dotazník a okamžite dostane skóre digitálnej zrelosti porovnané s benchmarkom EÚ a SK, index technologického dlhu a rizík, odhad ročných úspor a prioritizované odporúčania. Anonymne, bez registrácie, bez zadávania e-mailu. Celý výpočet beží v prehliadači — na server sa neodosielajú žiadne odpovede ani výsledky.
 
-Jazyk rozhrania: slovenčina. Doména: https://digitalizuj.to. Verzia platformy: 1.1.0.
+Jazyky rozhrania: slovenčina (https://digitalizuj.to/sk, plne preložená),
+čeština (/cs), nemčina (/de) a angličtina (/en) — mutácie CS/DE/EN majú zatiaľ
+preloženú úvodnú stránku, obsahové podstránky sú po slovensky.
+Doména: https://digitalizuj.to. Verzia platformy: 1.1.0.
 Prevádzkovateľ nepredáva softvér ani implementačné služby; odporúčania sú formulované
 ako typy opatrení a neuvádzajú konkrétnych dodávateľov ani produkty.
 
@@ -11,8 +14,9 @@ ako typy opatrení a neuvádzajú konkrétnych dodávateľov ani produkty.
 Používateľ si vyberie jednu z dvoch diagnostík:
 
 - Indikatívna diagnostika — 15 otázok, 5–7 minút.
-- Komplexná diagnostika — 43–49 otázok podľa vetvy (adaptívny branching), 15–20 minút,
-  6 modulov A–F. Pri každej otázke je možnosť „Neviem", ktorá sa do skóre nezapočítava.
+- Komplexná diagnostika — 43–49 otázok podľa vetvy (adaptívny branching), 15–20 minút;
+  6 hodnotených modulov A–F plus úvodné, ROI a DII otázky. Pri hodnotiacich otázkach
+  je možnosť „Neviem", ktorá sa do skóre nezapočítava.
 
 Výstupom je päť nezávislých ukazovateľov:
 
@@ -71,15 +75,18 @@ Uvádzame ich explicitne, pretože ovplyvňujú interpretáciu výsledkov:
 
 ## Kľúčové stránky
 
-- [Úvod a spustenie diagnostiky](https://digitalizuj.to/): vstupná stránka nástroja —
+- [Úvod a spustenie diagnostiky](https://digitalizuj.to/sk): vstupná stránka nástroja —
   popis oboch diagnostík, prehľad výstupov a odpovede na časté otázky. Odtiaľto sa
   test spúšťa.
-- [Benchmark digitálnej zrelosti](https://digitalizuj.to/peers): referenčná vzorka
+- [Metodika](https://digitalizuj.to/sk/metodika): verejná metodika merania — 12
+  premenných Eurostat DII 2025, model ODRM so 6 oblasťami, 14 rizikových faktorov,
+  výpočtový základ úspor a explicitne uvedené známe obmedzenia.
+- [Benchmark digitálnej zrelosti](https://digitalizuj.to/sk/peers): referenčná vzorka
   50 anonymizovaných profilov naprieč 8 sektormi a 4 veľkostnými kategóriami
   (mikro, malé, stredné, veľké) s hodnotami DII, ORS, TDRI a odhadom úspor. Ide
   o deterministickú testovaciu vzorku kalibrovanú na distribúcie Eurostat DII 2025,
   nie o zber reálnych odpovedí — žiadna konkrétna firma nie je reprezentovaná.
-- [Changelog](https://digitalizuj.to/changelog): verejná história zmien metodiky,
+- [Changelog](https://digitalizuj.to/sk/changelog): verejná história zmien metodiky,
   scoringu, benchmark dát a otázkovej banky vrátane dátumov a verzií.
 
 ## Ďalšie zdroje

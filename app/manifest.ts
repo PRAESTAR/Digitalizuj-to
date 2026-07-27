@@ -8,7 +8,9 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: 'digitalizuj.to',
     description:
       'Bezplatný test digitálnej zrelosti firmy pre malé a stredné podniky. DII skóre vs. EÚ a SK, index technologického dlhu a odhad ročných úspor — anonymne, bez registrácie, priamo v prehliadači.',
-    start_url: '/',
+    // Priamo na slovenskú mutáciu — '/' je 307 presmerovanie a inštalovaná
+    // PWA by štartovala cez redirect. Scope zostáva '/' (pokrýva všetky jazyky).
+    start_url: '/sk',
     scope: '/',
     display: 'standalone',
     // Zosúladené so skutočným pozadím aplikácie (#fbfbfd) a s `viewport.themeColor`
@@ -26,19 +28,34 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: 'any',
         type: 'image/x-icon',
       },
+      // Generovaná PNG ikona (app/icon.tsx). Samotný favicon.ico nespĺňal
+      // minimá pre inštalovateľnú PWA (Chrome vyžaduje aspoň jednu PNG
+      // ikonu >= 144 px s deklarovanou veľkosťou).
+      {
+        src: '/icon',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icon',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
     ],
     shortcuts: [
       {
         name: 'Začať diagnostiku',
         short_name: 'Diagnostika',
         description: 'Spustiť test digitálnej zrelosti firmy',
-        url: '/',
+        url: '/sk',
       },
       {
         name: 'Benchmark digitálnej zrelosti',
         short_name: 'Benchmark',
         description: 'Anonymizované profily podľa sektora a veľkosti firmy',
-        url: '/peers',
+        url: '/sk/peers',
       },
     ],
   };

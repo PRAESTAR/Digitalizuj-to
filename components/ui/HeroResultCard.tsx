@@ -144,8 +144,25 @@ export default function HeroResultCard() {
     // Pri prefers-reduced-motion ani počas trhania sa nič nestrieda.
     if (torn) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const id = setInterval(() => setCycle((c) => c + 1), CYCLE_MS);
-    return () => clearInterval(id);
+    // Karta je pod lg (64rem) display:none — interval by len pálil CPU na
+    // mobile a každých 1,6 s re-renderoval 5 neviditeľných kópií DOM-u.
+    // Media query listener pokrýva aj otočenie tabletu na šírku.
+    const mq = window.matchMedia('(min-width: 64rem)');
+    let id: ReturnType<typeof setInterval> | undefined;
+    const sync = () => {
+      if (mq.matches && id === undefined) {
+        id = setInterval(() => setCycle((c) => c + 1), CYCLE_MS);
+      } else if (!mq.matches && id !== undefined) {
+        clearInterval(id);
+        id = undefined;
+      }
+    };
+    sync();
+    mq.addEventListener('change', sync);
+    return () => {
+      mq.removeEventListener('change', sync);
+      if (id !== undefined) clearInterval(id);
+    };
   }, [torn]);
 
   const sample = SAMPLES[cycle % SAMPLES.length];

@@ -8,6 +8,28 @@
     "loading": "Načítavam…",
     "minutes": "minút"
   },
+  "meta": {
+    "title": "Test digitálnej zrelosti firmy zadarmo | digitalizuj.to",
+    "description": "Zistite za 5 minút, ako digitálne zrelá je vaša firma. Bezplatný audit digitalizácie podľa Eurostat DII — skóre, riziká aj odhad úspor. Bez registrácie.",
+    "ogTitle": "Test digitálnej zrelosti firmy — zadarmo, za 5 minút, bez registrácie"
+  },
+  "faq": {
+    "heading": "Časté otázky o digitálnej zrelosti",
+    "q1": "Čo je digitálna zrelosť firmy?",
+    "a1": "Digitálna zrelosť je miera, do akej firma využíva digitálne nástroje a procesy na zefektívnenie prevádzky, rozhodovania a zákazníckej skúsenosti. Meria sa na niekoľkých osiach: procesy, systémy, dáta, infraštruktúra, bezpečnosť a governance.",
+    "q2": "Ako funguje hodnotenie na digitalizuj.to?",
+    "a2": "Vyplníte adaptívny dotazník (15 otázok pre rýchly screening alebo 43–49 pre komplexnú diagnostiku). Na základe odpovedí dostanete DII-Compatible skóre, Operational Readiness skóre, AI & Automatizácia Readiness, Technical Debt & Risk Index a Business Impact Potential s odhadom úspor v hodinách, MD a EUR.",
+    "q3": "Čo je DII (Digital Intensity Index)?",
+    "a3": "DII je oficiálny ukazovateľ digitálnej intenzity firiem, ktorý zbiera Eurostat naprieč EÚ. Skóruje adopciu 12 digitálnych technológií a pomáha porovnávať firmy voči benchmarku EÚ.",
+    "q4": "Odosielajú sa moje odpovede niekam?",
+    "a4": "Nie. Všetky dáta sa spracovávajú lokálne vo vašom prehliadači. Žiadne odpovede, výsledky ani identifikačné údaje sa neodosielajú na server.",
+    "q5": "Koľko trvá hodnotenie?",
+    "a5": "Indikatívny kvíz trvá 5–7 minút (15 otázok). Komplexná diagnostika trvá 15–20 minút (43–49 otázok s adaptívnym branchingom).",
+    "q6": "Čo je povinná e-fakturácia od 1. 1. 2027?",
+    "a6": "Od 1. januára 2027 zavádza Slovensko povinnú B2B elektronickú fakturáciu cez sieť Peppol podľa normy EN 16931. Test preveruje, či je vaša fakturácia na prechod pripravená, a nepripravenosť započítava do indexu rizík.",
+    "q7": "Koho sa týka NIS2 a zákon č. 366/2024 Z. z.?",
+    "a7": "Smernica NIS2, v SR transponovaná zákonom č. 366/2024 Z. z. o kybernetickej bezpečnosti, rozširuje povinnosti na tisíce stredných firiem v energetike, doprave, výrobe, zdravotníctve či digitálnych službách. Test zaraďuje nepripravenosť na NIS2 medzi sledované rizikové faktory."
+  },
   "hero": {
     "eyebrow": "Benchmark: Adaptívny model DAP · Eurostat DII",
     "titleLead": "Ako digitálne",
@@ -37,11 +59,11 @@
   },
   "quizSelector": {
     "heading": "Vyberte si diagnostiku",
-    "subheading": "Rýchly screening alebo hlbšia analýza — záleží na vás",
+    "subheading": "Rýchly screening alebo hlbšia analýza — zadarmo a bez registrácie",
     "recommended": "Odporúčané",
     "indicative": {
       "title": "Indikatívny kvíz",
-      "duration": "5-7 minút",
+      "duration": "5–7 minút",
       "description": "Rýchly screening digitálnej zrelosti. Orientačný výsledok s hlavnými odporúčaniami.",
       "bullet1": "Max. 15 otázok",
       "bullet2": "Orientačné skóre digitalizácie",
@@ -50,7 +72,7 @@
     },
     "complex": {
       "title": "Komplexná diagnostika",
-      "duration": "15-20 minút",
+      "duration": "15–20 minút",
       "description": "Hlbšia analýza s detailným výsledkom. Adaptívne otázky podľa vašich odpovedí.",
       "bullet1": "Detailný profil po 6 kategóriách",
       "bullet2": "Risk index a ROI odhad",
@@ -59,7 +81,7 @@
     }
   },
   "whatYouGet": {
-    "heading": "Čo získate",
+    "heading": "Čo získate z auditu digitalizácie",
     "subheading": "Komplexný pohľad na vašu digitálnu zrelosť",
     "radarTitle": "Radarový profil",
     "radarText": "Procesy, systémy, dáta, infraštruktúra, bezpečnosť, governance — vizuálny prehľad po 6 osiach.",
@@ -74,11 +96,13 @@
     "tagDii": "DII Eurostat",
     "tagOdrm": "ODRM Model",
     "tagDap": "Adaptívny model DAP",
-    "build": "build"
+    "build": "build",
+    "intro": "digitalizuj.to je bezplatný online test digitálnej zrelosti pre malé a stredné podniky. Za 5 minút zmeria úroveň digitalizácie vašej firmy, porovná ju s benchmarkom EÚ a SK (Eurostat DII 2025) a odhadne ročné úspory z automatizácie — anonymne a bez registrácie.",
+    "fullLink": "Celá metodika"
   },
   "quiz": {
     "title": "Diagnostika digitálnej zrelosti",
-    "questionOf": "Otázka z {total}",
+    "questionOf": "Otázka <b>{current}</b> z {total}",
     "continue": "Pokračovať",
     "skip": "Neviem / Preskočiť",
     "tooltipLabel": "Vysvetlenie otázky",
@@ -116,13 +140,14 @@
   "footer": {
     "tagline": "Adaptívny model DAP · DII-Compatible + ODRM",
     "benchmark": "Benchmark: Eurostat DII 2025 (ISOC_E_DII)",
-    "peers": "Peer výsledky",
+    "peers": "Benchmark digitálnej zrelosti",
     "changelog": "Changelog",
     "textSize": "Veľkosť textu",
     "textSizeStandard": "Štandardná veľkosť textu (100 %)",
     "textSizeLarge": "Zväčšený text (125 %)",
     "textSizeLargest": "Najväčší text (150 %)",
-    "adBanner": "Potrebujete digitalizovať?"
+    "adBanner": "Potrebujete digitalizovať?",
+    "methodology": "Metodika"
   },
   "notFound": {
     "title": "Stránka nenájdená",

@@ -1,6 +1,16 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = 'digitalizuj.to — Digitálna auditná platforma';
+/**
+ * OG obrázok MUSÍ sedieť v segmente [locale], nie na app roote.
+ *
+ * Metadata sa skladajú od koreňa k listu a metadataBase je deklarovaný až
+ * v app/[locale]/layout.tsx — na koreni je teda null a Next pri resolvovaní
+ * file-konvencie padal na localhost fallback (build warning na každej z 227
+ * stránok). Tu sa obrázok resolvuje v segmente, kde metadataBase existuje.
+ * URL je /{locale}/opengraph-image; obsah je zámerne rovnaký pre všetky
+ * jazyky, kým nie sú preložené podstránky.
+ */
+export const alt = 'digitalizuj.to — bezplatný test digitálnej zrelosti firmy';
 export const size = {
   width: 1200,
   height: 630,
@@ -63,7 +73,7 @@ export default async function OgImage() {
               letterSpacing: '-0.02em',
             }}
           >
-            Digitálna auditná platforma
+            Test digitálnej zrelosti firmy
           </div>
           <div
             style={{
@@ -73,8 +83,8 @@ export default async function OgImage() {
               maxWidth: '900px',
             }}
           >
-            Metodicky obhájiteľné hodnotenie digitálnej zrelosti pre malé
-            a stredné podniky
+            Zadarmo, za 5 minút, bez registrácie — skóre, riziká
+            a odhad úspor podľa Eurostat DII
           </div>
         </div>
 

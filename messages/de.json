@@ -8,6 +8,28 @@
     "loading": "Wird geladen…",
     "minutes": "Minuten"
   },
+  "meta": {
+    "title": "Test zum digitalen Reifegrad für KMU – kostenlos | digitalizuj.to",
+    "description": "Ermitteln Sie in 5 Minuten den digitalen Reifegrad Ihres Unternehmens. Kostenloser Check nach Eurostat DII — Score, Risiken und Sparpotenzial. Ohne Registrierung.",
+    "ogTitle": "Digitaler Reifegrad-Test — kostenlos, in 5 Minuten, ohne Registrierung"
+  },
+  "faq": {
+    "heading": "Häufige Fragen zum digitalen Reifegrad",
+    "q1": "Was ist der digitale Reifegrad eines Unternehmens?",
+    "a1": "Der digitale Reifegrad misst, wie stark ein Unternehmen digitale Werkzeuge und Prozesse nutzt, um Betrieb, Entscheidungen und Kundenerlebnis zu verbessern. Gemessen wird auf mehreren Achsen: Prozesse, Systeme, Daten, Infrastruktur, Sicherheit und Governance.",
+    "q2": "Wie funktioniert die Bewertung auf digitalizuj.to?",
+    "a2": "Sie füllen einen adaptiven Fragebogen aus (15 Fragen für ein schnelles Screening oder 43–49 für die Umfassende Diagnose). Auf Basis der Antworten erhalten Sie den DII-Compatible Score, den Operational Readiness Score, AI & Automatisierungs-Readiness, den Technical Debt & Risk Index und das Business Impact Potential mit geschätzten Einsparungen in Stunden, Personentagen und EUR.",
+    "q3": "Was ist der DII (Digital Intensity Index)?",
+    "a3": "Der DII ist der offizielle Indikator der digitalen Intensität von Unternehmen, den Eurostat EU-weit erhebt. Er bewertet die Nutzung von 12 digitalen Technologien und ermöglicht den Vergleich mit dem EU-Benchmark.",
+    "q4": "Werden meine Antworten irgendwohin gesendet?",
+    "a4": "Nein. Alle Daten werden lokal in Ihrem Browser verarbeitet. Weder Antworten noch Ergebnisse oder identifizierende Daten werden an einen Server gesendet.",
+    "q5": "Wie lange dauert die Bewertung?",
+    "a5": "Der Orientierungs-Check dauert 5–7 Minuten (15 Fragen). Die Umfassende Diagnose dauert 15–20 Minuten (43–49 Fragen mit adaptivem Branching).",
+    "q6": "Was ist die E-Rechnungspflicht ab 1. 1. 2027?",
+    "a6": "Ab dem 1. Januar 2027 führt die Slowakei die verpflichtende elektronische B2B-Rechnung über das Peppol-Netzwerk nach der Norm EN 16931 ein. Der Test prüft, ob Ihre Fakturierung auf die Umstellung vorbereitet ist, und rechnet fehlende Vorbereitung in den Risikoindex ein.",
+    "q7": "Wen betreffen NIS2 und das Gesetz Nr. 366/2024 Z. z.?",
+    "a7": "Die NIS2-Richtlinie, in der Slowakei durch das Cybersicherheitsgesetz Nr. 366/2024 Z. z. umgesetzt, erweitert die Pflichten auf tausende mittelständische Unternehmen in Energie, Transport, Produktion, Gesundheitswesen und digitalen Diensten. Der Test zählt fehlende NIS2-Vorbereitung zu den beobachteten Risikofaktoren."
+  },
   "hero": {
     "eyebrow": "Benchmark: Adaptives DAP-Modell · Eurostat DII",
     "titleLead": "Wie digital",
@@ -37,11 +59,11 @@
   },
   "quizSelector": {
     "heading": "Wählen Sie Ihre Diagnose",
-    "subheading": "Schnelles Screening oder tiefere Analyse — Sie entscheiden",
+    "subheading": "Schnelles Screening oder tiefere Analyse — kostenlos und ohne Registrierung",
     "recommended": "Empfohlen",
     "indicative": {
       "title": "Orientierungs-Check",
-      "duration": "5-7 Minuten",
+      "duration": "5–7 Minuten",
       "description": "Schnelles Screening der digitalen Reife. Orientierendes Ergebnis mit den wichtigsten Empfehlungen.",
       "bullet1": "Max. 15 Fragen",
       "bullet2": "Orientierender Digitalisierungs-Score",
@@ -50,7 +72,7 @@
     },
     "complex": {
       "title": "Umfassende Diagnose",
-      "duration": "15-20 Minuten",
+      "duration": "15–20 Minuten",
       "description": "Tiefere Analyse mit detailliertem Ergebnis. Adaptive Fragen je nach Ihren Antworten.",
       "bullet1": "Detailprofil über 6 Kategorien",
       "bullet2": "Risikoindex und ROI-Schätzung",
@@ -59,7 +81,7 @@
     }
   },
   "whatYouGet": {
-    "heading": "Was Sie erhalten",
+    "heading": "Was Sie aus dem Digitalisierungs-Audit erhalten",
     "subheading": "Ein umfassender Blick auf Ihre digitale Reife",
     "radarTitle": "Radarprofil",
     "radarText": "Prozesse, Systeme, Daten, Infrastruktur, Sicherheit, Governance — visuelle Übersicht über 6 Achsen.",
@@ -74,11 +96,13 @@
     "tagDii": "DII Eurostat",
     "tagOdrm": "ODRM-Modell",
     "tagDap": "Adaptives DAP-Modell",
-    "build": "Build"
+    "build": "Build",
+    "intro": "digitalizuj.to ist ein kostenloser Online-Test des digitalen Reifegrads für kleine und mittlere Unternehmen. In 5 Minuten misst er den Digitalisierungsgrad Ihres Unternehmens, vergleicht ihn mit dem EU- und SK-Benchmark (Eurostat DII 2025) und schätzt die jährlichen Einsparungen durch Automatisierung — anonym und ohne Registrierung.",
+    "fullLink": "Gesamte Methodik"
   },
   "quiz": {
     "title": "Diagnose der digitalen Reife",
-    "questionOf": "Frage von {total}",
+    "questionOf": "Frage <b>{current}</b> von {total}",
     "continue": "Weiter",
     "skip": "Weiß nicht / Überspringen",
     "tooltipLabel": "Erläuterung der Frage",
@@ -91,7 +115,7 @@
     "title": "Diagnoseergebnisse",
     "newAssessment": "Neue Bewertung",
     "answersCount": "{count} Antworten",
-    "indicativeLabel": "Orientierende Bewertung",
+    "indicativeLabel": "Orientierungs-Check",
     "complexLabel": "Umfassende Diagnose",
     "emptyTitle": "Keine Ergebnisse",
     "emptyText": "Schließen Sie zuerst den Diagnosetest ab.",
@@ -116,13 +140,14 @@
   "footer": {
     "tagline": "Adaptives DAP-Modell · DII-Compatible + ODRM",
     "benchmark": "Benchmark: Eurostat DII 2025 (ISOC_E_DII)",
-    "peers": "Peer-Ergebnisse",
+    "peers": "Reifegrad-Benchmark",
     "changelog": "Changelog",
     "textSize": "Textgröße",
     "textSizeStandard": "Standard-Textgröße (100 %)",
     "textSizeLarge": "Vergrößerter Text (125 %)",
     "textSizeLargest": "Größter Text (150 %)",
-    "adBanner": "Brauchen Sie Digitalisierung?"
+    "adBanner": "Sie möchten digitalisieren?",
+    "methodology": "Methodik"
   },
   "notFound": {
     "title": "Seite nicht gefunden",

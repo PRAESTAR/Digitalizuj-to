@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 interface ProgressBarProps {
   current: number;
   total: number;
@@ -8,6 +10,10 @@ interface ProgressBarProps {
 }
 
 export default function ProgressBar({ current, total, percentage, moduleName }: ProgressBarProps) {
+  // Kľúč quiz.questionOf existoval od začiatku i18n, ale nikto ho nečítal —
+  // text tu bol natvrdo po slovensky, takže nemecký používateľ videl
+  // „Otázka 3 z 15". Našiel to verifikačný agent ako mŕtvy kľúč.
+  const t = useTranslations('quiz');
   return (
     <div className="w-full mb-8">
       {moduleName && (
@@ -17,7 +23,13 @@ export default function ProgressBar({ current, total, percentage, moduleName }: 
       )}
       <div className="flex items-center justify-between mb-2.5">
         <span className="text-sm text-slate-500">
-          Otázka <span className="font-bold text-slate-800">{current + 1}</span> z {total}
+          {t.rich('questionOf', {
+            current: current + 1,
+            total,
+            b: (chunks) => (
+              <span className="font-bold text-slate-800">{chunks}</span>
+            ),
+          })}
         </span>
         <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
           {percentage} %

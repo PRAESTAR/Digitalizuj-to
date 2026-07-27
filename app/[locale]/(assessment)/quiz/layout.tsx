@@ -4,9 +4,11 @@ export const metadata: Metadata = {
   title: 'Test digitálnej zrelosti — adaptívny dotazník',
   description:
     'Adaptívny dotazník digitálnej zrelosti: 15 otázok (5–7 min) alebo 43–49 otázok (15–20 min). Odpovede zostávajú vo vašom prehliadači.',
-  alternates: {
-    canonical: '/quiz',
-  },
+  // Prázdny objekt PRERUŠUJE dedenie alternates z layoutu — bez neho by
+  // noindex stránka zdedila canonical na homepage aj celý hreflang cluster
+  // (dedenie metadát je per-kľúč; podstránka bez vlastného alternates
+  // preberá rodičovský celý).
+  alternates: {},
   /**
    * `noindex` je tu SPRÁVNE a zámerne ponechané.
    *

@@ -122,9 +122,9 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
           </svg>
         </div>
         <div className="min-w-0">
-          <h3 className="text-lg font-bold text-[#1d1d1f] break-words">
+          <h2 className="text-lg font-bold text-[#1d1d1f] break-words">
             Porovnanie s peer skupinou a krajinou
-          </h3>
+          </h2>
           <p className="text-sm text-[#6e6e73] mt-1 leading-relaxed break-words">
             Vaša pozícia voči anonymizovaným výsledkom firiem zo segmentu
             <strong className="text-[#1d1d1f]"> {sectorLabel}</strong>,

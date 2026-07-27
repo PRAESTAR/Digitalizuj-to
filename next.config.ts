@@ -134,11 +134,21 @@ const nextConfig: NextConfig = {
    */
   async redirects() {
     const legacyPaths = ["peers", "changelog", "quiz", "results"];
-    return legacyPaths.map((p) => ({
-      source: `/${p}`,
-      destination: `/sk/${p}`,
-      permanent: true,
-    }));
+    return [
+      ...legacyPaths.map((p) => ({
+        source: `/${p}`,
+        destination: `/sk/${p}`,
+        permanent: true,
+      })),
+      // Zdieľané výsledky: staré /r/<hash> odkazy žijú v QR kódoch a
+      // správach — bez tohto pravidla dostávali len 307 od middlewaru,
+      // zatiaľ čo ostatné legacy cesty 308. Zjednotené na trvalé.
+      {
+        source: "/r/:hash",
+        destination: "/sk/r/:hash",
+        permanent: true,
+      },
+    ];
   },
 };
 

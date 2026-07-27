@@ -66,9 +66,9 @@ export default function QRCodeCard({ url, hash, showUrl = true }: QRCodeCardProp
           </svg>
         </div>
         <div className="min-w-0">
-          <h3 className="text-base sm:text-lg font-bold text-[#1d1d1f] break-words">
+          <h2 className="text-base sm:text-lg font-bold text-[#1d1d1f] break-words">
             Váš permanentný odkaz
-          </h3>
+          </h2>
           <p className="text-sm text-[#6e6e73] mt-1 leading-relaxed break-words">
             Naskenujte QR kód alebo zdieľajte odkaz — výsledok je dostupný len cez tento hash.
           </p>

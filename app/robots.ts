@@ -3,31 +3,22 @@ import type { MetadataRoute } from 'next';
 const siteUrl = 'https://digitalizuj.to';
 
 /**
- * Cesty, ktoré nemá zmysel prehľadávať:
- *  - /api/    — žiadny indexovateľný obsah
- *  - /results — stavová stránka; bez dokončeného kvízu nemá obsah
- *  - /r/      — menný priestor zdieľaných výsledkov (hash odkazy)
+ * Jediné Disallow je /api/ — všetko ostatné rieši meta `noindex`.
  *
- * ZMENA oproti pôvodnému stavu — /quiz a /peers už NIE SÚ zakázané:
+ * SEO audit odhalil, že pôvodné pravidlá '/results' a '/r/' boli po i18n
+ * migrácii MŔTVE: skutočné adresy žijú pod jazykovým prefixom
+ * (/sk/results, /sk/r/...), takže bezprefixové pravidlá nikdy nič
+ * nematchli a ~200 /r/[hash] stránok bolo crawlovateľných v rozpore
+ * s deklarovaným zámerom súboru.
  *
- *  - /peers je jediná stránka s vlastnými dátami (benchmark tabuľka bez
- *    akýchkoľvek osobných údajov). Kým bola v Disallow, nemohla ju
- *    zaindexovať ani odcitovať žiadna AI vyhľadávacia plocha. Od tejto
- *    zmeny je crawlovateľná aj indexovateľná.
- *
- *  - /quiz je crawlovateľný, ale zostáva `noindex` (viď
- *    app/(assessment)/quiz/layout.tsx — bez rozbehnutého hodnotenia
- *    renderuje len prázdny stav, čo by bola thin page). Disallow bol tu
- *    dokonca kontraproduktívny: crawler zablokovanú stránku nestiahne,
- *    takže `noindex` nikdy neuvidí a URL sa môže zaindexovať „naslepo".
- *    Povolený crawl + noindex je korektná kombinácia. Vstupnou stránkou
- *    nástroja pre vyhľadávače je `/`, ktorá kvíz aj spúšťa.
- *
- * Vedomý kompromis pri /results a /r/: keďže sú blokované v robots.txt,
- * ich meta `noindex` sa k crawlerom nedostane. Je to zámerné — celý menný
- * priestor zdieľaných výsledkov má zostať mimo prehľadávania.
+ * Namiesto opravy na wildcard ('/*&#47;r/') je zámerná politika
+ * crawlable + noindex: crawler zablokovanú stránku nestiahne, takže jej
+ * meta `noindex` nikdy neuvidí — a URL sa môže zaindexovať „naslepo"
+ * (len z odkazov). Povolený crawl + noindex je spoľahlivý spôsob, ako
+ * stránky držať mimo indexu; /quiz, /results aj /r/[hash] ho nesú
+ * a v sitemape nie sú.
  */
-const DISALLOW = ['/api/', '/results', '/r/'];
+const DISALLOW = ['/api/'];
 
 /**
  * Crawleri a agenti AI vyhľadávačov, ktorým dávame explicitné povolenie.
@@ -84,6 +75,7 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
-    host: siteUrl,
+    // `host` zámerne chýba: je to zaniknutá Yandex direktíva, ktorú ostatné
+    // vyhľadávače ignorujú; kanonický host deklarujú canonical/hreflang tagy.
   };
 }

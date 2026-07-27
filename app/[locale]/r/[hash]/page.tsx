@@ -52,7 +52,12 @@ export async function generateMetadata({
   return {
     title: `Výsledok #${hash.slice(0, 6)}`,
     description: `Anonymizovaný výsledok diagnostiky digitálnej zrelosti — ${sectorLabel}, ${sizeLabel}. DII ${peer.diiScore100}/100, ORS ${peer.orsScore}/100.`,
-    alternates: { canonical: `/r/${hash}` },
+    // Canonical tu zámerne NIE JE: stránka je noindex,nofollow a canonical
+    // na noindex stránke je protirečivý signál (canonical hovorí „indexuj
+    // túto adresu", noindex hovorí „neindexuj nič"). Prázdny objekt zároveň
+    // PRERUŠUJE dedenie z layoutu — bez neho by sa zdedil canonical na
+    // homepage aj hreflang cluster (dedenie metadát je per-kľúč).
+    alternates: {},
     robots: { index: false, follow: false },
   };
 }

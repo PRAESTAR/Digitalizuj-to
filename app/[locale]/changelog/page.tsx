@@ -1,7 +1,12 @@
 import type { Metadata } from 'next';
 
+/**
+ * Canonical na /sk/changelog vo všetkých mutáciách — obsah je len slovenský,
+ * jazykové varianty sú duplicitné kópie (rovnaká politika ako /peers,
+ * viď lib/seo.ts). Titulok skrátený pod ~60 znakov aj so sufixom šablóny.
+ */
 export const metadata: Metadata = {
-  title: 'Changelog — zmeny metodiky a scoringu digitálnej zrelosti',
+  title: 'Changelog metodiky a scoringu',
   description:
     'Verejná história zmien metodiky merania digitálnej zrelosti: úpravy scoringu, benchmark dát (Eurostat DII 2025), rizikových faktorov a otázkovej banky.',
   keywords: [
@@ -12,17 +17,20 @@ export const metadata: Metadata = {
     'changelog digitalizuj.to',
   ],
   alternates: {
-    canonical: '/changelog',
+    canonical: '/sk/changelog',
   },
   openGraph: {
-    title: 'Changelog — zmeny metodiky a scoringu digitálnej zrelosti',
+    title: 'Changelog metodiky a scoringu',
     description:
       'Verejná história zmien metodiky merania digitálnej zrelosti: scoring, benchmark dáta (Eurostat DII 2025), rizikové faktory a otázková banka.',
-    url: '/changelog',
+    url: '/sk/changelog',
     type: 'article',
     // Signál čerstvosti — legislatívne a metodické témy sa re-crawlujú
     // častejšie a AI vyhľadávače uprednostňujú datovaný obsah.
     modifiedTime: '2026-07-24T00:00:00.000Z',
+    // openGraph sa na podstránke nahrádza celý — bez explicitného obrázka
+    // by karta zdieľania prišla o vizuál z file-konvencie v [locale].
+    images: ['/sk/opengraph-image'],
   },
 };
 
@@ -34,13 +42,13 @@ const breadcrumbSchema = {
       '@type': 'ListItem',
       position: 1,
       name: 'Úvod',
-      item: 'https://digitalizuj.to/',
+      item: 'https://digitalizuj.to/sk',
     },
     {
       '@type': 'ListItem',
       position: 2,
       name: 'Changelog',
-      item: 'https://digitalizuj.to/changelog',
+      item: 'https://digitalizuj.to/sk/changelog',
     },
   ],
 };
