@@ -1,5 +1,9 @@
 import type { MetadataRoute } from 'next';
 
+// Nutne pre output: 'export' — bez toho build padne s "dynamic not configured".
+// V serverovom rezime neskodne (routa je aj tak staticka).
+export const dynamic = 'force-static';
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     // `id` stabilizuje identitu inštalovanej aplikácie aj pri zmene start_url.

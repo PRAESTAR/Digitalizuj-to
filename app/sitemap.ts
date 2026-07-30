@@ -2,6 +2,10 @@ import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
 import { SITE_URL, absoluteUrl } from '@/lib/seo';
 
+// Nutne pre output: 'export' — bez toho build padne s "dynamic not configured".
+// V serverovom rezime neskodne (routa je aj tak staticka).
+export const dynamic = 'force-static';
+
 /**
  * `lastModified` zámerne NIE JE `new Date()`.
  *

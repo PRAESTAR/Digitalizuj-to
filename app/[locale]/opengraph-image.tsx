@@ -1,4 +1,15 @@
 import { ImageResponse } from 'next/og';
+import { routing } from '@/i18n/routing';
+
+// Nutne pre output: 'export' — bez toho build padne s "dynamic not configured".
+// V serverovom rezime neskodne (routa je aj tak staticka).
+export const dynamic = 'force-static';
+
+// Route handler v dynamickom segmente NEDEDÍ generateStaticParams z layoutu —
+// v exporte ho musí deklarovať sám, inak build padne.
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
 
 /**
  * OG obrázok MUSÍ sedieť v segmente [locale], nie na app roote.

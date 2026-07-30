@@ -1,5 +1,9 @@
 import { ImageResponse } from 'next/og';
 
+// Nutne pre output: 'export' — bez toho build padne s "dynamic not configured".
+// V serverovom rezime neskodne (routa je aj tak staticka).
+export const dynamic = 'force-static';
+
 /**
  * PNG ikona pre PWA manifest a prehliadače, generovaná v builde — v /public
  * žiadny bitmapový asset nie je a samotný favicon.ico nespĺňa minimá

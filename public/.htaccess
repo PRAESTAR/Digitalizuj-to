@@ -1,0 +1,87 @@
+# =============================================================================
+# digitalizuj.to — Apache konfigurácia pre statický export (output: 'export')
+#
+# Tento súbor preberá VŠETKO, čo v serverovom režime robil Next.js:
+#   1. bezpečnostné hlavičky   (zrkadlo securityHeaders z next.config.ts)
+#   2. legacy 301 presmerovania (zrkadlo redirects() z next.config.ts)
+#   3. jazykovú negociáciu /    (zrkadlo proxy.ts — next-intl middleware)
+#   4. mapovanie čistých URL na .html súbory exportu
+#
+# Pri zmene hlavičiek/redirectov v next.config.ts treba upraviť AJ tento
+# súbor — sú to dve kópie tej istej pravdy pre dva runtime režimy.
+# =============================================================================
+
+AddDefaultCharset UTF-8
+Options -Indexes
+
+# --- MIME typy, ktoré staršie Apache inštalácie nemusia poznať --------------
+AddType font/woff2 .woff2
+AddType application/manifest+json .webmanifest
+
+# Route handlery exportu sú súbory bez prípony — bez ForceType by ich Apache
+# poslal ako text/plain a OG scrapery by obrázok zahodili.
+<Files "opengraph-image">
+  ForceType image/png
+</Files>
+<Files "icon">
+  ForceType image/png
+</Files>
+
+# --- 1. Bezpečnostné hlavičky ------------------------------------------------
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; manifest-src 'self'; worker-src 'self' blob:; upgrade-insecure-requests"
+  Header always set X-Frame-Options "DENY"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=(), interest-cohort=()"
+  Header always set X-XSS-Protection "1; mode=block"
+
+  # Hashované assety sú nemenné — agresívna cache je bezpečná a je to
+  # najlacnejšie zrýchlenie opakovaných návštev.
+  SetEnvIf Request_URI "^/_next/static/" NEXT_IMMUTABLE
+  Header set Cache-Control "public, max-age=31536000, immutable" env=NEXT_IMMUTABLE
+
+  # Vary na jazykovej negociácii koreňa (nastavuje sa env flagom nižšie).
+  Header append Vary "Accept-Language" env=LANG_NEGOTIATED
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # --- 3. Jazyková negociácia koreňa ----------------------------------------
+  # Zrkadlo proxy.ts: / → /de|/cs|/en podľa Accept-Language, inak /sk.
+  # 302 (nie 301): cieľ závisí od hlavičky požiadavky, trvalé presmerovanie
+  # by si prehliadače a CDN cachli bez ohľadu na jazyk.
+  RewriteCond %{HTTP:Accept-Language} ^de [NC]
+  RewriteRule ^$ /de [R=302,E=LANG_NEGOTIATED:1,L]
+  RewriteCond %{HTTP:Accept-Language} ^cs [NC]
+  RewriteRule ^$ /cs [R=302,E=LANG_NEGOTIATED:1,L]
+  RewriteCond %{HTTP:Accept-Language} ^en [NC]
+  RewriteRule ^$ /en [R=302,E=LANG_NEGOTIATED:1,L]
+  RewriteRule ^$ /sk [R=302,E=LANG_NEGOTIATED:1,L]
+
+  # --- 2. Legacy presmerovania (pred-i18n adresy) ---------------------------
+  # Zrkadlo redirects() z next.config.ts — trvalé 301.
+  RewriteRule ^peers/?$ /sk/peers [R=301,L]
+  RewriteRule ^changelog/?$ /sk/changelog [R=301,L]
+  RewriteRule ^quiz/?$ /sk/quiz [R=301,L]
+  RewriteRule ^results/?$ /sk/results [R=301,L]
+  RewriteRule ^r/([A-Za-z0-9]+)/?$ /sk/r/$1 [R=301,L]
+
+  # --- 4. Čisté URL → .html súbory exportu ----------------------------------
+  # Export generuje sk.html, sk/peers.html…; canonicaly a sitemap používajú
+  # tvary bez prípony — tie sa NESMÚ zmeniť (SEO revízia). Preto mapujeme
+  # interne, bez presmerovania.
+  # a) /sk/peers/ → /sk/peers (adresár sk/ existuje kvôli podstránkam,
+  #    inak by Apache servíroval adresár namiesto sk.html)
+  RewriteCond %{REQUEST_URI} ^/(.+)/$
+  RewriteCond %{DOCUMENT_ROOT}/%1.html -f
+  RewriteRule ^ /%1 [R=301,L]
+  # b) /sk/peers → sk/peers.html (interne)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.*)$ $1.html [L]
+</IfModule>
+
+ErrorDocument 404 /404.html
