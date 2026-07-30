@@ -14,6 +14,13 @@
 AddDefaultCharset UTF-8
 Options -Indexes
 
+# Export vytvára pre stránky AJ adresáre (sk/, sk/peers/ — nesú klientské
+# navigačné payloady __next.*), takže mod_dir na čistej URL /sk pridával
+# lomítko a naše pravidlo nižšie ho zase odoberalo — slučka presmerovaní.
+# DirectorySlash Off mod_dir umlčí; čisté URL obslúži interný rewrite na
+# .html a adresárový listing blokuje -Indexes vyššie.
+DirectorySlash Off
+
 # --- MIME typy, ktoré staršie Apache inštalácie nemusia poznať --------------
 AddType font/woff2 .woff2
 AddType application/manifest+json .webmanifest
@@ -43,7 +50,9 @@ AddType application/manifest+json .webmanifest
   Header set Cache-Control "public, max-age=31536000, immutable" env=NEXT_IMMUTABLE
 
   # Vary na jazykovej negociácii koreňa (nastavuje sa env flagom nižšie).
-  Header append Vary "Accept-Language" env=LANG_NEGOTIATED
+  # `always` je povinné: bez neho sa Header direktíva na 3xx odpovede
+  # (redirect z mod_rewrite) vôbec neaplikuje — overené na živom serveri.
+  Header always append Vary "Accept-Language" env=LANG_NEGOTIATED
 </IfModule>
 
 <IfModule mod_rewrite.c>
