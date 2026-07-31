@@ -229,11 +229,26 @@ flowchart LR
 produkčnej domény. Blok NIE JE v repozitári; pri go-live sa jednoducho
 nepridá. Canonicaly už teraz mieria na `https://digitalizuj.to`.
 
-**Plánovaný ďalší krok** (TODO #32): otázková banka a väzby sa presunú do
-MariaDB (editácia cez phpMyAdmin), `publish.php` na hostingu spustí
-integritné kontroly a skompiluje verziovaný `model.json` v dnešnom tvare
-`questionBank.json` — build si ho stiahne cez HTTPS. Odpovede používateľov
-sa do DB neukladajú nikdy.
+### Obsah modelu v databáze (tok editácie)
+
+Otázková banka žije v MariaDB (`db/schema.sql` — 13 tabuliek s FK integritou,
+štruktúrované podmienky vetvenia, i18n stĺpce). Tok zmeny obsahu:
+
+```
+phpMyAdmin (editácia) → /admin/publish.php?token=…
+  ├─ integritné kontroly (db/checks.sql — SQL verzia validate-model.mjs)
+  ├─ kompilácia do tvaru questionBank.json (PHP port scripts/db/compile.mjs)
+  └─ zápis /model/v{N}.json + /model/current.json + záznam vo model_versions
+→ npm run model:pull   (stiahne current.json → data/ + config/model/, zvaliduje)
+→ git commit → build → FTP deploy
+```
+
+Garancie: kompilát z DB je hĺbkovo zhodný s pôvodným JSON (akceptačný test
+`npm run db:compile`), PHP a Node kompilátory dávajú bajtovo identický
+artefakt (SHA-256 porovnanie) a publish odmietne publikovať model, ktorý
+neprejde integritnými kontrolami (overené negatívnym testom). Odpovede
+používateľov sa do DB neukladajú nikdy. Skripty: `npm run db:import`
+(JSON → DB), `db:compile` (DB → JSON + check), `model:pull`.
 
 ---
 

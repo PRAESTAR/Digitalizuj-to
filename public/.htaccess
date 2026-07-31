@@ -25,6 +25,12 @@ DirectorySlash Off
 AddType font/woff2 .woff2
 AddType application/manifest+json .webmanifest
 
+# Pomocné súbory publish kroku nemajú byť stiahnuteľné cez HTTP — publish.php
+# ich číta z disku, webu do nich nič nie je (odhaľovali by mená tabuliek).
+<FilesMatch "\.(sql|bak|log)$">
+  Require all denied
+</FilesMatch>
+
 # Route handlery exportu sú súbory bez prípony — bez ForceType by ich Apache
 # poslal ako text/plain a OG scrapery by obrázok zahodili.
 <Files "opengraph-image">
@@ -48,6 +54,13 @@ AddType application/manifest+json .webmanifest
   # najlacnejšie zrýchlenie opakovaných návštev.
   SetEnvIf Request_URI "^/_next/static/" NEXT_IMMUTABLE
   Header set Cache-Control "public, max-age=31536000, immutable" env=NEXT_IMMUTABLE
+
+  # Kompilovaný model: current.json sa mení publishom — nikdy necachovať
+  # dlho; verziované v{N}.json sú nemenné.
+  SetEnvIf Request_URI "^/model/current\.json$" MODEL_CURRENT
+  Header set Cache-Control "no-cache" env=MODEL_CURRENT
+  SetEnvIf Request_URI "^/model/v[0-9]+\.json$" MODEL_VERSIONED
+  Header set Cache-Control "public, max-age=31536000, immutable" env=MODEL_VERSIONED
 
   # Vary na jazykovej negociácii koreňa (nastavuje sa env flagom nižšie).
   # `always` je povinné: bez neho sa Header direktíva na 3xx odpovede
