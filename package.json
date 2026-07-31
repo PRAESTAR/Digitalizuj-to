@@ -28,8 +28,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "basic-ftp": "^6.0.2",
     "eslint": "^9",
     "eslint-config-next": "^16.2.4",
+    "mysql2": "^3.23.2",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.10"
