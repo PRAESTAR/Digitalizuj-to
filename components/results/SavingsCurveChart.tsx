@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations, useLocale } from 'next-intl';
+import { intlLocale, type Locale } from '@/i18n/routing';
 import { useEffect, useState } from 'react';
 import {
   LineChart,
@@ -32,9 +34,9 @@ function formatEurTight(value: number): string {
 
 // Scenáre pre náhradnú HTML legendu na mobile — farby aj názvy sú zhodné s <Line>.
 const MOBILE_LEGEND = [
-  { name: 'Optimistický', color: '#0068d6' },
-  { name: 'Reálny', color: '#6e6e73' },
-  { name: 'Konzervatívny', color: '#059669' },
+  { key: 'optimistic' as const, color: '#0068d6' },
+  { key: 'mid' as const, color: '#6e6e73' },
+  { key: 'conservative' as const, color: '#059669' },
 ];
 
 interface SavingsCurveChartProps {
@@ -42,6 +44,8 @@ interface SavingsCurveChartProps {
 }
 
 export default function SavingsCurveChart({ projection }: SavingsCurveChartProps) {
+  const t = useTranslations('impact');
+  const locale = useLocale() as Locale;
   const { points, rampUpMonths } = projection;
 
   // Recharts renderuje do SVG, takže responzívnosť sa nedá vyriešiť CSS triedami —
@@ -83,7 +87,7 @@ export default function SavingsCurveChart({ projection }: SavingsCurveChartProps
             <ReferenceLine x={rampUpMonths.conservative} stroke="#059669" strokeDasharray="2 4" strokeOpacity={0.35} />
             <Tooltip
               formatter={(value, name) => [
-                new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(Number(value)),
+                new Intl.NumberFormat(intlLocale(locale), { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(Number(value)),
                 String(name),
               ]}
               labelFormatter={(m) => `Mesiac ${m}`}
@@ -106,7 +110,7 @@ export default function SavingsCurveChart({ projection }: SavingsCurveChartProps
             <Line
               type="monotone"
               dataKey="optimistic"
-              name="Optimistický"
+              name={t('scenario.optimistic')}
               stroke="#0068d6"
               strokeWidth={2.5}
               dot={false}
@@ -115,7 +119,7 @@ export default function SavingsCurveChart({ projection }: SavingsCurveChartProps
             <Line
               type="monotone"
               dataKey="mid"
-              name="Reálny"
+              name={t('scenario.mid')}
               stroke="#6e6e73"
               strokeWidth={2.5}
               dot={false}
@@ -124,7 +128,7 @@ export default function SavingsCurveChart({ projection }: SavingsCurveChartProps
             <Line
               type="monotone"
               dataKey="conservative"
-              name="Konzervatívny"
+              name={t('scenario.conservative')}
               stroke="#059669"
               strokeWidth={2.5}
               dot={false}
@@ -136,13 +140,13 @@ export default function SavingsCurveChart({ projection }: SavingsCurveChartProps
 
       <ul className="sm:hidden mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs font-medium text-[#6e6e73]">
         {MOBILE_LEGEND.map(item => (
-          <li key={item.name} className="flex items-center gap-1.5">
+          <li key={item.key} className="flex items-center gap-1.5">
             <span
               aria-hidden="true"
               className="h-0.5 w-4 shrink-0 rounded-full"
               style={{ background: item.color }}
             />
-            {item.name}
+            {t('scenario.' + item.key)}
           </li>
         ))}
       </ul>

@@ -1,13 +1,29 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import type { ResultSnapshot } from '@/types';
 
 interface ExecutiveSummaryProps {
   result: ResultSnapshot;
 }
 
+/**
+ * Slovné zhrnutie výsledku. Vety idú z messages (exec.*) cez t.rich —
+ * zvýraznenia <s> ostávajú súčasťou prekladu, aby si každý jazyk mohol
+ * položiť dôraz podľa vlastného slovosledu.
+ *
+ * Úrovne (zrelosť, DII, riziko) sa prekladajú z ENUMOV (levels.*), nie
+ * z engine polí *LabelSk — tie ostávajú pre uložené snapshoty. Obsah
+ * odporúčaní (titleSk/descriptionSk) je enginový obsah a zostáva po
+ * slovensky do prekladu obsahovej vrstvy (DB i18n).
+ */
 export default function ExecutiveSummary({ result }: ExecutiveSummaryProps) {
+  const t = useTranslations();
   const { ors, tdri, dii, aiReadiness, recommendations } = result;
+
+  const strong = (chunks: React.ReactNode) => (
+    <strong className="text-[#1d1d1f]">{chunks}</strong>
+  );
 
   return (
     // p-5 na mobile: p-8 zabralo na 320 px 64 px sirky a pri 150 % texte az 96 px
@@ -20,7 +36,7 @@ export default function ExecutiveSummary({ result }: ExecutiveSummaryProps) {
             </svg>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[#1d1d1f] min-w-0 break-words">
-            Executive Summary
+            {t('exec.title')}
           </h2>
         </div>
 
@@ -28,38 +44,35 @@ export default function ExecutiveSummary({ result }: ExecutiveSummaryProps) {
             slovenske slova, ktore na 320 px inak vytecu z panela */}
         <div className="space-y-4 text-[#1d1d1f] leading-relaxed break-words">
           <p>
-            Vaša firma dosahuje úroveň digitálnej zrelosti{' '}
-            <strong className="text-[#1d1d1f]">
-              &ldquo;{ors.maturityLabelSk}&rdquo;
-            </strong>{' '}
-            s celkovým skóre{' '}
-            <strong>{Math.round(ors.scorePenalized)}/100</strong>.
+            {t.rich('exec.maturity', {
+              s: strong,
+              label: t(`levels.maturity.${ors.maturityLevel}`),
+              score: Math.round(ors.scorePenalized),
+            })}
             {ors.penaltyApplied && (
               <span className="inline-flex items-center gap-1.5 ml-1 max-w-full text-amber-600">
                 <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-amber-500" aria-hidden="true" />
-                (skóre znížené o penalizáciu za bezpečnostný stav)
+                {t('exec.penaltyNote')}
               </span>
             )}
           </p>
 
           <p>
-            Z pohľadu digitálnej intenzity (DII) dosahujete{' '}
-            <strong>{dii.score12}/12 bodov</strong>, čo zodpovedá úrovni{' '}
-            <strong>&ldquo;{dii.levelLabelSk}&rdquo;</strong>.
+            {t.rich('exec.dii', {
+              s: strong,
+              points: dii.score12,
+              label: t(`levels.dii.${dii.level}`),
+            })}
           </p>
 
           <p>
-            V oblasti umelej inteligencie a automatizácie ste na úrovni{' '}
-            {aiReadiness.measured && aiReadiness.score !== null ? (
-              <>
-                <strong className="text-[#1d1d1f]">
-                  &ldquo;{aiReadiness.levelLabelSk}&rdquo;
-                </strong>{' '}
-                (<strong>{Math.round(aiReadiness.score)}/100</strong>).
-              </>
-            ) : (
-              <>nezmeranej — v dotazníku ste nezodpovedali otázky o využívaní AI.</>
-            )}
+            {aiReadiness.measured && aiReadiness.score !== null
+              ? t.rich('exec.ai', {
+                  s: strong,
+                  label: t(`levels.ai.${aiReadiness.level}`),
+                  score: Math.round(aiReadiness.score),
+                })
+              : t('exec.aiUnmeasured')}
           </p>
 
           {tdri.score > 35 && (
@@ -70,12 +83,13 @@ export default function ExecutiveSummary({ result }: ExecutiveSummaryProps) {
                 </svg>
               </div>
               <div className="min-w-0">
-                <p className="font-bold text-[#1d1d1f] text-sm break-words">Upozornenie na technologický dlh</p>
+                <p className="font-bold text-[#1d1d1f] text-sm break-words">{t('exec.debtTitle')}</p>
                 <p className="text-sm text-[#6e6e73] mt-0.5 break-words">
-                  Váš index technologického dlhu ({tdri.score}/100) indikuje {tdri.riskLabelSk.toLowerCase()}.
-                  {tdri.topRisks.length > 0 && (
-                    <> Najkritickejšie riziká vyžadujú okamžitú pozornosť.</>
-                  )}
+                  {t('exec.debtBody', {
+                    score: tdri.score,
+                    label: t(`levels.risk.${tdri.riskLevel}`).toLowerCase(),
+                  })}
+                  {tdri.topRisks.length > 0 && <> {t('exec.debtUrgent')}</>}
                 </p>
               </div>
             </div>
@@ -85,7 +99,7 @@ export default function ExecutiveSummary({ result }: ExecutiveSummaryProps) {
             <div className="p-3 sm:p-4 rounded-2xl bg-white border border-black/5">
               <h3 className="font-bold text-[#1d1d1f] mb-2 flex items-center gap-2">
                 <span className="w-6 h-6 shrink-0 rounded-lg bg-emerald-500/10 text-emerald-700 flex items-center justify-center text-xs">&#10003;</span>
-                <span className="min-w-0 break-words">Silné stránky</span>
+                <span className="min-w-0 break-words">{t('exec.strengths')}</span>
               </h3>
               <ul className="space-y-1.5 text-sm">
                 {recommendations.strengths.map((s, i) => (
@@ -102,7 +116,7 @@ export default function ExecutiveSummary({ result }: ExecutiveSummaryProps) {
             <div className="p-3 sm:p-4 rounded-2xl bg-white border border-black/5">
               <h3 className="font-bold text-[#1d1d1f] mb-2 flex items-center gap-2">
                 <span className="w-6 h-6 shrink-0 rounded-lg bg-rose-500/10 text-rose-700 flex items-center justify-center text-xs">!</span>
-                <span className="min-w-0 break-words">Kritické riziká</span>
+                <span className="min-w-0 break-words">{t('exec.criticalRisks')}</span>
               </h3>
               <ul className="space-y-1.5 text-sm">
                 {recommendations.criticalRisks.slice(0, 3).map(r => (
@@ -119,7 +133,7 @@ export default function ExecutiveSummary({ result }: ExecutiveSummaryProps) {
             <div className="p-3 sm:p-4 rounded-2xl bg-white border border-black/5">
               <h3 className="font-bold text-[#1d1d1f] mb-2 flex items-center gap-2">
                 <span className="w-6 h-6 shrink-0 rounded-lg bg-[#0068d6]/10 text-[#0068d6] flex items-center justify-center text-xs">&#9889;</span>
-                <span className="min-w-0 break-words">Top 3 Quick Wins</span>
+                <span className="min-w-0 break-words">{t('exec.quickWins')}</span>
               </h3>
               <ul className="space-y-1.5 text-sm">
                 {recommendations.quickWins.slice(0, 3).map(r => (

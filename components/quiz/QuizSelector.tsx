@@ -1,10 +1,21 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 import { useAssessment } from '@/context/AssessmentContext';
 import type { AssessmentType } from '@/types';
 
+/**
+ * Výber diagnostiky. Texty idú z messages/*.json (quizSelector.*) — dlho tu
+ * boli natvrdo po slovensky, hoci kľúče existovali od začiatku i18n.
+ *
+ * Router je z @/i18n/navigation, NIE z next/navigation: obyčajný push('/quiz')
+ * ignoroval jazyk a v statickom exporte (bez middlewaru) by nemeckého
+ * používateľa poslal cez legacy 301 na /sk/quiz. Locale-aware router pushne
+ * /de/quiz.
+ */
 export default function QuizSelector() {
+  const t = useTranslations('quizSelector');
   const router = useRouter();
   const { startQuiz } = useAssessment();
 
@@ -12,6 +23,17 @@ export default function QuizSelector() {
     startQuiz(type);
     router.push('/quiz');
   };
+
+  const check = (
+    <span className="w-5 h-5 flex-shrink-0 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] flex items-center justify-center text-xs">
+      &#10003;
+    </span>
+  );
+  const arrow = (
+    <svg className="w-5 h-5 flex-shrink-0 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+    </svg>
+  );
 
   return (
     <div className="grid gap-4 sm:gap-6 md:grid-cols-2 md:gap-8 max-w-4xl mx-auto">
@@ -27,35 +49,22 @@ export default function QuizSelector() {
             </span>
             <div className="min-w-0">
               <h3 className="text-lg sm:text-xl font-bold text-[#1d1d1f] break-words">
-                Indikatívny kvíz
+                {t('indicative.title')}
               </h3>
               <span className="mt-1 inline-block text-xs text-[#0068d6] font-medium bg-[#0068d6]/5 px-2 py-0.5 rounded-full">
-                5-7 minút
+                {t('indicative.duration')}
               </span>
             </div>
           </div>
-          <p className="text-[#6e6e73] mb-5">
-            Rýchly screening digitálnej zrelosti. Orientačný výsledok s hlavnými odporúčaniami.
-          </p>
+          <p className="text-[#6e6e73] mb-5">{t('indicative.description')}</p>
           <ul className="space-y-2.5 text-sm text-[#6e6e73] mb-6">
-            <li className="flex items-center gap-2">
-              <span className="w-5 h-5 flex-shrink-0 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] flex items-center justify-center text-xs">&#10003;</span>
-              Max. 15 otázok
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-5 h-5 flex-shrink-0 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] flex items-center justify-center text-xs">&#10003;</span>
-              Orientačné skóre digitalizácie
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-5 h-5 flex-shrink-0 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] flex items-center justify-center text-xs">&#10003;</span>
-              Identifikácia hlavných rizík
-            </li>
+            <li className="flex items-center gap-2">{check}{t('indicative.bullet1')}</li>
+            <li className="flex items-center gap-2">{check}{t('indicative.bullet2')}</li>
+            <li className="flex items-center gap-2">{check}{t('indicative.bullet3')}</li>
           </ul>
           <div className="flex items-center gap-2 text-[#0068d6] font-semibold group-hover:gap-3 transition-all">
-            Začať screening
-            <svg className="w-5 h-5 flex-shrink-0 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
+            {t('indicative.cta')}
+            {arrow}
           </div>
         </div>
       </button>
@@ -68,7 +77,7 @@ export default function QuizSelector() {
         {/* Na úzkom displeji je odznak v toku nad hlavičkou — absolútne
             umiestnený vpravo hore sa prekrýval so začiatkom nadpisu karty. */}
         <span className="relative z-10 mb-4 inline-flex px-3 py-1 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] text-xs font-bold sm:absolute sm:top-4 sm:right-4 sm:mb-0">
-          Odporúčané
+          {t('recommended')}
         </span>
         <div className="relative">
           <div className="flex items-center gap-3 sm:gap-4 mb-5">
@@ -77,35 +86,22 @@ export default function QuizSelector() {
             </span>
             <div className="min-w-0">
               <h3 className="text-lg sm:text-xl font-bold text-[#1d1d1f] break-words">
-                Komplexná diagnostika
+                {t('complex.title')}
               </h3>
               <span className="mt-1 inline-block text-xs text-[#0068d6] font-medium bg-[#0068d6]/5 px-2 py-0.5 rounded-full">
-                15-20 minút
+                {t('complex.duration')}
               </span>
             </div>
           </div>
-          <p className="text-[#6e6e73] mb-5">
-            Hlbšia analýza s detailným výsledkom. Adaptívne otázky podľa vašich odpovedí.
-          </p>
+          <p className="text-[#6e6e73] mb-5">{t('complex.description')}</p>
           <ul className="space-y-2.5 text-sm text-[#6e6e73] mb-6">
-            <li className="flex items-center gap-2">
-              <span className="w-5 h-5 flex-shrink-0 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] flex items-center justify-center text-xs">&#10003;</span>
-              Detailný profil po 6 kategóriách
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-5 h-5 flex-shrink-0 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] flex items-center justify-center text-xs">&#10003;</span>
-              Risk index a ROI odhad
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-5 h-5 flex-shrink-0 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] flex items-center justify-center text-xs">&#10003;</span>
-              Prioritizovaná roadmapa
-            </li>
+            <li className="flex items-center gap-2">{check}{t('complex.bullet1')}</li>
+            <li className="flex items-center gap-2">{check}{t('complex.bullet2')}</li>
+            <li className="flex items-center gap-2">{check}{t('complex.bullet3')}</li>
           </ul>
           <div className="flex items-center gap-2 text-[#0068d6] font-semibold group-hover:gap-3 transition-all">
-            Začať diagnostiku
-            <svg className="w-5 h-5 flex-shrink-0 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
+            {t('complex.cta')}
+            {arrow}
           </div>
         </div>
       </button>

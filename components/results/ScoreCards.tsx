@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import type { DIIScore, ORSScore, TDRIScore, BusinessImpact, AIReadinessScore } from '@/types';
 
 interface ScoreCardsProps {
@@ -11,6 +12,7 @@ interface ScoreCardsProps {
 }
 
 export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: ScoreCardsProps) {
+  const t = useTranslations();
   return (
     // Na telefóne jeden stĺpec: pri 320 px a dvoch stĺpcoch zostávalo po
     // odpočítaní paddingu ~88 px na obsah, čo rozbíjalo číslo aj popis.
@@ -33,7 +35,7 @@ export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: Scor
             <span className="text-sm text-[#86868b] font-medium">/100</span>
           </div>
           <div className="text-xs text-[#6e6e73] mt-2 font-medium">
-            {dii.score12}/12 (DII) &middot; {dii.levelLabelSk}
+            {dii.score12}/12 (DII) &middot; {t('levels.dii.' + dii.level)}
           </div>
           <div className="mt-3 h-2.5 rounded-full bg-black/5 overflow-hidden shadow-inner">
             <div
@@ -62,7 +64,7 @@ export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: Scor
                 <span className="text-sm text-[#86868b] font-medium">/100</span>
               </div>
               <div className="text-xs text-[#6e6e73] mt-2 font-medium">
-                {aiReadiness.levelLabelSk}
+                {t('levels.ai.' + aiReadiness.level)}
               </div>
               <div className="mt-3 h-2.5 rounded-full bg-black/5 overflow-hidden shadow-inner">
                 <div
@@ -77,7 +79,7 @@ export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: Scor
                 &ndash;
               </div>
               <div className="text-xs text-[#86868b] mt-2 font-medium">
-                Nezmerané &mdash; chýbajú odpovede o AI
+                {t('cards.aiUnmeasured')}
               </div>
             </>
           )}
@@ -91,7 +93,7 @@ export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: Scor
             <div className="hidden sm:flex w-8 h-8 rounded-xl bg-[#1d1d1f]/8 items-center justify-center text-[#1d1d1f] text-xs font-semibold" aria-hidden="true">
               O
             </div>
-            <span className="text-sm font-medium text-[#6e6e73]">Operačná zrelosť</span>
+            <span className="text-sm font-medium text-[#6e6e73]">{t('card.operationalMaturity')}</span>
           </div>
           <div className="flex items-baseline gap-2 animate-count-up">
             <span className="text-4xl font-black text-[#1d1d1f] tracking-tight">
@@ -100,12 +102,12 @@ export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: Scor
             <span className="text-sm text-[#86868b] font-medium">/100</span>
           </div>
           <div className="text-xs text-[#6e6e73] mt-2 font-medium">
-            Level {ors.maturityLevel} &middot; {ors.maturityLabelSk}
+            Level {ors.maturityLevel} &middot; {t('levels.maturity.' + ors.maturityLevel)}
           </div>
           {ors.penaltyApplied && (
             <div className="flex items-center gap-1.5 mt-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-              <span className="text-xs text-amber-600 font-medium">Penalizácia za bezpečnosť</span>
+              <span className="text-xs text-amber-600 font-medium">{t('cards.securityPenalty')}</span>
             </div>
           )}
           <div className="mt-3 h-2.5 rounded-full bg-black/5 overflow-hidden shadow-inner">
@@ -131,7 +133,7 @@ export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: Scor
             >
               !
             </div>
-            <span className="text-sm font-medium text-[#6e6e73]">Technologický dlh</span>
+            <span className="text-sm font-medium text-[#6e6e73]">{t('cards.techDebt')}</span>
           </div>
           <div className="flex items-baseline gap-2 animate-count-up">
             <span className={`text-4xl font-black tracking-tight ${
@@ -145,7 +147,7 @@ export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: Scor
             <span className="text-sm text-[#86868b] font-medium">/100</span>
           </div>
           <div className="text-xs text-[#6e6e73] mt-2 font-medium">
-            {tdri.riskLabelSk}
+            {t('levels.risk.' + tdri.riskLevel)}
           </div>
           <div className="mt-3 h-2.5 rounded-full bg-black/5 overflow-hidden shadow-inner">
             <div
@@ -168,7 +170,7 @@ export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: Scor
             <div className="hidden sm:flex w-8 h-8 rounded-xl bg-emerald-500/10 items-center justify-center text-emerald-700 text-xs font-semibold" aria-hidden="true">
               &euro;
             </div>
-            <span className="text-sm font-medium text-[#6e6e73]">Ročný potenciál úspor</span>
+            <span className="text-sm font-medium text-[#6e6e73]">{t('cards.annualSavings')}</span>
           </div>
           <div className="flex items-baseline gap-1 animate-count-up">
             <span className="text-4xl font-black text-emerald-600 tracking-tight">
@@ -176,7 +178,7 @@ export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: Scor
             </span>
           </div>
           <div className="text-xs text-[#6e6e73] mt-2 font-medium">
-            {impact.timeSavings.mdPerYear.conservative} MD konzervatívne
+            {t('cards.mdConservative', { md: impact.timeSavings.mdPerYear.conservative })}
           </div>
           <div className="flex items-center gap-2 mt-3">
             <div className="flex-1 h-2.5 rounded-full bg-black/5 overflow-hidden shadow-inner">

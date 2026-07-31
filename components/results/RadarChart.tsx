@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   Radar,
   RadarChart as RechartsRadarChart,
@@ -16,6 +17,7 @@ interface RadarChartProps {
 }
 
 export default function RadarChart({ categories }: RadarChartProps) {
+  const t = useTranslations();
   const data = Object.entries(categories).map(([, cat]) => ({
     category: cat.name.split(' ')[0],
     fullName: cat.name,
@@ -63,7 +65,7 @@ export default function RadarChart({ categories }: RadarChartProps) {
             }}
           />
           <Radar
-            name="Skóre"
+            name={t('results.auditColScore')}
             dataKey="score"
             stroke="url(#radarStroke)"
             fill="url(#radarFill)"

@@ -1,5 +1,8 @@
 'use client';
 
+import { useTranslations, useLocale } from 'next-intl';
+import { intlLocale, type Locale } from '@/i18n/routing';
+
 import {
   PEER_DATA,
   getPeerCohort,
@@ -35,6 +38,8 @@ function median(values: number[]): number {
 }
 
 export default function PeerComparisonPanel({ current }: PeerComparisonPanelProps) {
+  const t = useTranslations('peersPanel');
+  const locale = useLocale() as Locale;
   const cohort = getPeerCohort(current.sector, current.sizeBand).filter(
     (p) => p.hash !== current.hash
   );
@@ -80,7 +85,7 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
       cohortValues: cohort.map((p) => p.businessImpactEur),
       countryAvg: country.businessImpactEur,
       format: (v) =>
-        new Intl.NumberFormat('sk-SK', {
+        new Intl.NumberFormat(intlLocale(locale), {
           style: 'currency',
           currency: 'EUR',
           maximumFractionDigits: 0,
@@ -123,13 +128,10 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
         </div>
         <div className="min-w-0">
           <h2 className="text-lg font-bold text-[#1d1d1f] break-words">
-            Porovnanie s peer skupinou a krajinou
+            {t('title')}
           </h2>
           <p className="text-sm text-[#6e6e73] mt-1 leading-relaxed break-words">
-            Vaša pozícia voči anonymizovaným výsledkom firiem zo segmentu
-            <strong className="text-[#1d1d1f]"> {sectorLabel}</strong>,
-            veľkosť <strong className="text-[#1d1d1f]">{sizeLabel}</strong>
-            {' '}({cohort.length}{' '}firiem) a celého slovenského vzorky ({PEER_DATA.length}).
+            {t.rich('intro', { sector: sectorLabel, size: sizeLabel, n: cohort.length, total: PEER_DATA.length, s: (c) => <strong className="text-[#1d1d1f]">{c}</strong> })}
           </p>
         </div>
       </div>
@@ -172,19 +174,19 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
               </div>
               <dl className="mt-2 space-y-1 text-xs">
                 <div className="flex items-baseline justify-between gap-2">
-                  <dt className="min-w-0 text-[#6e6e73] break-words">Peer medián</dt>
+                  <dt className="min-w-0 text-[#6e6e73] break-words">{t('peerMedian')}</dt>
                   <dd className="shrink-0 font-mono text-[#1d1d1f] tabular-nums">
                     {hasCohort ? row.format(peerMed) : '—'}
                   </dd>
                 </div>
                 <div className="flex items-baseline justify-between gap-2">
-                  <dt className="min-w-0 text-[#6e6e73] break-words">SK priemer</dt>
+                  <dt className="min-w-0 text-[#6e6e73] break-words">{t('skAverage')}</dt>
                   <dd className="shrink-0 font-mono text-[#1d1d1f] tabular-nums">
                     {row.format(row.countryAvg)}
                   </dd>
                 </div>
                 <div className="flex items-baseline justify-between gap-2">
-                  <dt className="min-w-0 text-[#6e6e73] break-words">Δ vs peer</dt>
+                  <dt className="min-w-0 text-[#6e6e73] break-words">{t('deltaVsPeer')}</dt>
                   <dd className="shrink-0">
                     {hasCohort ? (
                       <span
@@ -215,11 +217,9 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-black/[0.03]">
-              <th className="text-left py-3 px-4 text-[#6e6e73] font-bold">Metrika</th>
-              <th className="text-right py-3 px-4 text-[#0068d6] font-bold">Vy</th>
-              <th className="text-right py-3 px-4 text-[#6e6e73] font-bold">
-                Peer medián
-              </th>
+              <th className="text-left py-3 px-4 text-[#6e6e73] font-bold">{t('metric')}</th>
+              <th className="text-right py-3 px-4 text-[#0068d6] font-bold">{t('you')}</th>
+              <th className="text-right py-3 px-4 text-[#6e6e73] font-bold">{t('peerMedian')}</th>
               <th className="text-right py-3 px-4 text-[#6e6e73] font-bold">SK priemer</th>
               <th className="text-right py-3 px-4 text-[#6e6e73] font-bold">Δ vs peer</th>
             </tr>
@@ -274,9 +274,8 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
       </div>
 
       <p className="text-xs text-[#6e6e73] mt-4 leading-relaxed">
-        <strong className="text-[#1d1d1f]">Anonymizácia:</strong>{' '}
-        zobrazené sú iba agregáty — žiadne identifikačné údaje firiem.
-        Δ porovnanie je oproti mediánu peer skupiny (rovnaký sektor a veľkosť).
+        <strong className="text-[#1d1d1f]">{t('anonTitle')}</strong>{' '}
+        {t('anonBody')}
       </p>
     </div>
   );

@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useEffect, useState } from 'react';
 
 /**
@@ -33,22 +35,23 @@ interface Sample {
 }
 
 const SAMPLES: Sample[] = [
-  { ors: 78, dii: 7, risk: 'Stredné', riskTone: 'text-amber-600', save: '14,4k €', radar: '48,20 72,35 67,58 48,78 28,59 26,36' },
-  { ors: 52, dii: 4, risk: 'Vysoké', riskTone: 'text-rose-600', save: '31,2k €', radar: '48,29 67,38 62,55 48,67 33,56 31,39' },
-  { ors: 91, dii: 10, risk: 'Nízke', riskTone: 'text-emerald-600', save: '6,8k €', radar: '48,14 77,33 75,62 48,82 19,63 18,32' },
-  { ors: 34, dii: 2, risk: 'Kritické', riskTone: 'text-rose-600', save: '48,5k €', radar: '48,35 58,43 58,53 48,63 38,53 36,42' },
+  { ors: 78, dii: 7, risk: 'riskMedium', riskTone: 'text-amber-600', save: '14,4k €', radar: '48,20 72,35 67,58 48,78 28,59 26,36' },
+  { ors: 52, dii: 4, risk: 'riskHigh', riskTone: 'text-rose-600', save: '31,2k €', radar: '48,29 67,38 62,55 48,67 33,56 31,39' },
+  { ors: 91, dii: 10, risk: 'riskLow', riskTone: 'text-emerald-600', save: '6,8k €', radar: '48,14 77,33 75,62 48,82 19,63 18,32' },
+  { ors: 34, dii: 2, risk: 'riskCritical', riskTone: 'text-rose-600', save: '48,5k €', radar: '48,35 58,43 58,53 48,63 38,53 36,42' },
 ];
 
 function CardFace({ s, cycle, gradId }: { s: Sample; cycle: number; gradId: string }) {
+  const t = useTranslations('card');
   return (
     <>
       <div className="flex items-center justify-between mb-6">
         <span className="text-[11px] uppercase tracking-wider text-[#86868b]">
-          Vaša výsledková karta
+          {t('title')}
         </span>
         <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-600">
           <span className="hero-live-dot" />
-          naživo v prehliadači
+          {t('live')}
         </span>
       </div>
 
@@ -58,7 +61,7 @@ function CardFace({ s, cycle, gradId }: { s: Sample; cycle: number; gradId: stri
             {s.ors}
             <span className="text-[#86868b] text-2xl">/100</span>
           </div>
-          <div className="text-sm text-[#6e6e73] mt-1">Operačná zrelosť</div>
+          <div className="text-sm text-[#6e6e73] mt-1">{t('operationalMaturity')}</div>
         </div>
         <svg width="92" height="92" viewBox="0 0 96 96" className="opacity-90" aria-hidden="true">
           <polygon
@@ -92,19 +95,19 @@ function CardFace({ s, cycle, gradId }: { s: Sample; cycle: number; gradId: stri
             {s.dii}
             <span className="text-[#86868b] text-xs">/12</span>
           </div>
-          <div className="text-[10px] uppercase tracking-wide text-[#86868b] mt-0.5">DII skóre</div>
+          <div className="text-[10px] uppercase tracking-wide text-[#86868b] mt-0.5">{t('diiScore')}</div>
         </div>
         <div>
           <div key={`risk-${cycle}`} className={`hero-val-swap text-lg font-semibold ${s.riskTone}`}>
-            {s.risk}
+            {t(s.risk)}
           </div>
-          <div className="text-[10px] uppercase tracking-wide text-[#86868b] mt-0.5">Riziko</div>
+          <div className="text-[10px] uppercase tracking-wide text-[#86868b] mt-0.5">{t('risk')}</div>
         </div>
         <div>
           <div key={`save-${cycle}`} className="hero-val-swap text-lg font-semibold text-emerald-600">
             {s.save}
           </div>
-          <div className="text-[10px] uppercase tracking-wide text-[#86868b] mt-0.5">Úspora/rok</div>
+          <div className="text-[10px] uppercase tracking-wide text-[#86868b] mt-0.5">{t('savingsPerYear')}</div>
         </div>
       </div>
     </>

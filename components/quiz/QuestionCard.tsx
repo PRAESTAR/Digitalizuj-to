@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import type { Question } from '@/types';
 
 interface QuestionCardProps {
@@ -9,6 +10,7 @@ interface QuestionCardProps {
 }
 
 export default function QuestionCard({ question, onSubmit }: QuestionCardProps) {
+  const t = useTranslations('quiz');
   const [selected, setSelected] = useState<string | string[]>(
     question.question_type === 'multi_select' ? [] : ''
   );
@@ -71,7 +73,7 @@ export default function QuestionCard({ question, onSubmit }: QuestionCardProps) 
               <button
                 type="button"
                 aria-expanded={showTooltip}
-                aria-label="Vysvetlenie otázky"
+                aria-label={t('tooltipLabel')}
                 className="group/help flex-shrink-0 -mr-2 -mt-2 w-11 h-11 flex items-center justify-center rounded-full"
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
@@ -95,7 +97,7 @@ export default function QuestionCard({ question, onSubmit }: QuestionCardProps) 
             </div>
           )}
           {question.question_type === 'multi_select' && (
-            <p className="text-sm text-[#6e6e73] mt-2 font-medium">Vyberte všetky, ktoré platia</p>
+            <p className="text-sm text-[#6e6e73] mt-2 font-medium">{t('multiSelectHint')}</p>
           )}
         </div>
 
@@ -152,7 +154,7 @@ export default function QuestionCard({ question, onSubmit }: QuestionCardProps) 
               <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
-              Neviem / Preskočiť
+              {t('skip')}
             </button>
           ) : (
             /* Prázdna výplň má zmysel len pri justify-between na širokom displeji;
@@ -168,7 +170,7 @@ export default function QuestionCard({ question, onSubmit }: QuestionCardProps) 
                 : 'btn-apple-primary text-white'
             }`}
           >
-            Pokračovať
+            {t('continue')}
           </button>
         </div>
       </div>

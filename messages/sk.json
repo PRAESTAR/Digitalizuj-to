@@ -6,7 +6,8 @@
     "back": "Späť",
     "backHome": "Späť na úvod",
     "loading": "Načítavam…",
-    "minutes": "minút"
+    "minutes": "minút",
+    "yes": "Áno"
   },
   "meta": {
     "title": "Test digitálnej zrelosti firmy zadarmo | digitalizuj.to",
@@ -123,7 +124,17 @@
     "maturityProfile": "Profil digitálnej zrelosti",
     "auditTrail": "Audit Trail",
     "auditTrailSubtitle": "Kompletný záznam odpovedí a výpočtu pre auditovateľnosť.",
-    "scrollHint": "Tabuľku posuniete do boku →"
+    "scrollHint": "Tabuľku posuniete do boku",
+    "auditModelLabel": "Adaptívny model DAP:",
+    "auditDiiLabel": "DII metodika:",
+    "auditBenchmarkLabel": "Benchmark:",
+    "auditShowFull": "Zobraziť kompletný audit trail ({count} odpovedí)",
+    "auditColQuestion": "Otázka ID",
+    "auditColAnswer": "Odpoveď",
+    "auditColScore": "Skóre",
+    "auditColUnknown": "Neviem",
+    "auditColSkipped": "Preskočená",
+    "scoringConfig": "Scoring konfigurácia"
   },
   "share": {
     "title": "Váš permanentný odkaz",
@@ -158,5 +169,128 @@
     "text": "Pri spracovaní vašej požiadavky nastala neočakávaná chyba. Skúste to prosím znova.",
     "retry": "Skúsiť znova",
     "errorId": "ID chyby"
+  },
+  "levels": {
+    "maturity": {
+      "0": "Digitálny nováčik",
+      "1": "Začiatočník",
+      "2": "Rozvíjajúci sa",
+      "3": "Pokročilý",
+      "4": "Digitálny líder"
+    },
+    "dii": {
+      "very_low": "Veľmi nízka digitálna intenzita",
+      "low": "Nízka digitálna intenzita",
+      "high": "Vysoká digitálna intenzita",
+      "very_high": "Veľmi vysoká digitálna intenzita"
+    },
+    "ai": {
+      "ziadna": "Bez využitia AI",
+      "experimentalna": "Experimentálne využitie AI",
+      "pokrocila": "Pokročilé využitie AI",
+      "strategicka": "AI ako súčasť stratégie"
+    },
+    "risk": {
+      "low": "Dobre riadené",
+      "medium": "Vyžaduje pozornosť",
+      "high": "Vyžaduje okamžitú akciu",
+      "critical": "Ohrozenie prevádzky"
+    },
+    "severity": {
+      "critical": "Kritické",
+      "high": "Vysoké",
+      "medium": "Stredné"
+    }
+  },
+  "exec": {
+    "title": "Executive Summary",
+    "maturity": "Vaša firma dosahuje úroveň digitálnej zrelosti <s>„{label}\"</s> s celkovým skóre <s>{score}/100</s>.",
+    "penaltyNote": "(skóre znížené o penalizáciu za bezpečnostný stav)",
+    "dii": "Z pohľadu digitálnej intenzity (DII) dosahujete <s>{points}/12 bodov</s>, čo zodpovedá úrovni <s>„{label}\"</s>.",
+    "ai": "V oblasti umelej inteligencie a automatizácie ste na úrovni <s>„{label}\"</s> (<s>{score}/100</s>).",
+    "aiUnmeasured": "Pripravenosť na umelú inteligenciu sme nezmerali — v dotazníku ste nezodpovedali otázky o využívaní AI.",
+    "debtTitle": "Upozornenie na technologický dlh",
+    "debtBody": "Váš index technologického dlhu ({score}/100) indikuje {label}.",
+    "debtUrgent": "Najkritickejšie riziká vyžadujú okamžitú pozornosť.",
+    "strengths": "Silné stránky",
+    "criticalRisks": "Kritické riziká",
+    "quickWins": "Top 3 Quick Wins"
+  },
+  "risk": {
+    "title": "Technologický dlh a riziká",
+    "noRisks": "Neboli identifikované žiadne kritické riziká. Skóre: {score}/100 ({label})."
+  },
+  "cards": {
+    "aiUnmeasured": "Nezmerané — chýbajú odpovede o AI",
+    "securityPenalty": "Penalizácia za bezpečnosť",
+    "techDebt": "Technologický dlh",
+    "annualSavings": "Ročný potenciál úspor",
+    "mdConservative": "{md} MD konzervatívne"
+  },
+  "impact": {
+    "scenario": {
+      "conservative": "Konzervatívny",
+      "mid": "Reálny",
+      "optimistic": "Optimistický"
+    },
+    "cumulativeTitle": "Kumulatívna úspora v čase",
+    "cumulativeNote": "Tri scenáre sa líšia rýchlosťou nábehu k plnému ročnému prínosu — bodkovaná čiara označuje mesiac, kedy daný scenár dosiahne plnú mesačnú sadzbu.",
+    "savedHours": "Ušetrené hodiny/rok",
+    "savedMd": "Ušetrené MD/rok",
+    "errorReduction": "Úspora z redukcie chýb (h)",
+    "annualImpact": "Ročný dopad (EUR)",
+    "confidence": "Spoľahlivosť odhadu:",
+    "disclaimers": "Metodické poznámky a disclaimery",
+    "auditTitle": "Audit trail: rozpad výpočtu",
+    "colProcess": "Proces",
+    "colFreq": "Frekv./rok",
+    "colTime": "Čas/prípad",
+    "colManual": "Manuál",
+    "colAuto": "Automat.",
+    "colSaved": "Ušetr. h",
+    "colErrors": "Chyby h",
+    "colSource": "Zdroj"
+  },
+  "reco": {
+    "title": "Odporúčania a Roadmapa",
+    "phaseNow": "Okamžité",
+    "phaseStrategic": "Strategické",
+    "phaseTransform": "Transformácia",
+    "focusNow": "Sústreďte sa na okamžité akcie. Strategické iniciatívy definujte po ich splnení.",
+    "transformLater": "Transformačné zmeny definujte po stabilizácii základov.",
+    "transformExpand": "Zvážte rozšírené digitalizačné iniciatívy po stabilizácii základov.",
+    "quickWinsAll": "Quick Wins (všetky)",
+    "effort": "Úsilie: {n}/5"
+  },
+  "bench": {
+    "vsSk": "DII vs. Slovensko",
+    "vsEu": "DII vs. EÚ priemer",
+    "vsSector": "DII vs. váš sektor",
+    "orsVsSector": "Operačná zrelosť vs. sektor",
+    "source": "Benchmark dáta: {source}. Verzia: {version} ({date})."
+  },
+  "customer": {
+    "notFoundTitle": "Výsledok nie je dostupný na tomto zariadení",
+    "notFoundBody": "Hash <mono>{hash}</mono> sme nenašli ani v anonymizovanej vzorke, ani v lokálnej pamäti tohto prehliadača.",
+    "notFoundHint": "Výsledky vlastnej diagnostiky sú uložené iba lokálne v zariadení, kde ste kvíz vyplnili. Otvorte odkaz v rovnakom prehliadači, alebo si urobte novú diagnostiku.",
+    "startNew": "Začať novú diagnostiku",
+    "browseSamples": "Prezerať vzorové výsledky",
+    "yourResult": "Váš výsledok",
+    "higherWorse": "Vyššie = horšie",
+    "eurPerYearMid": "EUR / rok (mid)",
+    "anonResult": "Anonymizovaný výsledok",
+    "aboutTitle": "O tomto zobrazení",
+    "aboutBody": "Toto je anonymizovaný snapshot výsledku z testovacej vzorky 50 firiem na Slovensku. Žiadne identifikačné údaje firmy sa neukladajú a nezobrazujú. Stránka je dostupná iba cez tento konkrétny hash a nie je indexovaná vyhľadávačmi."
+  },
+  "peersPanel": {
+    "title": "Porovnanie s peer skupinou a krajinou",
+    "intro": "Vaša pozícia voči anonymizovaným výsledkom firiem zo segmentu <s>{sector}</s>, veľkosť <s>{size}</s> ({n} firiem) a celej slovenskej vzorky ({total}).",
+    "peerMedian": "Peer medián",
+    "skAverage": "SK priemer",
+    "deltaVsPeer": "Δ vs peer",
+    "metric": "Metrika",
+    "you": "Vy",
+    "anonTitle": "Anonymizácia:",
+    "anonBody": "zobrazené sú iba agregáty — žiadne identifikačné údaje firiem. Δ porovnanie je oproti mediánu peer skupiny (rovnaký sektor a veľkosť)."
   }
 }

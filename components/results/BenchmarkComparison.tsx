@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import type { BenchmarkResults, DIIScore } from '@/types';
 import { benchmarkData } from '@/data/benchmarkData';
 
@@ -9,6 +10,7 @@ interface BenchmarkComparisonProps {
 }
 
 export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkComparisonProps) {
+  const t = useTranslations('bench');
   return (
     // p-8 na mobile ukrojilo 64 px zo šírky karty; padding nabieha až od sm
     <div className="bg-white rounded-3xl border border-black/5 shadow-sm p-5 sm:p-6 lg:p-8 animate-fade-in-up relative overflow-hidden">
@@ -26,7 +28,7 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
 
         <div className="grid gap-3 sm:gap-4 md:grid-cols-2 stagger-children">
           <BenchmarkCard
-            title="DII vs. Slovensko"
+            title={t('vsSk')}
             icon="🇸🇰"
             value={`${dii.score12}/12`}
             gap={benchmarks.diiVsSk.gap}
@@ -34,7 +36,7 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
             percentile={benchmarks.diiVsSk.percentile}
           />
           <BenchmarkCard
-            title="DII vs. EÚ priemer"
+            title={t('vsEu')}
             icon="🇪🇺"
             value={`${dii.score12}/12`}
             gap={benchmarks.diiVsEu.gap}
@@ -42,14 +44,14 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
             percentile={benchmarks.diiVsEu.percentile}
           />
           <BenchmarkCard
-            title="DII vs. váš sektor"
+            title={t('vsSector')}
             icon="🏢"
             value={`${dii.score12}/12`}
             gap={benchmarks.diiVsSector.gap}
             label={benchmarks.diiVsSector.labelSk}
           />
           <BenchmarkCard
-            title="Operačná zrelosť vs. sektor"
+            title={t('orsVsSector')}
             icon="⚙️"
             gap={benchmarks.orsVsSector.gap}
             label={benchmarks.orsVsSector.labelSk}
@@ -61,7 +63,7 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
         <div className="mt-6 text-xs text-[#86868b] font-medium flex items-start gap-2">
           <span aria-hidden="true" className="w-1.5 h-1.5 shrink-0 mt-1.5 rounded-full bg-black/10" />
           <span className="min-w-0 break-words">
-            Benchmark dáta: {benchmarkData.source}. Verzia: {benchmarkData.version} ({benchmarkData.lastUpdated}).
+            {t('source', { source: benchmarkData.source, version: benchmarkData.version, date: benchmarkData.lastUpdated })}
           </span>
         </div>
       </div>

@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { intlLocale, type Locale } from '@/i18n/routing';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import {
   PEER_DATA,
@@ -13,7 +15,7 @@ import UserOwnResultView from '@/components/customer/UserOwnResultView';
 
 const SITE_URL = 'https://digitalizuj.to';
 
-type Params = Promise<{ hash: string }>;
+type Params = Promise<{ locale: string; hash: string }>;
 
 export async function generateStaticParams() {
   return PEER_DATA.map((p) => ({ hash: p.hash }));
@@ -67,7 +69,9 @@ export default async function ResultByHashPage({
 }: {
   params: Params;
 }) {
-  const { hash } = await params;
+  const { locale, hash } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations();
 
   if (!isValidHash(hash)) {
     notFound();
@@ -85,7 +89,7 @@ export default async function ResultByHashPage({
   const sizeLabel = SIZE_BAND_LABELS_SK[peer.sizeBand];
   const url = `${SITE_URL}/r/${hash}`;
 
-  const dateLabel = new Date(peer.completedAt).toLocaleDateString('sk-SK', {
+  const dateLabel = new Date(peer.completedAt).toLocaleDateString(intlLocale(locale as Locale), {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -107,9 +111,7 @@ export default async function ResultByHashPage({
           {/* min-w-0 — bez neho flex položka nikdy neklesne pod svoju
               min-content šírku a dlhý sektorový názov roztlačí celú hlavičku. */}
           <div className="min-w-0">
-            <p className="text-xs font-bold text-[#86868b] uppercase tracking-wide mb-0.5">
-              Anonymizovaný výsledok
-            </p>
+            <p className="text-xs font-bold text-[#86868b] uppercase tracking-wide mb-0.5">{t('customer.anonResult')}</p>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#1d1d1f] break-words">
               {sectorLabel} &middot; {sizeLabel}
             </h1>
@@ -145,11 +147,11 @@ export default async function ResultByHashPage({
           label="Risk Index (TDRI)"
           value={`${peer.tdriScore}`}
           unit="/100"
-          subtitle="Vyššie = horšie"
+          subtitle={t('customer.higherWorse')}
         />
         <ScoreCard
           label="Business Impact"
-          value={new Intl.NumberFormat('sk-SK', {
+          value={new Intl.NumberFormat(intlLocale(locale as Locale), {
             style: 'currency',
             currency: 'EUR',
             maximumFractionDigits: 0,
@@ -167,11 +169,9 @@ export default async function ResultByHashPage({
 
       {/* Disclaimer */}
       <div className="rounded-3xl bg-white border border-black/5 p-4 sm:p-5 text-sm text-[#6e6e73] leading-relaxed">
-        <p className="font-bold text-[#1d1d1f] mb-1">O tomto zobrazení</p>
+        <p className="font-bold text-[#1d1d1f] mb-1">{t('customer.aboutTitle')}</p>
         <p>
-          Toto je anonymizovaný snapshot výsledku z testovacieho vzorky 50 firiem na Slovensku.
-          Žiadne identifikačné údaje firmy sa neukladajú a nezobrazujú. Stránka je dostupná iba
-          cez tento konkrétny hash a nie je indexovaná vyhľadávačmi.
+          {t('customer.aboutBody')}
         </p>
       </div>
     </div>

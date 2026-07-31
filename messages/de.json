@@ -6,7 +6,8 @@
     "back": "Zurück",
     "backHome": "Zurück zur Startseite",
     "loading": "Wird geladen…",
-    "minutes": "Minuten"
+    "minutes": "Minuten",
+    "yes": "Ja"
   },
   "meta": {
     "title": "Test zum digitalen Reifegrad für KMU – kostenlos | digitalizuj.to",
@@ -123,7 +124,17 @@
     "maturityProfile": "Profil der digitalen Reife",
     "auditTrail": "Audit Trail",
     "auditTrailSubtitle": "Vollständige Aufzeichnung der Antworten und der Berechnung zur Nachvollziehbarkeit.",
-    "scrollHint": "Tabelle seitlich scrollen →"
+    "scrollHint": "Tabelle seitlich verschiebbar",
+    "auditModelLabel": "Adaptives Modell DAP:",
+    "auditDiiLabel": "DII-Methodik:",
+    "auditBenchmarkLabel": "Benchmark:",
+    "auditShowFull": "Vollständigen Audit-Trail anzeigen ({count} Antworten)",
+    "auditColQuestion": "Frage-ID",
+    "auditColAnswer": "Antwort",
+    "auditColScore": "Score",
+    "auditColUnknown": "Weiß nicht",
+    "auditColSkipped": "Übersprungen",
+    "scoringConfig": "Scoring-Konfiguration"
   },
   "share": {
     "title": "Ihr permanenter Link",
@@ -158,5 +169,128 @@
     "text": "Bei der Verarbeitung Ihrer Anfrage ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie es erneut.",
     "retry": "Erneut versuchen",
     "errorId": "Fehler-ID"
+  },
+  "levels": {
+    "maturity": {
+      "0": "Digitaler Neuling",
+      "1": "Einsteiger",
+      "2": "Im Aufbau",
+      "3": "Fortgeschritten",
+      "4": "Digitaler Vorreiter"
+    },
+    "dii": {
+      "very_low": "Sehr geringe digitale Intensität",
+      "low": "Geringe digitale Intensität",
+      "high": "Hohe digitale Intensität",
+      "very_high": "Sehr hohe digitale Intensität"
+    },
+    "ai": {
+      "ziadna": "Keine KI-Nutzung",
+      "experimentalna": "Experimentelle KI-Nutzung",
+      "pokrocila": "Fortgeschrittene KI-Nutzung",
+      "strategicka": "KI als Teil der Strategie"
+    },
+    "risk": {
+      "low": "Gut beherrscht",
+      "medium": "Erfordert Aufmerksamkeit",
+      "high": "Erfordert sofortiges Handeln",
+      "critical": "Betriebsgefährdung"
+    },
+    "severity": {
+      "critical": "Kritisch",
+      "high": "Hoch",
+      "medium": "Mittel"
+    }
+  },
+  "exec": {
+    "title": "Executive Summary",
+    "maturity": "Ihr Unternehmen erreicht den digitalen Reifegrad <s>„{label}\"</s> mit einem Gesamtscore von <s>{score}/100</s>.",
+    "penaltyNote": "(Score um die Sicherheitsstrafe reduziert)",
+    "dii": "Bei der digitalen Intensität (DII) erreichen Sie <s>{points}/12 Punkte</s>, was dem Niveau <s>„{label}\"</s> entspricht.",
+    "ai": "Bei künstlicher Intelligenz und Automatisierung stehen Sie auf dem Niveau <s>„{label}\"</s> (<s>{score}/100</s>).",
+    "aiUnmeasured": "Die KI-Bereitschaft wurde nicht gemessen — im Fragebogen wurden die Fragen zur KI-Nutzung nicht beantwortet.",
+    "debtTitle": "Hinweis auf technische Schulden",
+    "debtBody": "Ihr Index der technischen Schulden ({score}/100) zeigt: {label}.",
+    "debtUrgent": "Die kritischsten Risiken erfordern sofortige Aufmerksamkeit.",
+    "strengths": "Stärken",
+    "criticalRisks": "Kritische Risiken",
+    "quickWins": "Top 3 Quick Wins"
+  },
+  "risk": {
+    "title": "Technische Schulden und Risiken",
+    "noRisks": "Es wurden keine kritischen Risiken identifiziert. Score: {score}/100 ({label})."
+  },
+  "cards": {
+    "aiUnmeasured": "Nicht gemessen — Antworten zu KI fehlen",
+    "securityPenalty": "Sicherheitsstrafe",
+    "techDebt": "Technische Schulden",
+    "annualSavings": "Jährliches Einsparpotenzial",
+    "mdConservative": "{md} PT konservativ"
+  },
+  "impact": {
+    "scenario": {
+      "conservative": "Konservativ",
+      "mid": "Realistisch",
+      "optimistic": "Optimistisch"
+    },
+    "cumulativeTitle": "Kumulative Einsparungen im Zeitverlauf",
+    "cumulativeNote": "Die drei Szenarien unterscheiden sich in der Anlaufgeschwindigkeit zum vollen Jahresnutzen — die gepunktete Linie markiert den Monat, in dem das Szenario die volle Monatsrate erreicht.",
+    "savedHours": "Eingesparte Stunden/Jahr",
+    "savedMd": "Eingesparte PT/Jahr",
+    "errorReduction": "Einsparung durch weniger Fehler (h)",
+    "annualImpact": "Jährlicher Effekt (EUR)",
+    "confidence": "Verlässlichkeit der Schätzung:",
+    "disclaimers": "Methodische Hinweise und Disclaimer",
+    "auditTitle": "Audit-Trail: Aufschlüsselung der Berechnung",
+    "colProcess": "Prozess",
+    "colFreq": "Freq./Jahr",
+    "colTime": "Zeit/Fall",
+    "colManual": "Manuell",
+    "colAuto": "Automat.",
+    "colSaved": "Erspart h",
+    "colErrors": "Fehler h",
+    "colSource": "Quelle"
+  },
+  "reco": {
+    "title": "Empfehlungen und Roadmap",
+    "phaseNow": "Sofort",
+    "phaseStrategic": "Strategisch",
+    "phaseTransform": "Transformation",
+    "focusNow": "Konzentrieren Sie sich auf die Sofortmaßnahmen. Strategische Initiativen definieren Sie nach deren Umsetzung.",
+    "transformLater": "Transformationsschritte definieren Sie nach der Stabilisierung der Grundlagen.",
+    "transformExpand": "Erwägen Sie erweiterte Digitalisierungsinitiativen nach der Stabilisierung der Grundlagen.",
+    "quickWinsAll": "Quick Wins (alle)",
+    "effort": "Aufwand: {n}/5"
+  },
+  "bench": {
+    "vsSk": "DII vs. Slowakei",
+    "vsEu": "DII vs. EU-Durchschnitt",
+    "vsSector": "DII vs. Ihre Branche",
+    "orsVsSector": "Operative Reife vs. Branche",
+    "source": "Benchmark-Daten: {source}. Version: {version} ({date})."
+  },
+  "customer": {
+    "notFoundTitle": "Das Ergebnis ist auf diesem Gerät nicht verfügbar",
+    "notFoundBody": "Den Hash <mono>{hash}</mono> haben wir weder in der anonymisierten Stichprobe noch im lokalen Speicher dieses Browsers gefunden.",
+    "notFoundHint": "Ergebnisse der eigenen Diagnose werden nur lokal auf dem Gerät gespeichert, auf dem der Test ausgefüllt wurde. Öffnen Sie den Link im selben Browser oder starten Sie eine neue Diagnose.",
+    "startNew": "Neue Diagnose starten",
+    "browseSamples": "Beispielergebnisse ansehen",
+    "yourResult": "Ihr Ergebnis",
+    "higherWorse": "Höher = schlechter",
+    "eurPerYearMid": "EUR / Jahr (mid)",
+    "anonResult": "Anonymisiertes Ergebnis",
+    "aboutTitle": "Über diese Ansicht",
+    "aboutBody": "Dies ist ein anonymisierter Ergebnis-Snapshot aus einer Teststichprobe von 50 Unternehmen in der Slowakei. Es werden keine identifizierenden Unternehmensdaten gespeichert oder angezeigt. Die Seite ist nur über diesen konkreten Hash erreichbar und wird von Suchmaschinen nicht indexiert."
+  },
+  "peersPanel": {
+    "title": "Vergleich mit Peer-Gruppe und Land",
+    "intro": "Ihre Position gegenüber anonymisierten Ergebnissen von Unternehmen aus dem Segment <s>{sector}</s>, Größe <s>{size}</s> ({n} Unternehmen) und der gesamten slowakischen Stichprobe ({total}).",
+    "peerMedian": "Peer-Median",
+    "skAverage": "SK-Durchschnitt",
+    "deltaVsPeer": "Δ vs. Peer",
+    "metric": "Kennzahl",
+    "you": "Sie",
+    "anonTitle": "Anonymisierung:",
+    "anonBody": "angezeigt werden nur Aggregate — keine identifizierenden Unternehmensdaten. Der Δ-Vergleich erfolgt gegen den Median der Peer-Gruppe (gleiche Branche und Größe)."
   }
 }

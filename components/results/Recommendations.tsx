@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import type { Recommendations as RecsType } from '@/types';
 
 interface RecommendationsProps {
@@ -7,6 +8,7 @@ interface RecommendationsProps {
 }
 
 export default function Recommendations({ recommendations }: RecommendationsProps) {
+  const t = useTranslations('reco');
   return (
     // p-8 nechávalo pri 320 px len 222 px obsahu; padding nabieha až od sm
     <div className="bg-white rounded-3xl border border-black/5 shadow-sm p-5 sm:p-6 lg:p-8 animate-fade-in-up">
@@ -17,7 +19,7 @@ export default function Recommendations({ recommendations }: RecommendationsProp
           </svg>
         </div>
         <h2 className="min-w-0 text-lg sm:text-xl font-bold text-[#1d1d1f]">
-          Odporúčania a Roadmapa
+          {t('title')}
         </h2>
       </div>
 
@@ -33,9 +35,7 @@ export default function Recommendations({ recommendations }: RecommendationsProp
             <h3 className="min-w-0 text-sm font-bold text-rose-700">
               0-3 mesiace
             </h3>
-            <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-700 text-xs font-bold">
-              Okamžité
-            </span>
+            <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-700 text-xs font-bold">{t('phaseNow')}</span>
           </div>
           <div className="space-y-3 stagger-children">
             {recommendations.criticalRisks.slice(0, 3).map(r => (
@@ -74,9 +74,7 @@ export default function Recommendations({ recommendations }: RecommendationsProp
             <h3 className="min-w-0 text-sm font-bold text-amber-700">
               3-12 mesiacov
             </h3>
-            <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 text-xs font-bold">
-              Strategické
-            </span>
+            <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 text-xs font-bold">{t('phaseStrategic')}</span>
           </div>
           <div className="space-y-3 stagger-children">
             {recommendations.strategicInitiatives.slice(0, 3).map(r => (
@@ -93,7 +91,7 @@ export default function Recommendations({ recommendations }: RecommendationsProp
             ))}
             {recommendations.strategicInitiatives.length === 0 && (
               <p className="text-sm text-[#6e6e73] p-3 rounded-xl bg-[#fbfbfd] border border-black/5 italic">
-                Sústredťe sa na okamžité akcie. Strategické iniciatívy definujte po ich splnení.
+                {t('focusNow')}
               </p>
             )}
           </div>
@@ -108,9 +106,7 @@ export default function Recommendations({ recommendations }: RecommendationsProp
             <h3 className="min-w-0 text-sm font-bold text-[#1d1d1f]">
               12+ mesiacov
             </h3>
-            <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] text-xs font-bold">
-              Transformácia
-            </span>
+            <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] text-xs font-bold">{t('phaseTransform')}</span>
           </div>
           <div className="space-y-3">
             {recommendations.roadmap.longTerm12mPlus.length > 0 ? (
@@ -124,8 +120,8 @@ export default function Recommendations({ recommendations }: RecommendationsProp
             ) : null}
             <p className="text-sm text-[#6e6e73] p-3 rounded-xl bg-[#fbfbfd] border border-black/5 italic">
               {recommendations.roadmap.longTerm12mPlus.length === 0
-                ? 'Transformačné zmeny definujte po stabilizácii základov.'
-                : 'Zvážte rozšírené digitalizačné iniciatívy po stabilizácii základov.'}
+                ? t('transformLater')
+                : t('transformExpand')}
             </p>
           </div>
         </div>
@@ -137,7 +133,7 @@ export default function Recommendations({ recommendations }: RecommendationsProp
           <div className="flex items-center gap-2 mb-4">
             <span className="w-8 h-8 shrink-0 rounded-xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center text-sm">&#9889;</span>
             <h3 className="min-w-0 text-base sm:text-lg font-bold text-[#1d1d1f]">
-              Quick Wins (všetky)
+              {t('quickWinsAll')}
             </h3>
           </div>
           <div className="space-y-3 stagger-children">
@@ -154,7 +150,7 @@ export default function Recommendations({ recommendations }: RecommendationsProp
                     Dopad: {r.impact}/5
                   </span>
                   <span className="px-3 py-1.5 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] text-xs font-bold">
-                    Úsilie: {r.effort}/5
+                    {t('effort', { n: r.effort })}
                   </span>
                 </div>
               </div>

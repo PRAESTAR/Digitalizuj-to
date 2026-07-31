@@ -6,7 +6,8 @@
     "back": "Back",
     "backHome": "Back to home",
     "loading": "Loading…",
-    "minutes": "minutes"
+    "minutes": "minutes",
+    "yes": "Yes"
   },
   "meta": {
     "title": "Free digital maturity test for your company | digitalizuj.to",
@@ -123,7 +124,17 @@
     "maturityProfile": "Digital maturity profile",
     "auditTrail": "Audit trail",
     "auditTrailSubtitle": "A complete record of answers and calculations for auditability.",
-    "scrollHint": "Scroll the table sideways →"
+    "scrollHint": "Swipe the table sideways",
+    "auditModelLabel": "Adaptive model DAP:",
+    "auditDiiLabel": "DII methodology:",
+    "auditBenchmarkLabel": "Benchmark:",
+    "auditShowFull": "Show full audit trail ({count} answers)",
+    "auditColQuestion": "Question ID",
+    "auditColAnswer": "Answer",
+    "auditColScore": "Score",
+    "auditColUnknown": "Don’t know",
+    "auditColSkipped": "Skipped",
+    "scoringConfig": "Scoring configuration"
   },
   "share": {
     "title": "Your permanent link",
@@ -158,5 +169,128 @@
     "text": "An unexpected error occurred while processing your request. Please try again.",
     "retry": "Try again",
     "errorId": "Error ID"
+  },
+  "levels": {
+    "maturity": {
+      "0": "Digital novice",
+      "1": "Beginner",
+      "2": "Developing",
+      "3": "Advanced",
+      "4": "Digital leader"
+    },
+    "dii": {
+      "very_low": "Very low digital intensity",
+      "low": "Low digital intensity",
+      "high": "High digital intensity",
+      "very_high": "Very high digital intensity"
+    },
+    "ai": {
+      "ziadna": "No AI use",
+      "experimentalna": "Experimental AI use",
+      "pokrocila": "Advanced AI use",
+      "strategicka": "AI as part of strategy"
+    },
+    "risk": {
+      "low": "Well managed",
+      "medium": "Needs attention",
+      "high": "Needs immediate action",
+      "critical": "Operations at risk"
+    },
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium"
+    }
+  },
+  "exec": {
+    "title": "Executive Summary",
+    "maturity": "Your company reaches the digital maturity level <s>“{label}”</s> with an overall score of <s>{score}/100</s>.",
+    "penaltyNote": "(score reduced by the security penalty)",
+    "dii": "In digital intensity (DII) you reach <s>{points}/12 points</s>, corresponding to the level <s>“{label}”</s>.",
+    "ai": "In artificial intelligence and automation you are at the level <s>“{label}”</s> (<s>{score}/100</s>).",
+    "aiUnmeasured": "AI readiness was not measured — the questionnaire questions about AI use were not answered.",
+    "debtTitle": "Technical debt warning",
+    "debtBody": "Your technical debt index ({score}/100) indicates {label}.",
+    "debtUrgent": "The most critical risks require immediate attention.",
+    "strengths": "Strengths",
+    "criticalRisks": "Critical risks",
+    "quickWins": "Top 3 Quick Wins"
+  },
+  "risk": {
+    "title": "Technical debt and risks",
+    "noRisks": "No critical risks were identified. Score: {score}/100 ({label})."
+  },
+  "cards": {
+    "aiUnmeasured": "Not measured — AI answers missing",
+    "securityPenalty": "Security penalty",
+    "techDebt": "Technical debt",
+    "annualSavings": "Annual savings potential",
+    "mdConservative": "{md} PD conservative"
+  },
+  "impact": {
+    "scenario": {
+      "conservative": "Conservative",
+      "mid": "Realistic",
+      "optimistic": "Optimistic"
+    },
+    "cumulativeTitle": "Cumulative savings over time",
+    "cumulativeNote": "The three scenarios differ in how fast they ramp up to the full annual benefit — the dotted line marks the month when a scenario reaches its full monthly rate.",
+    "savedHours": "Hours saved/year",
+    "savedMd": "PD saved/year",
+    "errorReduction": "Savings from fewer errors (h)",
+    "annualImpact": "Annual impact (EUR)",
+    "confidence": "Estimate confidence:",
+    "disclaimers": "Methodological notes and disclaimers",
+    "auditTitle": "Audit trail: calculation breakdown",
+    "colProcess": "Process",
+    "colFreq": "Freq./year",
+    "colTime": "Time/case",
+    "colManual": "Manual",
+    "colAuto": "Autom.",
+    "colSaved": "Saved h",
+    "colErrors": "Errors h",
+    "colSource": "Source"
+  },
+  "reco": {
+    "title": "Recommendations and Roadmap",
+    "phaseNow": "Immediate",
+    "phaseStrategic": "Strategic",
+    "phaseTransform": "Transformation",
+    "focusNow": "Focus on the immediate actions. Define strategic initiatives once they are done.",
+    "transformLater": "Define transformation steps after stabilising the foundations.",
+    "transformExpand": "Consider extended digitalisation initiatives after stabilising the foundations.",
+    "quickWinsAll": "Quick Wins (all)",
+    "effort": "Effort: {n}/5"
+  },
+  "bench": {
+    "vsSk": "DII vs. Slovakia",
+    "vsEu": "DII vs. EU average",
+    "vsSector": "DII vs. your sector",
+    "orsVsSector": "Operational maturity vs. sector",
+    "source": "Benchmark data: {source}. Version: {version} ({date})."
+  },
+  "customer": {
+    "notFoundTitle": "The result is not available on this device",
+    "notFoundBody": "We could not find the hash <mono>{hash}</mono> in the anonymised sample or in this browser’s local storage.",
+    "notFoundHint": "Results of your own assessment are stored only locally on the device where you completed the quiz. Open the link in the same browser, or run a new assessment.",
+    "startNew": "Start a new assessment",
+    "browseSamples": "Browse sample results",
+    "yourResult": "Your result",
+    "higherWorse": "Higher = worse",
+    "eurPerYearMid": "EUR / year (mid)",
+    "anonResult": "Anonymised result",
+    "aboutTitle": "About this view",
+    "aboutBody": "This is an anonymised result snapshot from a test sample of 50 companies in Slovakia. No identifying company data is stored or displayed. The page is reachable only via this specific hash and is not indexed by search engines."
+  },
+  "peersPanel": {
+    "title": "Comparison with peer group and country",
+    "intro": "Your position against anonymised results of companies from the <s>{sector}</s> segment, size <s>{size}</s> ({n} companies) and the whole Slovak sample ({total}).",
+    "peerMedian": "Peer median",
+    "skAverage": "SK average",
+    "deltaVsPeer": "Δ vs peer",
+    "metric": "Metric",
+    "you": "You",
+    "anonTitle": "Anonymisation:",
+    "anonBody": "only aggregates are shown — no identifying company data. The Δ comparison is against the peer-group median (same sector and size)."
   }
 }
