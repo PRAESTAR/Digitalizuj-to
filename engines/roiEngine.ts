@@ -315,8 +315,11 @@ export function extractROIInputs(
     if (!isNaN(parsed)) maturityLevel = parsed;
   }
 
-  // Manual processes
-  const manualProcs = getMultiSelectValues('cx_A05') || getMultiSelectValues('ind_05') || [];
+  // Manuálne procesy sa self-reportujú len v komplexnom kvíze (cx_A05).
+  // Indikatívny kvíz procesnú otázku nemá (ind_05 je otázka o používaných
+  // systémoch — jej hodnoty sa nesmú miešať do zoznamu manuálnych procesov);
+  // prázdny zoznam rieši calculateBusinessImpact benchmark defaultmi.
+  const manualProcs = getMultiSelectValues('cx_A05');
 
   return {
     employeeCountBand: getAnswerValue('ind_02') || getAnswerValue('cx_02') || 'small',

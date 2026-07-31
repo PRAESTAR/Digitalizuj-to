@@ -128,11 +128,10 @@ export default function PointerAurora() {
 
     let w = 0;
     let h = 0;
-    let rect = canvas.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const resize = () => {
-      rect = canvas.getBoundingClientRect();
+      const rect = canvas.getBoundingClientRect();
       w = rect.width;
       h = rect.height;
       canvas.width = Math.round(w * dpr);
@@ -140,11 +139,6 @@ export default function PointerAurora() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     resize();
-
-    // Používa sa len pri resize plátna; pozíciu si onMove číta sám.
-    const refreshRect = () => {
-      rect = canvas.getBoundingClientRect();
-    };
 
     const points: Point[] = [];
     let lastX = -1;
@@ -194,17 +188,20 @@ export default function PointerAurora() {
       cancelAnimationFrame(raf);
     };
 
-    // Listener je na window (plátno má pointer-events: none), súradnice
-    // prepočítame voči cachovanému rectu a mimo plátna nič nekreslíme.
+    // Listener je na window (plátno má pointer-events: none).
+    //
+    // Plátno je FIXED cez celý viewport, takže clientX/Y SÚ priamo súradnice
+    // plátna — žiadne getBoundingClientRect v pointermove. História: najprv
+    // tu bola cache rectu (po posune layoutu kreslila vedľa), potom čerstvé
+    // čítanie pri každom pohybe (správne, ale nútený layout read ~36 µs na
+    // event — INP hygiena). Fixed pozícia oba problémy ruší konštrukciou;
+    // rect číta už len resize().
     const onMove = (e: PointerEvent) => {
-      // Čítame layout PRED akýmkoľvek zápisom. Stará cache spôsobovala, že po
-      // posune hero sekcie sedela guľôčka aj stopa mimo kurzora presne o ten posun.
-      rect = canvas.getBoundingClientRect();
-      const px = e.clientX - rect.left;
-      const py = e.clientY - rect.top;
+      const px = e.clientX;
+      const py = e.clientY;
 
       if (px < 0 || py < 0 || px > w || py > h) {
-        // Kurzor opustil hero — guľôčku schovaj, nech nezostane visieť na kraji.
+        // Kurzor opustil viewport — guľôčku schovaj, nech nezostane visieť na kraji.
         ball.style.opacity = '0';
         lastX = -1;
         return;
@@ -238,17 +235,16 @@ export default function PointerAurora() {
       if (document.hidden) stop();
     };
 
+    // Scroll listener tu zámerne NIE JE: fixed plátno sa so scrollom nehýbe.
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
     window.addEventListener('pointermove', onMove, { passive: true });
-    window.addEventListener('scroll', refreshRect, { passive: true });
     document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
       stop();
       ro.disconnect();
       window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('scroll', refreshRect);
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, []);

@@ -112,34 +112,65 @@ const securityHeaders = [
   },
 ];
 
+/**
+ * STATIC_EXPORT=1 prepína build do režimu `output: 'export'` pre Apache/PHP
+ * webhosting (fixná konfigurácia, žiadny Node runtime — deploy cez FTP).
+ * V exporte Next nepodporuje headers(), redirects() ani proxy — ich úlohu
+ * preberá public/.htaccess, ktorý sa exportom dostane do koreňa balíka.
+ * Lokálny vývoj a klasický build zostávajú bezo zmeny.
+ */
+const isStaticExport = process.env.STATIC_EXPORT === "1";
+
 const nextConfig: NextConfig = {
+  ...(isStaticExport ? { output: "export" as const } : {}),
   env: {
     NEXT_PUBLIC_COMMIT_HASH: commitHash,
     NEXT_PUBLIC_MODEL_COMMIT_HASH: modelHash,
   },
   poweredByHeader: false, // Hide the "X-Powered-By: Next.js" header.
-  async headers() {
-    return [
-      {
-        source: "/:path*",
-        headers: securityHeaders,
-      },
-    ];
-  },
+  // headers/redirects v export režime ÚPLNE vynechané (nie prázdne polia):
+  // samotná prítomnosť kľúčov spúšťa build warningy. Ich úlohu preberá
+  // public/.htaccess.
+  ...(isStaticExport
+    ? {}
+    : {
+        async headers() {
+          return [
+            {
+              source: "/:path*",
+              headers: securityHeaders,
+            },
+          ];
+        },
+      }),
   /**
    * Trvalé presmerovania zo starých, nejazykových adries. Pred zavedením
    * viacjazyčnosti žila stránka na /peers, /changelog atď. — tie adresy sú
    * odkazované zvonku aj zaindexované, takže musia skončiť 301-kou na
    * slovenskú mutáciu, nie 404-kou. Koreň / rieši middleware.
    */
-  async redirects() {
-    const legacyPaths = ["peers", "changelog", "quiz", "results"];
-    return legacyPaths.map((p) => ({
-      source: `/${p}`,
-      destination: `/sk/${p}`,
-      permanent: true,
-    }));
-  },
+  ...(isStaticExport
+    ? {}
+    : {
+        async redirects() {
+          const legacyPaths = ["peers", "changelog", "quiz", "results"];
+          return [
+            ...legacyPaths.map((p) => ({
+              source: `/${p}`,
+              destination: `/sk/${p}`,
+              permanent: true,
+            })),
+            // Zdieľané výsledky: staré /r/<hash> odkazy žijú v QR kódoch a
+            // správach — bez tohto pravidla dostávali len 307 od middlewaru,
+            // zatiaľ čo ostatné legacy cesty 308. Zjednotené na trvalé.
+            {
+              source: "/r/:hash",
+              destination: "/sk/r/:hash",
+              permanent: true,
+            },
+          ];
+        },
+      }),
 };
 
 export default withNextIntl(nextConfig);

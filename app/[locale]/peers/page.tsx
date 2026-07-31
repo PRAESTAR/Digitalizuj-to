@@ -20,9 +20,20 @@ const COVERAGE_TO = COMPLETED_DATES[COMPLETED_DATES.length - 1].slice(0, 10);
  * v robots.txt). Je to jediná stránka s vlastnými štruktúrovanými dátami —
  * kým bola blokovaná, nemohla ju zaindexovať ani odcitovať žiadna
  * vyhľadávacia ani AI plocha. Neobsahuje žiadne osobné ani firemné údaje.
+ *
+ * Canonical ukazuje na /sk/peers vo VŠETKÝCH jazykových mutáciách: obsah je
+ * zatiaľ len slovenský, takže /cs/peers, /de/peers a /en/peers servírujú
+ * bajtovo zhodnú slovenčinu — duplicitu v rámci jedného jazyka rieši
+ * cross-locale canonical, nie hreflang (ten tu zámerne nie je; pribudne
+ * s prekladom, viď lib/seo.ts). Pôvodný canonical '/peers' bol horší
+ * v oboch smeroch naraz: ukazoval na URL, ktorá 308-kuje, a zdieľali ho
+ * všetky štyri mutácie.
+ *
+ * Titulok skrátený pod ~60 znakov aj so sufixom šablóny — počet profilov
+ * sa presunul do description, kde sa neoreže.
  */
 export const metadata: Metadata = {
-  title: `Benchmark digitálnej zrelosti — ${PEER_DATA.length} profilov firiem`,
+  title: 'Benchmark digitálnej zrelosti firiem',
   description: `Referenčná vzorka ${PEER_DATA.length} anonymizovaných profilov digitálnej zrelosti podľa sektora a veľkosti firmy: DII skóre, prevádzková zrelosť, index rizík a odhad úspor.`,
   keywords: [
     'benchmark digitálnej zrelosti',
@@ -31,12 +42,15 @@ export const metadata: Metadata = {
     'porovnanie digitalizácie firiem',
     'index digitálnej intenzity DII',
   ],
-  alternates: { canonical: '/peers' },
+  alternates: { canonical: '/sk/peers' },
   openGraph: {
     type: 'website',
-    url: '/peers',
-    title: `Benchmark digitálnej zrelosti — ${PEER_DATA.length} profilov firiem`,
+    url: '/sk/peers',
+    title: 'Benchmark digitálnej zrelosti firiem',
     description: `Referenčná vzorka ${PEER_DATA.length} anonymizovaných profilov digitálnej zrelosti naprieč ${SECTORS.length} sektormi a 4 veľkostnými kategóriami.`,
+    // Explicitne: podstránka openGraph objekt NAHRÁDZA (nie merguje),
+    // takže bez tohto by prišla o obrázok z file-konvencie v [locale].
+    images: ['/sk/opengraph-image'],
   },
   robots: {
     index: true,
@@ -64,10 +78,12 @@ export const metadata: Metadata = {
 const datasetSchema = {
   '@context': 'https://schema.org',
   '@type': 'Dataset',
-  '@id': `${SITE_URL}/peers#dataset`,
+  // Stabilná kotva na /sk verzii — všetky jazykové mutácie emitujú ten istý
+  // @id, takže sa dataset deduplikuje na jednu entitu.
+  '@id': `${SITE_URL}/sk/peers#dataset`,
   name: 'Benchmark digitálnej zrelosti slovenských MSP — referenčná vzorka',
   description: `Referenčná vzorka ${PEER_DATA.length} anonymizovaných profilov digitálnej zrelosti malých a stredných podnikov na Slovensku, rozložená naprieč ${SECTORS.length} sektormi a 4 veľkostnými kategóriami (mikro, malé, stredné, veľké). Pre každý profil: DII-Compatible Score (0–100 a 0–12), Operational Readiness Score (0–100) vrátane 6 čiastkových kategórií, Technical Debt & Risk Index (0–100) a Business Impact Potential v EUR ročne. Ide o deterministickú testovaciu vzorku kalibrovanú na distribúcie Eurostat DII 2025 (ISOC_E_DII) pre Slovensko — nie o zber reálnych odpovedí; žiadna konkrétna firma nie je reprezentovaná.`,
-  url: `${SITE_URL}/peers`,
+  url: `${SITE_URL}/sk/peers`,
   inLanguage: 'sk-SK',
   isAccessibleForFree: true,
   creator: { '@id': `${SITE_URL}/#organization` },
@@ -106,13 +122,13 @@ const breadcrumbSchema = {
       '@type': 'ListItem',
       position: 1,
       name: 'Úvod',
-      item: `${SITE_URL}/`,
+      item: `${SITE_URL}/sk`,
     },
     {
       '@type': 'ListItem',
       position: 2,
       name: 'Benchmark digitálnej zrelosti',
-      item: `${SITE_URL}/peers`,
+      item: `${SITE_URL}/sk/peers`,
     },
   ],
 };

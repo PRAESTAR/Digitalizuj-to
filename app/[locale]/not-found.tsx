@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 
 export const metadata: Metadata = {
   title: 'Stránka nenájdená',
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default function NotFound() {
+  const t = useTranslations();
   return (
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 py-16">
       <div className="max-w-md text-center animate-fade-in-up">
@@ -31,12 +33,9 @@ export default function NotFound() {
           </svg>
         </div>
         <p className="text-5xl font-black text-slate-900 mb-3">404</p>
-        <h1 className="text-2xl font-black text-slate-900 mb-3">
-          Stránka nenájdená
-        </h1>
+        <h1 className="text-2xl font-black text-slate-900 mb-3">{t('notFound.title')}</h1>
         <p className="text-slate-600 mb-8 leading-relaxed">
-          Hľadaná stránka neexistuje alebo bola presunutá. Skontrolujte adresu,
-          alebo sa vráťte na úvod.
+          {t('notFound.text')}
         </p>
         <Link
           href="/"
@@ -55,9 +54,7 @@ export default function NotFound() {
               strokeWidth={2}
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
-          </svg>
-          Späť na úvod
-        </Link>
+          </svg>{t('common.backHome')}</Link>
       </div>
     </div>
   );

@@ -1,54 +1,40 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { Link } from '@/i18n/navigation';
 import QuizSelector from '@/components/quiz/QuizSelector';
 import HeroResultCard from '@/components/ui/HeroResultCard';
 import PointerAurora from '@/components/ui/PointerAurora';
+import { SITE_URL, LOCALE_META, type Locale } from '@/lib/seo';
 
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    {
+/** Počet FAQ položiek — musí sedieť s kľúčmi faq.q1..qN v messages/*.json. */
+const FAQ_COUNT = 7;
+
+/**
+ * FAQ schéma sa stavia z TÝCH ISTÝCH prekladových kľúčov ako viditeľná FAQ
+ * sekcia nižšie. To je podmienka Google: obsah FAQPage markup-u musí byť na
+ * stránke reálne viditeľný (pôvodne tu bol len skrytý JSON-LD — riziko
+ * manuálnej penalizácie a nula rankovateľného textu). Zhoda je garantovaná
+ * konštrukciou, nie disciplínou.
+ */
+function buildFaqSchema(
+  locale: Locale,
+  t: (key: string) => string
+) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    '@id': `${SITE_URL}/${locale}#faq`,
+    inLanguage: LOCALE_META[locale].htmlLang,
+    isPartOf: { '@id': `${SITE_URL}/#website` },
+    mainEntity: Array.from({ length: FAQ_COUNT }, (_, i) => ({
       '@type': 'Question',
-      name: 'Čo je digitálna zrelosť firmy?',
+      name: t(`faq.q${i + 1}`),
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Digitálna zrelosť je miera, do akej firma využíva digitálne nástroje a procesy na zefektívnenie prevádzky, rozhodovania a zákazníckej skúsenosti. Meria sa na niekoľkých osiach: procesy, systémy, dáta, infraštruktúra, bezpečnosť a governance.',
+        text: t(`faq.a${i + 1}`),
       },
-    },
-    {
-      '@type': 'Question',
-      name: 'Ako funguje hodnotenie na digitalizuj.to?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Vyplníte adaptívny dotazník (15 otázok pre rýchly screening alebo 43–49 pre komplexnú diagnostiku). Na základe odpovedí dostanete DII-Compatible skóre, Operational Readiness skóre, AI & Automatizácia Readiness, Technical Debt & Risk Index a Business Impact Potential s odhadom úspor v hodinách, MD a EUR.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Čo je DII (Digital Intensity Index)?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'DII je oficiálny ukazovateľ digitálnej intenzity firiem, ktorý zbiera Eurostat naprieč EÚ. Skóruje adopciu 12 digitálnych technológií a pomáha porovnávať firmy voči EU benchmarku.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Odosielajú sa moje odpovede niekam?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Nie. Všetky dáta sa spracovávajú lokálne vo vašom prehliadači. Žiadne odpovede, výsledky ani identifikačné údaje sa neodosielajú na server.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Koľko trvá hodnotenie?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Indikatívny kvíz trvá 5–7 minút (15 otázok). Komplexná diagnostika trvá 15–20 minút (43–49 otázok s adaptívnym branchingom).',
-      },
-    },
-  ],
-};
+    })),
+  };
+}
 
 export default async function Home({
   params,
@@ -58,6 +44,7 @@ export default async function Home({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
+  const faqSchema = buildFaqSchema(locale as Locale, t);
 
   return (
     /* `isolate` robí z obalu stacking context, inak by vrstvy so záporným
@@ -210,6 +197,36 @@ export default async function Home({
         </div>
       </section>
 
+      {/* FAQ — viditeľná sekcia, z ktorej sa stavia aj FAQPage JSON-LD.
+          <details>/<summary>: sémantické, indexovateľné (obsah v collapsed
+          <details> Google normálne indexuje), bez JavaScriptu. */}
+      <section id="faq" className="max-w-3xl mx-auto px-4 py-16">
+        <h2 className="text-3xl font-bold text-[#1d1d1f] mb-8 text-center">
+          {t('faq.heading')}
+        </h2>
+        <div className="space-y-3">
+          {Array.from({ length: FAQ_COUNT }, (_, i) => (
+            <details
+              key={i}
+              className="group rounded-2xl bg-white border border-black/5 px-6 py-4 open:shadow-sm transition-shadow"
+            >
+              <summary className="flex items-center justify-between gap-4 cursor-pointer list-none font-semibold text-[#1d1d1f] min-h-11">
+                {t(`faq.q${i + 1}`)}
+                <span
+                  aria-hidden="true"
+                  className="shrink-0 text-[#86868b] transition-transform group-open:rotate-45 text-xl leading-none"
+                >
+                  +
+                </span>
+              </summary>
+              <p className="pt-3 text-sm text-[#6e6e73] leading-relaxed">
+                {t(`faq.a${i + 1}`)}
+              </p>
+            </details>
+          ))}
+        </div>
+      </section>
+
       {/* Methodology note */}
       <section className="max-w-3xl mx-auto px-4 py-16">
         <div className="relative p-8 rounded-3xl bg-white border border-black/5 shadow-sm overflow-hidden">
@@ -217,12 +234,26 @@ export default async function Home({
           <h3 className="font-bold text-[#1d1d1f] mb-3 text-lg">
             {t('methodology.heading')}
           </h3>
+          {/* Indexovateľný intro odsek — nesie cieľové frázy (test digitálnej
+              zrelosti, úroveň digitalizácie, benchmark, úspory), ktoré sa
+              inak na stránke nevyskytovali v súvislom texte. */}
+          <p className="text-sm text-[#6e6e73] leading-relaxed mb-3">
+            {t('methodology.intro')}
+          </p>
           <p className="text-sm text-[#6e6e73] leading-relaxed">
             Hodnotenie stojí na dvoch vrstvách: <strong className="text-[#1d1d1f]">DII-Compatible Layer</strong> (benchmark voči
             EU Digital Intensity Index) a <strong className="text-[#1d1d1f]">Operational Digital Readiness Model</strong> (reálna
             prevádzkovo-digitálna zrelosť). Otázky sú adaptívne — prispôsobujú sa vašim odpovediam
             (<strong className="text-[#1d1d1f]">Adaptívny model DAP</strong>). Každé skóre je auditovateľné
             a spätne rozložiteľné.
+          </p>
+          <p className="mt-3">
+            <Link
+              href="/metodika"
+              className="inline-flex items-center min-h-11 text-sm font-medium text-[#0068d6] hover:text-[#004a99] transition-colors"
+            >
+              {t('methodology.fullLink')} &rarr;
+            </Link>
           </p>
           <div className="flex items-center gap-6 mt-5 text-xs text-[#86868b] flex-wrap">
             <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#0068d6]" /> DII Eurostat</span>

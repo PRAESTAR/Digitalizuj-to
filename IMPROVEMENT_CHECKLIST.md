@@ -74,7 +74,8 @@
 
 ### ROI engine
 - [ ] Zapojiť zbierané vstupy **cx_ROI02** (admin headcount) a **cx_ROI03** (objem fakturácie) do per-procesných výpočtov — dnes sa extrahujú a nepoužívajú; dve firmy s 10× rozdielnym objemom faktúr dostanú identické ROI *(engines/roiEngine.ts:276-277)*
-- [ ] Fallback bug: `getMultiSelectValues('cx_A05') || getMultiSelectValues('ind_05') || []` — prázdne pole je truthy, fallback nedosiahnuteľný; použiť length checky; indikatívna vetva nemá žiadnu otázku na manuálne procesy *(engines/roiEngine.ts:269)*
+- [x] Fallback bug: `getMultiSelectValues('cx_A05') || getMultiSelectValues('ind_05') || []` — prázdne pole je truthy, fallback nedosiahnuteľný. **Vyriešené:** mŕtvy fallback odstránený — ind_05 je otázka o používaných systémoch (erp, crm...), nie o manuálnych procesoch, takže do `manualProcesses` nikdy nepatril; benchmark default rieši `calculateBusinessImpact`. Správanie pokryté testami *(engines/roiEngine.test.ts)*
+- [ ] Indikatívna vetva nemá žiadnu otázku na manuálne procesy — indikatívne ROI tak vždy počíta z 3 benchmark defaultov; zvážiť pridanie multi-select otázky (obdoba cx_A05) do indikatívneho kvízu *(data/questionBank.json)*
 - [ ] Hodnoty cx_A05 `warehouse`/`service`/`purchasing` nemajú benchmark kľúče — mapovať (warehouse→inventory_management, service→customer_service, purchasing→order_processing) a obnoviť 2 chýbajúce benchmarky z ROI_MODEL.md §2.2 *(data/scoringConfig.ts:82-130)*
 - [ ] Procesy explicitne označené ako manuálne (cx_A05) majú dostať manual_share ≥ 0,85, nie globálny podiel z jednej maturity odpovede *(engines/roiEngine.ts:24,46)*
 - [ ] Governance gating scenárov (§5.3) — vracať `recommendedScenario`/`displayPolicy` z enginu a v UI potlačiť optimistický scenár pri F < 50 (dnes len disclaimer string)

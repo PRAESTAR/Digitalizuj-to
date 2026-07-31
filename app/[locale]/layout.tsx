@@ -8,6 +8,7 @@ import TextSizeControl from '@/components/ui/TextSizeControl';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import { Link } from '@/i18n/navigation';
 import { routing, LOCALE_META, type Locale } from '@/i18n/routing';
+import { SITE_URL, OG_LOCALE, localeAlternates } from '@/lib/seo';
 // SiteHeader dočasne vypnutý — komponent zostáva v components/ui/SiteHeader.tsx.
 // AssessmentProvider už nie je tu — je scoped na app/(assessment)/layout.tsx,
 // aby stránky mimo kvízu (/peers, /changelog, /r/[hash]) neťahali 80KB
@@ -15,10 +16,14 @@ import { routing, LOCALE_META, type Locale } from '@/i18n/routing';
 
 // Onest — variable, SF Pro–ublízke geometrické proporcie, plná podpora
 // slovenskej diakritiky (latin-ext). Nesie primárnu typografiu celej stránky.
+// Váha 'variable' (celá os), nie výčet: výčet ['400','500',...] núti
+// next/font stiahnuť a preloadovať samostatnú statickú inštanciu pre každú
+// váhu × subset (12 woff2 preloadov na každej stránke, súperia s LCP).
+// 'variable' = jeden variabilný súbor na subset, vzhľad identický.
 const onest = Onest({
   variable: '--font-onest',
   subsets: ['latin', 'latin-ext'],
-  weight: ['400', '500', '600', '700', '800', '900'],
+  weight: 'variable',
 });
 
 const geistMono = Geist_Mono({
@@ -26,117 +31,115 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-const siteUrl = 'https://digitalizuj.to';
+const siteUrl = SITE_URL;
 
-// Titulok cieli na reálne vyhľadávanú frázu ("test digitálnej zrelosti"),
-// nie na značku — značka je až za oddeľovačom. Do 60 znakov, aby sa v SERP
-// neorezal.
-const siteTitle = 'Test digitálnej zrelosti firmy zadarmo | digitalizuj.to';
+/**
+ * Metadata sú funkciou jazyka, nie konštantou.
+ *
+ * Statický export tu bol kritická SEO chyba nájdená auditom: každá jazyková
+ * mutácia deklarovala canonical '/sk', slovenský titulok a og:locale sk_SK —
+ * Google tým dostal pokyn de-indexovať /cs, /de aj /en a hreflang mapa si
+ * protirečila s canonicalom. Teraz je každá mutácia self-canonical
+ * s vlastným prekladom.
+ *
+ * Zámerne TU NIE JE openGraph.images ani twitter.*: obrázok dodáva
+ * file-konvencia app/[locale]/opengraph-image.tsx (musí sedieť v TOMTO
+ * segmente — na app roote sa resolvoval bez metadataBase a build hádzal
+ * localhost warning na každej stránke) a Next si twitter kartu doplní
+ * z openGraph sám, takže podstránky nezdedia titulok homepage.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale = (hasLocale(routing.locales, raw) ? raw : routing.defaultLocale) as Locale;
+  const t = await getTranslations({ locale, namespace: 'meta' });
 
-// Meta description do 155 znakov, s konkrétnym prísľubom (čas, výstup)
-// a s CTA. Diferenciátory voči konkurencii ("zadarmo", "bez registrácie")
-// sú vpredu, lebo sa v SERP zobrazujú aj po orezaní.
-const metaDescription =
-  'Zistite za 5 minút, ako digitálne zrelá je vaša firma. Bezplatný audit digitalizácie podľa Eurostat DII — skóre, riziká aj odhad úspor. Bez registrácie.';
-
-// Dlhší popis pre OG/JSON-LD, kde limit 155 znakov neplatí.
-const longDescription =
-  'Bezplatný online test digitálnej zrelosti firmy pre malé a stredné podniky na Slovensku. Anonymne, bez registrácie a bez e-mailu: DII skóre porovnané s EÚ a SK, prevádzková zrelosť v 6 oblastiach, index technologického dlhu a rizík (vrátane pripravenosti na povinnú e-fakturáciu od 1. 1. 2027 a NIS2) a odhad ročných úspor. Metodika je verejná — Eurostat Digital Intensity Index (DII) a Operational Digital Readiness Model (ODRM).';
-
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: siteTitle,
-    template: '%s | digitalizuj.to',
-  },
-  description: metaDescription,
-  applicationName: 'digitalizuj.to',
-  generator: 'Next.js',
-  referrer: 'origin-when-cross-origin',
-  // Google meta keywords ignoruje; ponechané ako kompaktný tematický signál
-  // pre ostatné indexy a scrapery. Poradie zodpovedá prioritám z výskumu.
-  keywords: [
-    'test digitálnej zrelosti',
-    'digitálna zrelosť firmy',
-    'audit digitalizácie',
-    'digitálny audit firmy',
-    'digitalizácia firmy',
-    'digitalizácia malej firmy',
-    'digitalizácia firemných procesov',
-    'ako digitalizovať firmu',
-    'hodnotenie digitálnej zrelosti',
-    'digitálna zrelosť test online zadarmo',
-    'automatizácia procesov vo firme',
-    'ako začať s AI vo firme',
-    'povinná e-fakturácia 2027',
-    'NIS2 povinnosti firmy',
-    'dotácie na digitalizáciu',
-    'index digitálnej intenzity DII',
-    'DESI index Slovensko',
-    'digitálna transformácia MSP',
-    'malé a stredné podniky',
-    'Slovensko',
-  ],
-  authors: [{ name: 'digitalizuj.to', url: siteUrl }],
-  creator: 'digitalizuj.to',
-  publisher: 'digitalizuj.to',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  alternates: {
-    canonical: '/sk',
-    // Self-referencing hreflang: explicitne deklaruje jazykové zacielenie
-    // sk-SK. Zároveň je to miesto, kam pribudne cs-CZ, ak vznikne česká
-    // verzia — dopyty ("digitalizace firmy") sa výrazne prekrývajú a musia
-    // sa riešiť cez hreflang, nie duplicitným obsahom.
-    // Kompletná hreflang mapa — každá mutácia odkazuje na všetky ostatné,
-    // inak ich Google považuje za samostatné (a navzájom duplicitné) stránky.
-    languages: {
-      'sk-SK': '/sk',
-      'cs-CZ': '/cs',
-      'de-DE': '/de',
-      'en-GB': '/en',
-      'x-default': '/sk',
+  return {
+    metadataBase: new URL(siteUrl),
+    title: {
+      // Titulok cieli na vyhľadávanú frázu, značka až za oddeľovačom.
+      default: t('title'),
+      template: '%s | digitalizuj.to',
     },
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'sk_SK',
-    url: siteUrl,
-    siteName: 'digitalizuj.to',
-    title: 'Test digitálnej zrelosti firmy — zadarmo, za 5 minút, bez registrácie',
-    description: longDescription,
-    images: [
-      {
-        url: '/opengraph-image',
-        width: 1200,
-        height: 630,
-        alt: 'digitalizuj.to — bezplatný test digitálnej zrelosti firmy',
-      },
+    // Do 155 znakov, konkrétny prísľub (čas, výstup), diferenciátory vpredu.
+    description: t('description'),
+    applicationName: 'digitalizuj.to',
+    generator: 'Next.js',
+    referrer: 'origin-when-cross-origin',
+    // Google meta keywords ignoruje; ponechané ako kompaktný tematický signál
+    // pre ostatné indexy a scrapery. Zámerne po slovensky vo všetkých
+    // mutáciách — cielia na slovenský trh, ktorý je primárny.
+    keywords: [
+      'test digitálnej zrelosti',
+      'digitálna zrelosť firmy',
+      'audit digitalizácie',
+      'digitálny audit firmy',
+      'digitalizácia firmy',
+      'digitalizácia malej firmy',
+      'digitalizácia firemných procesov',
+      'ako digitalizovať firmu',
+      'hodnotenie digitálnej zrelosti',
+      'digitálna zrelosť test online zadarmo',
+      'automatizácia procesov vo firme',
+      'ako začať s AI vo firme',
+      'povinná e-fakturácia 2027',
+      'NIS2 povinnosti firmy',
+      'dotácie na digitalizáciu',
+      'index digitálnej intenzity DII',
+      'DESI index Slovensko',
+      'digitálna transformácia MSP',
+      'malé a stredné podniky',
+      'Slovensko',
     ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Test digitálnej zrelosti firmy — zadarmo, za 5 minút',
-    description:
-      'DII skóre vs. EÚ a SK, index technologického dlhu, pripravenosť na e-fakturáciu 2027 a NIS2, odhad úspor. Anonymne, bez registrácie.',
-    images: ['/opengraph-image'],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+    // /sk a nie holý koreň — koreň 307-kuje a rel=author by bol jediný
+    // presmerúvajúci odkaz v <head>.
+    authors: [{ name: 'digitalizuj.to', url: `${siteUrl}/sk` }],
+    creator: 'digitalizuj.to',
+    publisher: 'digitalizuj.to',
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
+    alternates: {
+      // Self-canonical na vlastnú mutáciu + kompletná hreflang mapa.
+      // Platí pre homepage (jediná plne preložená routa) — podstránky si
+      // canonical prepisujú samy podľa stavu prekladu (viď lib/seo.ts).
+      canonical: `/${locale}`,
+      languages: localeAlternates(''),
+    },
+    openGraph: {
+      type: 'website',
+      locale: OG_LOCALE[locale],
+      alternateLocale: routing.locales
+        .filter((l) => l !== locale)
+        .map((l) => OG_LOCALE[l]),
+      // og:url = canonical. Predtým ukazovala na holý koreň, ktorý presmeruje.
+      url: `/${locale}`,
+      siteName: 'digitalizuj.to',
+      title: t('ogTitle'),
+      description: t('description'),
+    },
+    twitter: {
+      card: 'summary_large_image',
+    },
+    robots: {
       index: true,
       follow: true,
-      'max-snippet': -1,
-      'max-image-preview': 'large',
-      'max-video-preview': -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-snippet': -1,
+        'max-image-preview': 'large',
+        'max-video-preview': -1,
+      },
     },
-  },
-  category: 'business',
-};
+    category: 'business',
+  };
+}
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -147,104 +150,105 @@ export const viewport: Viewport = {
 };
 
 /**
- * Globálny JSON-LD graf.
+ * Globálny JSON-LD graf — funkcia jazyka, nie konštanta.
  *
  * Organization a WebSite platia pre celý web, preto zostávajú tu.
- * WebApplication opisuje samotný nástroj — ideálne by patril iba na `/`,
- * ale app/(assessment)/page.tsx je mimo rozsahu tejto zmeny, takže uzol
- * ostáva globálny a je explicitne ukotvený na `${siteUrl}/` cez `url`
- * a `mainEntityOfPage`. Per-route uzly (BreadcrumbList, Dataset, FAQPage)
- * si pridávajú jednotlivé stránky samy.
+ * WebApplication opisuje samotný nástroj. Per-route uzly (BreadcrumbList,
+ * Dataset, FAQPage) si pridávajú jednotlivé stránky samy.
  *
- * Zámerne TU NIE JE `aggregateRating`: nemáme žiadne reálne hodnotenia
- * a vymyslené rating dáta sú porušenie Google structured-data guidelines.
- * Bez ratingu markup prejde validáciou, len nespustí app rich result.
- * Rovnako chýba `logo` — kým v /public nebude reálny logo asset
- * (min. 112 × 112 px), odkazovať naň by znamenalo rozbitý structured data.
+ * Audit našiel dve chyby pôvodnej konštanty: inLanguage tvrdil sk-SK aj na
+ * nemeckej stránke a url polia ukazovali na holé (presmerúvajúce) adresy.
+ * `@id` kotvy zostávajú stabilné naprieč mutáciami, takže vyhľadávač si
+ * štyri jazykové kópie zdeduplikuje na jednu entitu.
+ *
+ * Zámerne TU NIE JE `aggregateRating` (nemáme reálne hodnotenia — vymyslené
+ * sú porušenie Google guidelines), `logo` (v /public nie je reálny asset
+ * min. 112×112 px) ani `sameAs` — GitHub repozitár vracia 404, a sameAs
+ * s nefunkčnou URL je horší signál než žiadny. Vráti sa, keď bude repo
+ * verejné alebo vznikne LinkedIn profil.
  */
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'Organization',
-      '@id': `${siteUrl}/#organization`,
-      name: 'digitalizuj.to',
-      url: siteUrl,
-      description: longDescription,
-      // sameAs je vlastnosť, cez ktorú vyhľadávače overujú entitu.
-      // Uvádzame len profily, ktoré reálne existujú (odkaz na repozitár
-      // je aj vo footeri). Ďalšie (LinkedIn, Wikidata) sem pribudnú, keď
-      // budú založené — nevymýšľame URL, ktoré neexistujú.
-      sameAs: ['https://github.com/PRAESTAR/digitalizuj'],
-      areaServed: {
-        '@type': 'Country',
-        name: 'Slovakia',
+function buildJsonLd(locale: Locale, description: string) {
+  const lang = LOCALE_META[locale].htmlLang;
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${siteUrl}/#organization`,
+        name: 'digitalizuj.to',
+        url: `${siteUrl}/sk`,
+        description,
+        areaServed: {
+          '@type': 'Country',
+          name: 'Slovakia',
+        },
+        knowsAbout: [
+          'Digitálna zrelosť malých a stredných podnikov',
+          'Digital Intensity Index (Eurostat, ISOC_E_DII)',
+          'Operational Digital Readiness Model (ODRM)',
+          'Audit digitalizácie firmy',
+          'Automatizácia firemných procesov',
+          'Povinná elektronická fakturácia v SR od 1. 1. 2027 (Peppol, EN 16931)',
+          'NIS2 a zákon č. 366/2024 Z. z. o kybernetickej bezpečnosti',
+          'Technologický dlh a prevádzkové riziká',
+        ],
       },
-      knowsAbout: [
-        'Digitálna zrelosť malých a stredných podnikov',
-        'Digital Intensity Index (Eurostat, ISOC_E_DII)',
-        'Operational Digital Readiness Model (ODRM)',
-        'Audit digitalizácie firmy',
-        'Automatizácia firemných procesov',
-        'Povinná elektronická fakturácia v SR od 1. 1. 2027 (Peppol, EN 16931)',
-        'NIS2 a zákon č. 366/2024 Z. z. o kybernetickej bezpečnosti',
-        'Technologický dlh a prevádzkové riziká',
-      ],
-    },
-    {
-      '@type': 'WebSite',
-      '@id': `${siteUrl}/#website`,
-      url: siteUrl,
-      name: 'digitalizuj.to',
-      alternateName: 'digitalizuj.to — test digitálnej zrelosti firmy',
-      description: longDescription,
-      inLanguage: 'sk-SK',
-      publisher: { '@id': `${siteUrl}/#organization` },
-      mainEntity: { '@id': `${siteUrl}/#webapp` },
-    },
-    {
-      '@type': 'WebApplication',
-      '@id': `${siteUrl}/#webapp`,
-      name: 'digitalizuj.to — test digitálnej zrelosti firmy',
-      url: siteUrl,
-      mainEntityOfPage: `${siteUrl}/`,
-      applicationCategory: 'BusinessApplication',
-      applicationSubCategory: 'Digital maturity assessment',
-      operatingSystem: 'Web',
-      browserRequirements: 'Vyžaduje JavaScript. Funguje v každom modernom prehliadači.',
-      inLanguage: 'sk-SK',
-      countriesSupported: 'SK',
-      softwareVersion: '1.1.0',
-      releaseNotes: `${siteUrl}/changelog`,
-      isAccessibleForFree: true,
-      description: longDescription,
-      provider: { '@id': `${siteUrl}/#organization` },
-      audience: {
-        '@type': 'BusinessAudience',
-        audienceType: 'Malé a stredné podniky (MSP) na Slovensku',
+      {
+        '@type': 'WebSite',
+        '@id': `${siteUrl}/#website`,
+        url: `${siteUrl}/sk`,
+        name: 'digitalizuj.to',
+        alternateName: 'digitalizuj.to — test digitálnej zrelosti firmy',
+        description,
+        // Web existuje v štyroch jazykoch; uzol je zdieľaný, tak ich uvádza všetky.
+        inLanguage: routing.locales.map((l) => LOCALE_META[l].htmlLang),
+        publisher: { '@id': `${siteUrl}/#organization` },
+        mainEntity: { '@id': `${siteUrl}/#webapp` },
       },
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
+      {
+        '@type': 'WebApplication',
+        '@id': `${siteUrl}/#webapp`,
+        name: 'digitalizuj.to — test digitálnej zrelosti firmy',
+        url: `${siteUrl}/${locale}`,
+        mainEntityOfPage: `${siteUrl}/${locale}`,
+        applicationCategory: 'BusinessApplication',
+        applicationSubCategory: 'Digital maturity assessment',
+        operatingSystem: 'Web',
+        browserRequirements: 'Vyžaduje JavaScript. Funguje v každom modernom prehliadači.',
+        inLanguage: lang,
+        countriesSupported: 'SK',
+        softwareVersion: '1.1.0',
+        releaseNotes: `${siteUrl}/sk/changelog`,
+        isAccessibleForFree: true,
+        description,
+        provider: { '@id': `${siteUrl}/#organization` },
+        audience: {
+          '@type': 'BusinessAudience',
+          audienceType: 'Malé a stredné podniky (MSP) na Slovensku',
+        },
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'EUR',
+          availability: 'https://schema.org/InStock',
+        },
+        featureList: [
+          'DII-Compatible Score — porovnanie s benchmarkom EÚ a SK (Eurostat ISOC_E_DII 2025)',
+          'Operational Readiness Score — prevádzková zrelosť v 6 oblastiach (ODRM)',
+          'AI & Automatizácia Readiness — prierezový index pripravenosti na AI',
+          'Technical Debt & Risk Index — 14 rizikových faktorov vrátane e-fakturácie 2027 a NIS2',
+          'Business Impact Potential — odhad ročných úspor v hodinách, MD a EUR (3 scenáre)',
+          'Prioritizované odporúčania v 3-fázovej roadmape',
+          'Adaptívny dotazník s branching logikou (15 alebo 43–49 otázok)',
+          'Spracovanie výlučne v prehliadači — bez registrácie a bez odosielania dát',
+        ],
+        isBasedOn: [
+          'https://ec.europa.eu/eurostat/databrowser/view/isoc_e_dii/default/table',
+        ],
       },
-      featureList: [
-        'DII-Compatible Score — porovnanie s benchmarkom EÚ a SK (Eurostat ISOC_E_DII 2025)',
-        'Operational Readiness Score — prevádzková zrelosť v 6 oblastiach (ODRM)',
-        'AI & Automatizácia Readiness — prierezový index pripravenosti na AI',
-        'Technical Debt & Risk Index — 14 rizikových faktorov vrátane e-fakturácie 2027 a NIS2',
-        'Business Impact Potential — odhad ročných úspor v hodinách, MD a EUR (3 scenáre)',
-        'Prioritizované odporúčania v 3-fázovej roadmape',
-        'Adaptívny dotazník s branching logikou (15 alebo 43–49 otázok)',
-        'Spracovanie výlučne v prehliadači — bez registrácie a bez odosielania dát',
-      ],
-      isBasedOn: [
-        'https://ec.europa.eu/eurostat/databrowser/view/isoc_e_dii/default/table',
-      ],
-    },
-  ],
-};
+    ],
+  };
+}
 
 /**
  * Predgenerovanie všetkých jazykových mutácií — bez toho by sa stránky
@@ -273,6 +277,7 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   const t = await getTranslations();
+  const jsonLd = buildJsonLd(locale as Locale, t('meta.description'));
 
   return (
     <html
@@ -345,6 +350,15 @@ export default async function LocaleLayout({
                   min-h-11 + px-3 zdvíha cieľovú plochu na minimum podľa
                   WCAG 2.2 (2.5.8); vizuálna veľkosť textu zostáva rovnaká. */}
               <div className="flex flex-wrap items-center justify-center gap-y-1">
+                <Link
+                  href="/metodika"
+                  className="inline-flex items-center min-h-11 px-3 hover:text-[#0068d6] transition-colors font-medium"
+                >
+                  {t('footer.methodology')}
+                </Link>
+                <span aria-hidden="true" className="text-[#d2d2d7]">
+                  &middot;
+                </span>
                 <Link
                   href="/peers"
                   className="inline-flex items-center min-h-11 px-3 hover:text-[#0068d6] transition-colors font-medium"

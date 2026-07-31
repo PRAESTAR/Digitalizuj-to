@@ -77,7 +77,7 @@ Ako na seba naväzujú jednotlivé vrstvy — od UI po dátové súbory, ktoré 
 ```mermaid
 flowchart TD
     subgraph UI["UI vrstva — Next.js 16 App Router + React 19"]
-        Pages["Stránky: /, /quiz, /results, /peers, /r/hash, /changelog"]
+        Pages["Stránky: /sk|cs|de|en + /quiz, /results, /peers, /metodika, /r/hash, /changelog"]
         Comp["Komponenty: quiz/*, results/*, ui/*"]
     end
 
@@ -122,9 +122,10 @@ flowchart TD
 ```
 
 **Kľúčové rozhodnutia:**
-- **Žiadny backend, žiadna databáza** — celá aplikácia beží client-side v prehliadači; otázky, scoring aj benchmarky sú statické JSON/TS súbory bundlované s appkou.
+- **Odpovede nikdy neopúšťajú prehliadač** — celý výpočet beží client-side; server (Apache) servíruje len statické súbory. Otázky, scoring aj benchmarky sú zatiaľ statické JSON/TS súbory bundlované s appkou; migrácia obsahu do MariaDB je naplánovaná (viď Deployment nižšie).
 - **Engines sú čisté funkcie** (`answers, questions -> Score`) — žiadny interný state, ľahko testovateľné a auditovateľné (audit trail = spätná rekonštrukcia z tých istých vstupov).
 - **`config/model/` je editovateľná kópia** `data/` súborov pre netechnických editorov obsahu — synchronizácia je zatiaľ manuálna (viď `IMPROVEMENT_CHECKLIST.md`).
+- **Viacjazyčnosť cez next-intl** — všetky routy žijú pod `/{locale}` (sk je default a plne preložená; cs/de/en majú preloženú úvodnú stránku). Preklady v `messages/*.json`.
 
 ### Ako appka funguje (aplikačný tok)
 
@@ -180,11 +181,74 @@ npm install
 # Dev server
 npm run dev
 
-# Produkcny build
+# Produkcny build (serverovy rezim — lokalne overenie)
 npm run build && npm start
+
+# Build pre webhosting (statisticky export do out/ — takto sa realne nasadzuje)
+STATIC_EXPORT=1 npm run build
 ```
 
 Aplikacia bezi na `http://localhost:3000`.
+
+---
+
+## Deployment (aktuálny stav)
+
+Aplikácia je nasadená ako **čisto statický web na zdieľanom Apache/PHP
+webhostingu** (Websupport) — hosting nemá Node.js runtime, preto sa buildí
+cez `output: 'export'` a serverovú logiku Nextu preberá `.htaccess`.
+
+| | |
+|---|---|
+| Staging URL | https://app.magors.net (produkčná doména `digitalizuj.to` príde neskôr) |
+| Hosting | Apache 2.4 + PHP 8.x, prístup len cez FTP |
+| FTP docroot | `/magors.net/sub/app` |
+| Build | `STATIC_EXPORT=1 npm run build` → `out/` (~2 280 súborov, 231 stránok) |
+| Deploy | FTP upload obsahu `out/` do docrootu (FTPS; resumovateľný skript, 3 paralelné spojenia) |
+| Databáza | MariaDB 11.4 (`digitalizacia` @ db.r6.websupport.sk) — **pripravená, zatiaľ nepoužitá**; model otázok stále žije v `data/questionBank.json` |
+
+```mermaid
+flowchart LR
+    Repo["git (develop)"] -->|"STATIC_EXPORT=1 npm run build"| Out["out/ — statický export"]
+    Out -->|"FTP (FTPS)"| Doc["Apache docroot\n/magors.net/sub/app"]
+    Doc --> Visitor["Návštevník\nhttps://app.magors.net"]
+    HT[".htaccess"] -.riadi.-> Doc
+    DB[("MariaDB 11.4\ndigitalizacia")] -.plánované:\npublish.php → model.json.-> Out
+```
+
+**Čo robí `.htaccess`** (`public/.htaccess`, exportom sa dostane do koreňa):
+- bezpečnostné hlavičky (CSP, HSTS, X-Frame-Options…) — zrkadlo `headers()` z `next.config.ts`,
+- jazykovú negociáciu koreňa: `/` → `/sk|/cs|/de|/en` podľa `Accept-Language` (302 + `Vary`),
+- legacy 301 presmerovania starých adries (`/quiz` → `/sk/quiz`, `/r/<hash>` → `/sk/r/<hash>`…),
+- mapovanie čistých URL na `.html` súbory exportu (interný rewrite, žiadne presmerovanie — canonicaly sa nemenia),
+- `DirectorySlash Off` — export tvorí pre stránky aj adresáre a mod_dir by inak vyrábal slučku presmerovaní,
+- immutable cache na `/_next/static`, `ForceType image/png` na OG obrázky a ikonu (súbory bez prípony).
+
+**Staging špecifikum:** nasadená kópia `.htaccess` má na konci blok
+`X-Robots-Tag: noindex` — kópia webu sa nesmie zaindexovať pred spustením
+produkčnej domény. Blok NIE JE v repozitári; pri go-live sa jednoducho
+nepridá. Canonicaly už teraz mieria na `https://digitalizuj.to`.
+
+### Obsah modelu v databáze (tok editácie)
+
+Otázková banka žije v MariaDB (`db/schema.sql` — 13 tabuliek s FK integritou,
+štruktúrované podmienky vetvenia, i18n stĺpce). Tok zmeny obsahu:
+
+```
+phpMyAdmin (editácia) → /admin/publish.php?token=…
+  ├─ integritné kontroly (db/checks.sql — SQL verzia validate-model.mjs)
+  ├─ kompilácia do tvaru questionBank.json (PHP port scripts/db/compile.mjs)
+  └─ zápis /model/v{N}.json + /model/current.json + záznam vo model_versions
+→ npm run model:pull   (stiahne current.json → data/ + config/model/, zvaliduje)
+→ git commit → build → FTP deploy
+```
+
+Garancie: kompilát z DB je hĺbkovo zhodný s pôvodným JSON (akceptačný test
+`npm run db:compile`), PHP a Node kompilátory dávajú bajtovo identický
+artefakt (SHA-256 porovnanie) a publish odmietne publikovať model, ktorý
+neprejde integritnými kontrolami (overené negatívnym testom). Odpovede
+používateľov sa do DB neukladajú nikdy. Skripty: `npm run db:import`
+(JSON → DB), `db:compile` (DB → JSON + check), `model:pull`.
 
 ---
 

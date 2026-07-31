@@ -4,9 +4,8 @@ export const metadata: Metadata = {
   title: 'Výsledky testu digitálnej zrelosti vašej firmy',
   description:
     'DII skóre vs. EÚ a SK, radar 6 oblastí prevádzkovej zrelosti, index technologického dlhu, odhad ročných úspor a prioritizovaná roadmapa odporúčaní.',
-  alternates: {
-    canonical: '/results',
-  },
+  // Prerušenie dedenia alternates z layoutu (viď quiz/layout.tsx).
+  alternates: {},
   /**
    * `noindex, nofollow` je tu správne: stránka existuje len ako výstup
    * dokončeného kvízu, obsah vzniká z klientského stavu a pre návštevníka

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import type { TDRIScore } from '@/types';
 
 interface RiskPanelProps {
@@ -7,6 +8,7 @@ interface RiskPanelProps {
 }
 
 export default function RiskPanel({ tdri }: RiskPanelProps) {
+  const t = useTranslations();
   const activeFactors = tdri.factors.filter(f => f.active);
 
   if (activeFactors.length === 0) {
@@ -19,10 +21,10 @@ export default function RiskPanel({ tdri }: RiskPanelProps) {
           </div>
           <div className="min-w-0">
             <h2 className="text-xl font-bold text-[#1d1d1f] mb-1 break-words">
-              Technologický dlh a riziká
+              {t('risk.title')}
             </h2>
             <p className="text-[#6e6e73] break-words">
-              Neboli identifikované žiadne kritické riziká. Skóre: {tdri.score}/100 ({tdri.riskLabelSk}).
+              {t('risk.noRisks', { score: tdri.score, label: t('levels.risk.' + tdri.riskLevel) })}
             </p>
           </div>
         </div>
@@ -52,7 +54,7 @@ export default function RiskPanel({ tdri }: RiskPanelProps) {
             </svg>
           </div>
           <h2 className="text-xl font-bold text-[#1d1d1f] min-w-0 break-words">
-            Technologický dlh a riziká
+            {t('risk.title')}
           </h2>
         </div>
         <span className={`self-start sm:self-auto shrink-0 px-4 py-1.5 rounded-full text-sm font-bold break-words ${
@@ -61,7 +63,7 @@ export default function RiskPanel({ tdri }: RiskPanelProps) {
           tdri.riskLevel === 'medium' ? 'bg-amber-500/10 text-amber-700' :
           'bg-emerald-500/10 text-emerald-700'
         }`}>
-          {tdri.score}/100 &middot; {tdri.riskLabelSk}
+          {tdri.score}/100 &middot; {t('levels.risk.' + tdri.riskLevel)}
         </span>
       </div>
 
@@ -96,8 +98,7 @@ export default function RiskPanel({ tdri }: RiskPanelProps) {
                         factor.severity === 'high' ? 'bg-orange-200 text-orange-800' :
                         'bg-amber-200 text-amber-800'
                       }`}>
-                        {factor.severity === 'critical' ? 'Kritické' :
-                         factor.severity === 'high' ? 'Vysoké' : 'Stredné'}
+                        {t('levels.severity.' + factor.severity)}
                       </span>
                       <span className="font-bold text-[#1d1d1f] text-sm min-w-0 break-words">
                         {factor.name}

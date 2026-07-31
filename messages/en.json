@@ -6,7 +6,30 @@
     "back": "Back",
     "backHome": "Back to home",
     "loading": "Loading…",
-    "minutes": "minutes"
+    "minutes": "minutes",
+    "yes": "Yes"
+  },
+  "meta": {
+    "title": "Free digital maturity test for your company | digitalizuj.to",
+    "description": "Find out in 5 minutes how digitally mature your company is. Free digitalisation audit based on Eurostat DII — score, risks and savings estimate. No sign-up.",
+    "ogTitle": "Digital maturity test — free, 5 minutes, no sign-up"
+  },
+  "faq": {
+    "heading": "Frequently asked questions about digital maturity",
+    "q1": "What is company digital maturity?",
+    "a1": "Digital maturity is the extent to which a company uses digital tools and processes to streamline operations, decision-making and customer experience. It is measured along several axes: processes, systems, data, infrastructure, security and governance.",
+    "q2": "How does the assessment on digitalizuj.to work?",
+    "a2": "You fill in an adaptive questionnaire (15 questions for a quick screening or 43–49 for the comprehensive assessment). Based on your answers you get a DII-Compatible score, Operational Readiness score, AI & Automation Readiness, Technical Debt & Risk Index and Business Impact Potential with savings estimated in hours, person-days and EUR.",
+    "q3": "What is the DII (Digital Intensity Index)?",
+    "a3": "The DII is the official indicator of enterprise digital intensity collected by Eurostat across the EU. It scores the adoption of 12 digital technologies and enables comparison against the EU benchmark.",
+    "q4": "Are my answers sent anywhere?",
+    "a4": "No. All data is processed locally in your browser. No answers, results or identifying information are sent to any server.",
+    "q5": "How long does the assessment take?",
+    "a5": "The indicative quiz takes 5–7 minutes (15 questions). The comprehensive assessment takes 15–20 minutes (43–49 questions with adaptive branching).",
+    "q6": "What is the mandatory e-invoicing requirement from 1 January 2027?",
+    "a6": "From 1 January 2027 Slovakia introduces mandatory B2B electronic invoicing via the Peppol network under the EN 16931 standard. The test checks whether your invoicing is ready for the transition and counts unpreparedness into the risk index.",
+    "q7": "Who is affected by NIS2 and Act No. 366/2024 Coll.?",
+    "a7": "The NIS2 directive, transposed in Slovakia by Cybersecurity Act No. 366/2024 Coll., extends obligations to thousands of mid-sized companies in energy, transport, manufacturing, healthcare and digital services. The test tracks NIS2 unpreparedness among its monitored risk factors."
   },
   "hero": {
     "eyebrow": "Benchmark: Adaptive DAP model · Eurostat DII",
@@ -37,11 +60,11 @@
   },
   "quizSelector": {
     "heading": "Choose your assessment",
-    "subheading": "A quick screening or a deeper analysis — it's up to you",
+    "subheading": "Quick screening or deeper analysis — free and with no sign-up",
     "recommended": "Recommended",
     "indicative": {
       "title": "Indicative quiz",
-      "duration": "5-7 minutes",
+      "duration": "5–7 minutes",
       "description": "A quick screening of digital maturity. An indicative result with the main recommendations.",
       "bullet1": "Max. 15 questions",
       "bullet2": "Indicative digitalisation score",
@@ -50,7 +73,7 @@
     },
     "complex": {
       "title": "Comprehensive assessment",
-      "duration": "15-20 minutes",
+      "duration": "15–20 minutes",
       "description": "A deeper analysis with a detailed result. Adaptive questions based on your answers.",
       "bullet1": "Detailed profile across 6 categories",
       "bullet2": "Risk index and ROI estimate",
@@ -59,7 +82,7 @@
     }
   },
   "whatYouGet": {
-    "heading": "What you get",
+    "heading": "What you get from the digitalisation audit",
     "subheading": "A comprehensive view of your digital maturity",
     "radarTitle": "Radar profile",
     "radarText": "Processes, systems, data, infrastructure, security, governance — a visual overview across 6 axes.",
@@ -74,11 +97,13 @@
     "tagDii": "DII Eurostat",
     "tagOdrm": "ODRM model",
     "tagDap": "Adaptive DAP model",
-    "build": "build"
+    "build": "build",
+    "intro": "digitalizuj.to is a free online digital maturity test for small and medium-sized enterprises. In 5 minutes it measures your company’s level of digitalisation, compares it with the EU and SK benchmark (Eurostat DII 2025) and estimates annual savings from automation — anonymously and with no sign-up.",
+    "fullLink": "Full methodology"
   },
   "quiz": {
     "title": "Digital maturity assessment",
-    "questionOf": "Question of {total}",
+    "questionOf": "Question <b>{current}</b> of {total}",
     "continue": "Continue",
     "skip": "Don't know / Skip",
     "tooltipLabel": "Explanation of the question",
@@ -99,7 +124,17 @@
     "maturityProfile": "Digital maturity profile",
     "auditTrail": "Audit trail",
     "auditTrailSubtitle": "A complete record of answers and calculations for auditability.",
-    "scrollHint": "Scroll the table sideways →"
+    "scrollHint": "Swipe the table sideways",
+    "auditModelLabel": "Adaptive model DAP:",
+    "auditDiiLabel": "DII methodology:",
+    "auditBenchmarkLabel": "Benchmark:",
+    "auditShowFull": "Show full audit trail ({count} answers)",
+    "auditColQuestion": "Question ID",
+    "auditColAnswer": "Answer",
+    "auditColScore": "Score",
+    "auditColUnknown": "Don’t know",
+    "auditColSkipped": "Skipped",
+    "scoringConfig": "Scoring configuration"
   },
   "share": {
     "title": "Your permanent link",
@@ -116,13 +151,14 @@
   "footer": {
     "tagline": "Adaptive DAP model · DII-Compatible + ODRM",
     "benchmark": "Benchmark: Eurostat DII 2025 (ISOC_E_DII)",
-    "peers": "Peer results",
+    "peers": "Digital maturity benchmark",
     "changelog": "Changelog",
     "textSize": "Text size",
     "textSizeStandard": "Standard text size (100%)",
     "textSizeLarge": "Larger text (125%)",
     "textSizeLargest": "Largest text (150%)",
-    "adBanner": "Need to digitalise?"
+    "adBanner": "Need to digitalise?",
+    "methodology": "Methodology"
   },
   "notFound": {
     "title": "Page not found",
@@ -133,5 +169,128 @@
     "text": "An unexpected error occurred while processing your request. Please try again.",
     "retry": "Try again",
     "errorId": "Error ID"
+  },
+  "levels": {
+    "maturity": {
+      "0": "Digital novice",
+      "1": "Beginner",
+      "2": "Developing",
+      "3": "Advanced",
+      "4": "Digital leader"
+    },
+    "dii": {
+      "very_low": "Very low digital intensity",
+      "low": "Low digital intensity",
+      "high": "High digital intensity",
+      "very_high": "Very high digital intensity"
+    },
+    "ai": {
+      "ziadna": "No AI use",
+      "experimentalna": "Experimental AI use",
+      "pokrocila": "Advanced AI use",
+      "strategicka": "AI as part of strategy"
+    },
+    "risk": {
+      "low": "Well managed",
+      "medium": "Needs attention",
+      "high": "Needs immediate action",
+      "critical": "Operations at risk"
+    },
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium"
+    }
+  },
+  "exec": {
+    "title": "Executive Summary",
+    "maturity": "Your company reaches the digital maturity level <s>“{label}”</s> with an overall score of <s>{score}/100</s>.",
+    "penaltyNote": "(score reduced by the security penalty)",
+    "dii": "In digital intensity (DII) you reach <s>{points}/12 points</s>, corresponding to the level <s>“{label}”</s>.",
+    "ai": "In artificial intelligence and automation you are at the level <s>“{label}”</s> (<s>{score}/100</s>).",
+    "aiUnmeasured": "AI readiness was not measured — the questionnaire questions about AI use were not answered.",
+    "debtTitle": "Technical debt warning",
+    "debtBody": "Your technical debt index ({score}/100) indicates {label}.",
+    "debtUrgent": "The most critical risks require immediate attention.",
+    "strengths": "Strengths",
+    "criticalRisks": "Critical risks",
+    "quickWins": "Top 3 Quick Wins"
+  },
+  "risk": {
+    "title": "Technical debt and risks",
+    "noRisks": "No critical risks were identified. Score: {score}/100 ({label})."
+  },
+  "cards": {
+    "aiUnmeasured": "Not measured — AI answers missing",
+    "securityPenalty": "Security penalty",
+    "techDebt": "Technical debt",
+    "annualSavings": "Annual savings potential",
+    "mdConservative": "{md} PD conservative"
+  },
+  "impact": {
+    "scenario": {
+      "conservative": "Conservative",
+      "mid": "Realistic",
+      "optimistic": "Optimistic"
+    },
+    "cumulativeTitle": "Cumulative savings over time",
+    "cumulativeNote": "The three scenarios differ in how fast they ramp up to the full annual benefit — the dotted line marks the month when a scenario reaches its full monthly rate.",
+    "savedHours": "Hours saved/year",
+    "savedMd": "PD saved/year",
+    "errorReduction": "Savings from fewer errors (h)",
+    "annualImpact": "Annual impact (EUR)",
+    "confidence": "Estimate confidence:",
+    "disclaimers": "Methodological notes and disclaimers",
+    "auditTitle": "Audit trail: calculation breakdown",
+    "colProcess": "Process",
+    "colFreq": "Freq./year",
+    "colTime": "Time/case",
+    "colManual": "Manual",
+    "colAuto": "Autom.",
+    "colSaved": "Saved h",
+    "colErrors": "Errors h",
+    "colSource": "Source"
+  },
+  "reco": {
+    "title": "Recommendations and Roadmap",
+    "phaseNow": "Immediate",
+    "phaseStrategic": "Strategic",
+    "phaseTransform": "Transformation",
+    "focusNow": "Focus on the immediate actions. Define strategic initiatives once they are done.",
+    "transformLater": "Define transformation steps after stabilising the foundations.",
+    "transformExpand": "Consider extended digitalisation initiatives after stabilising the foundations.",
+    "quickWinsAll": "Quick Wins (all)",
+    "effort": "Effort: {n}/5"
+  },
+  "bench": {
+    "vsSk": "DII vs. Slovakia",
+    "vsEu": "DII vs. EU average",
+    "vsSector": "DII vs. your sector",
+    "orsVsSector": "Operational maturity vs. sector",
+    "source": "Benchmark data: {source}. Version: {version} ({date})."
+  },
+  "customer": {
+    "notFoundTitle": "The result is not available on this device",
+    "notFoundBody": "We could not find the hash <mono>{hash}</mono> in the anonymised sample or in this browser’s local storage.",
+    "notFoundHint": "Results of your own assessment are stored only locally on the device where you completed the quiz. Open the link in the same browser, or run a new assessment.",
+    "startNew": "Start a new assessment",
+    "browseSamples": "Browse sample results",
+    "yourResult": "Your result",
+    "higherWorse": "Higher = worse",
+    "eurPerYearMid": "EUR / year (mid)",
+    "anonResult": "Anonymised result",
+    "aboutTitle": "About this view",
+    "aboutBody": "This is an anonymised result snapshot from a test sample of 50 companies in Slovakia. No identifying company data is stored or displayed. The page is reachable only via this specific hash and is not indexed by search engines."
+  },
+  "peersPanel": {
+    "title": "Comparison with peer group and country",
+    "intro": "Your position against anonymised results of companies from the <s>{sector}</s> segment, size <s>{size}</s> ({n} companies) and the whole Slovak sample ({total}).",
+    "peerMedian": "Peer median",
+    "skAverage": "SK average",
+    "deltaVsPeer": "Δ vs peer",
+    "metric": "Metric",
+    "you": "You",
+    "anonTitle": "Anonymisation:",
+    "anonBody": "only aggregates are shown — no identifying company data. The Δ comparison is against the peer-group median (same sector and size)."
   }
 }

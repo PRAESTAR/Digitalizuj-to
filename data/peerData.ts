@@ -3,7 +3,7 @@
  *
  * 50 seed test results — deterministic, reproducible, no real PII.
  * Generated to cover 8 sectors × 4 size bands with realistic score
- * distributions calibrated against Eurostat DESI 2024 SK averages.
+ * distributions calibrated against Eurostat DII 2025 (isoc_e_dii) SK distributions.
  *
  * To regenerate: `npx tsx scripts/generate-peer-data.ts`
  * (a generator script could write this file; for now it's hand-curated

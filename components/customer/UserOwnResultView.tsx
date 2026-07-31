@@ -1,5 +1,8 @@
 'use client';
 
+import { useTranslations, useLocale } from 'next-intl';
+import { intlLocale, type Locale } from '@/i18n/routing';
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
@@ -26,6 +29,8 @@ type ViewState =
   | { kind: 'missing' };
 
 export default function UserOwnResultView({ hash }: Props) {
+  const t = useTranslations();
+  const locale = useLocale() as Locale;
   const [state, setState] = useState<ViewState>({ kind: 'loading' });
 
   useEffect(() => {
@@ -50,7 +55,7 @@ export default function UserOwnResultView({ hash }: Props) {
       <div className="max-w-3xl mx-auto px-4 py-12 sm:py-16 text-center">
         <div className="inline-flex items-center gap-2 text-[#6e6e73] text-sm">
           <span className="w-2 h-2 rounded-full bg-[#86868b] animate-pulse" />
-          Načítavam výsledok…
+          {t('common.loading')}
         </div>
       </div>
     );
@@ -65,32 +70,30 @@ export default function UserOwnResultView({ hash }: Props) {
           </svg>
         </div>
         <h1 className="text-xl sm:text-2xl font-bold text-[#1d1d1f] mb-3 break-words">
-          Výsledok nie je dostupný na tomto zariadení
+          {t('customer.notFoundTitle')}
         </h1>
         <p className="text-[#6e6e73] mb-2 leading-relaxed">
           {/* 16-znakový hash je jeden nezalomiteľný reťazec — bez break-all
               pretečie odsek pri 320 px hneď, ako sa zväčší text. */}
-          Hash <span className="font-mono text-[#1d1d1f] break-all">{hash}</span> sme nenašli ani v anonymizovanej vzorke,
-          ani v lokálnej pamäti tohto prehliadača.
+          {t.rich('customer.notFoundBody', { hash, mono: (c) => <span className="font-mono text-[#1d1d1f] break-all">{c}</span> })}
         </p>
         <p className="text-[#6e6e73] mb-8 text-sm leading-relaxed">
-          Výsledky vlastnej diagnostiky sú uložené iba lokálne v zariadení, kde ste kvíz vyplnili.
-          Otvorte odkaz v rovnakom prehliadači, alebo si urobte novú diagnostiku.
+          {t('customer.notFoundHint')}
         </p>
-        {/* Na mobile obe CTA cez celú šírku — „Prezerať vzorové výsledky“ sa
+        {/* Na mobile obe CTA cez celú šírku — „{t('customer.browseSamples')}“ sa
             pri 320 px aj tak zalomí, takže vycentrovaný riadok vyzeral rozbito. */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3">
           <Link
             href="/"
             className="btn-apple-primary inline-flex items-center justify-center gap-2 w-full sm:w-auto px-7 py-3.5 rounded-full text-white font-semibold"
           >
-            Začať novú diagnostiku
+            {t('customer.startNew')}
           </Link>
           <Link
             href="/peers"
             className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 border border-black/10 text-[#1d1d1f] rounded-full font-semibold hover:bg-black/5 sm:hover:-translate-y-0.5 transition-all duration-200"
           >
-            Prezerať vzorové výsledky
+            {t('customer.browseSamples')}
           </Link>
         </div>
       </div>
@@ -101,7 +104,7 @@ export default function UserOwnResultView({ hash }: Props) {
   const sectorLabel = SECTOR_LABELS_SK[snapshot.sector] ?? snapshot.sector;
   const sizeLabel = SIZE_BAND_LABELS_SK[snapshot.sizeBand];
   const url = `${SITE_URL}/r/${hash}`;
-  const dateLabel = new Date(snapshot.completedAt).toLocaleDateString('sk-SK', {
+  const dateLabel = new Date(snapshot.completedAt).toLocaleDateString(intlLocale(locale), {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -123,7 +126,7 @@ export default function UserOwnResultView({ hash }: Props) {
               a dlhý sektorový názov by roztlačil hlavičku mimo viewport. */}
           <div className="min-w-0">
             <p className="text-xs font-bold text-emerald-600 uppercase tracking-wide mb-0.5">
-              Váš výsledok
+              {t('customer.yourResult')}
             </p>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#1d1d1f] break-words">
               {sectorLabel} &middot; {sizeLabel}
@@ -138,12 +141,12 @@ export default function UserOwnResultView({ hash }: Props) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 animate-fade-in-up">
         <ScoreCard label="DII Score" value={`${snapshot.diiScore100}`} unit="/100" subtitle={`${snapshot.diiScore12}/12 (DII raw)`} />
         <ScoreCard label="Operational Readiness" value={`${snapshot.orsScore}`} unit="/100" subtitle="ODRM model" />
-        <ScoreCard label="Risk Index (TDRI)" value={`${snapshot.tdriScore}`} unit="/100" subtitle="Vyššie = horšie" />
+        <ScoreCard label="Risk Index (TDRI)" value={`${snapshot.tdriScore}`} unit="/100" subtitle={t('customer.higherWorse')} />
         <ScoreCard
           label="Business Impact"
-          value={new Intl.NumberFormat('sk-SK', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(snapshot.businessImpactEur)}
+          value={new Intl.NumberFormat(intlLocale(locale), { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(snapshot.businessImpactEur)}
           unit=""
-          subtitle="EUR / rok (mid)"
+          subtitle={t('customer.eurPerYearMid')}
         />
       </div>
 
@@ -151,11 +154,9 @@ export default function UserOwnResultView({ hash }: Props) {
       <QRCodeCard url={url} hash={hash} />
 
       <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 sm:p-5 text-sm text-[#1d1d1f] leading-relaxed">
-        <p className="font-bold text-emerald-700 mb-1">Súkromie</p>
+        <p className="font-bold text-emerald-700 mb-1">{t('share.privacyTitle')}</p>
         <p>
-          Tento výsledok je uložený iba lokálne v tomto prehliadači. Ak QR kód alebo odkaz
-          zdieľate, druhá strana uvidí len anonymizovaný snapshot, ktorý už nedokáže
-          identifikovať vašu firmu.
+          {t('share.privacyText')}
         </p>
       </div>
     </div>

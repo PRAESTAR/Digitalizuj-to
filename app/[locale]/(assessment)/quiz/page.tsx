@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { useRouter, Link } from '@/i18n/navigation';
 import { useAssessment } from '@/context/AssessmentContext';
 import QuestionCard from '@/components/quiz/QuestionCard';
 import ProgressBar from '@/components/quiz/ProgressBar';
@@ -10,6 +10,7 @@ import { getModuleName } from '@/engines/questionEngine';
 
 export default function QuizPage() {
   const router = useRouter();
+  const t = useTranslations();
   const { state, submitAnswer, completeQuiz } = useAssessment();
   const { assessment, currentQuestion, progress } = state;
 
@@ -31,16 +32,16 @@ export default function QuizPage() {
           ?
         </div>
         <h1 className="text-2xl font-bold text-[#1d1d1f] mb-4">
-          Žiadne aktívne hodnotenie
+          {t('quiz.emptyTitle')}
         </h1>
         <p className="text-[#6e6e73] mb-6">
-          Najprv si vyberte typ hodnotenia na hlavnej stránke.
+          {t('quiz.emptyText')}
         </p>
         <Link
           href="/"
           className="btn-apple-primary inline-flex items-center gap-2 px-8 py-3.5 rounded-full text-white font-semibold"
         >
-          Späť na úvod
+          {t('common.backHome')}
         </Link>
       </div>
     );
@@ -60,8 +61,8 @@ export default function QuizPage() {
     : undefined;
 
   const quizTitle = assessment.type === 'indicative'
-    ? 'Indikatívny kvíz'
-    : 'Komplexná diagnostika';
+    ? t('quizSelector.indicative.title')
+    : t('quizSelector.complex.title');
 
   return (
     <div className="max-w-3xl mx-auto px-4 pt-16 pb-6 sm:pt-8 sm:pb-8">
@@ -97,7 +98,7 @@ export default function QuizPage() {
         <div className="inline-flex items-start sm:items-center gap-2 px-4 py-2 rounded-2xl sm:rounded-full bg-white border border-black/5 text-left">
           <span className="w-2 h-2 mt-1 sm:mt-0 flex-shrink-0 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-xs text-[#6e6e73] font-medium">
-            Vaše odpovede sa spracovávajú lokálne. Žiadne dáta sa neodosielajú na server.
+            {t('quiz.localNotice')}
           </span>
         </div>
       </div>

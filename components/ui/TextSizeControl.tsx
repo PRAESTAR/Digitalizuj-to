@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useEffect, useState } from 'react';
 
 /**
@@ -23,10 +25,10 @@ const STORAGE_KEY = 'digitalizuj.textScale';
 
 type Scale = 100 | 125 | 150;
 
-const SCALES: { value: Scale; glyphPx: number; label: string }[] = [
-  { value: 100, glyphPx: 13, label: 'Štandardná veľkosť textu (100 %)' },
-  { value: 125, glyphPx: 17, label: 'Zväčšený text (125 %)' },
-  { value: 150, glyphPx: 21, label: 'Najväčší text (150 %)' },
+const SCALES: { value: Scale; glyphPx: number; labelKey: string }[] = [
+  { value: 100, glyphPx: 13, labelKey: 'textSizeStandard' },
+  { value: 125, glyphPx: 17, labelKey: 'textSizeLarge' },
+  { value: 150, glyphPx: 21, labelKey: 'textSizeLargest' },
 ];
 
 function applyScale(value: Scale) {
@@ -35,6 +37,7 @@ function applyScale(value: Scale) {
 }
 
 export default function TextSizeControl() {
+  const t = useTranslations('footer');
   const [scale, setScale] = useState<Scale>(100);
 
   // Zosúladenie Reactu s hodnotou, ktorú už na <html> nastavil inline skript.
@@ -61,10 +64,8 @@ export default function TextSizeControl() {
   };
 
   return (
-    <div className="flex items-center gap-3" role="group" aria-label="Veľkosť textu">
-      <span aria-hidden="true" className="text-[11px] uppercase tracking-wider text-[#86868b]">
-        Veľkosť textu
-      </span>
+    <div className="flex items-center gap-3" role="group" aria-label={t('textSize')}>
+      <span aria-hidden="true" className="text-[11px] uppercase tracking-wider text-[#86868b]">{t('textSize')}</span>
       {/* gap-1 namiesto gap-px: medzi dvoma dotykovými cieľmi nesmie byť
           1 px, inak sa pri dotyku trafí susedné tlačidlo. */}
       <div className="flex items-center gap-1">
@@ -76,7 +77,7 @@ export default function TextSizeControl() {
               type="button"
               onClick={() => handleSelect(s.value)}
               aria-pressed={active}
-              aria-label={s.label}
+              aria-label={t(s.labelKey)}
               title={`${s.value} %`}
               className={`flex min-h-11 min-w-11 items-center justify-center rounded-xl border transition-colors ${
                 active
