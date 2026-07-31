@@ -11,7 +11,8 @@
     "validate:model": "node scripts/validate-model.mjs",
     "db:import": "node scripts/db/import.mjs",
     "db:compile": "node scripts/db/compile.mjs --check",
-    "model:pull": "node scripts/db/pull.mjs"
+    "model:pull": "node scripts/db/pull.mjs",
+    "test": "vitest run"
   },
   "dependencies": {
     "@types/qrcode": "^1.5.6",
@@ -30,7 +31,8 @@
     "eslint": "^9",
     "eslint-config-next": "^16.2.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   },
   "overrides": {
     "postcss": "^8.5.14",
