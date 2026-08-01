@@ -14,6 +14,9 @@
     "description": "Zjistěte za 5 minut, jak digitálně zralá je vaše firma. Bezplatný audit digitalizace podle Eurostat DII — skóre, rizika i odhad úspor. Bez registrace.",
     "ogTitle": "Test digitální zralosti firmy — zdarma, za 5 minut, bez registrace"
   },
+  "suggestion": {
+    "stay": "Zůstat"
+  },
   "faq": {
     "heading": "Časté dotazy o digitální zralosti",
     "q1": "Co je digitální zralost firmy?",

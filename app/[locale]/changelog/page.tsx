@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     type: 'article',
     // Signál čerstvosti — legislatívne a metodické témy sa re-crawlujú
     // častejšie a AI vyhľadávače uprednostňujú datovaný obsah.
-    modifiedTime: '2026-08-01T00:00:00.000Z',
+    modifiedTime: '2026-08-02T00:00:00.000Z',
     // openGraph sa na podstránke nahrádza celý — bez explicitného obrázka
     // by karta zdieľania prišla o vizuál z file-konvencie v [locale].
     images: ['/sk/opengraph-image'],
@@ -56,7 +56,7 @@ const breadcrumbSchema = {
 const changelog = [
   {
     version: '1.0',
-    date: '2026-08-01',
+    date: '2026-08-02',
     status: 'Otvorená verzia — priebežne dopĺňaná až do uzavretia v1',
     sections: [
       {
@@ -128,6 +128,10 @@ const changelog = [
           {
             title: 'UI chrome preložený vo všetkých komponentoch',
             description: '232 kľúčov na jazyk s overenou paritou; kvíz, výsledky, zákaznícka zóna aj chybové stránky. Formátovanie mien a dátumov cez Intl s locale odvodeným od jazyka. Obsahová vrstva (texty otázok, odporúčania) sa prekladá v ďalšom kroku cez databázu.',
+          },
+          {
+            title: 'Ponuka jazyka podľa krajiny návštevníka',
+            description: 'GeoIP hostingu (Cloudflare CF-IPCountry) cez same-origin /geo.php — žiadne tretie strany. Nenásilný banner v cieľovom jazyku namiesto tvrdého redirectu; manuálna voľba (vlajky či banner) sa pamätá rok v cookie a koreňová negociácia ju rešpektuje pred jazykom prehliadača.',
           },
         ],
       },

@@ -9,7 +9,7 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 ## [1.0.0] — vo vývoji
 
 > **Otvorená verzia.** Tento záznam sa priebežne dopĺňa až do uzavretia
-> verzie 1 (štart produkčnej domény). Posledná aktualizácia: 2026-08-01.
+> verzie 1 (štart produkčnej domény). Posledná aktualizácia: 2026-08-02.
 > Podrobná história jednotlivých krokov žije v git logu; sem patrí
 > konsolidovaný obraz toho, čo verzia 1 prináša.
 
@@ -61,6 +61,12 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 - UI chrome preložený vo všetkých komponentoch (232 kľúčov/jazyk, overená
   parita); `Intl` formátovanie odvodené od jazyka. Obsahová vrstva (texty
   otázok, odporúčania) sa prekladá v ďalšom kroku cez databázu.
+
+- **Ponuka jazyka podľa krajiny návštevníka** — GeoIP hostingu
+  (Cloudflare CF-IPCountry) cez same-origin ; nenásilný banner
+  v cieľovom jazyku namiesto tvrdého redirectu (geo redirecty rozbíjajú
+  SEO aj cache). Manuálna voľba jazyka (vlajky alebo banner) sa pamätá
+  rok v cookie a koreňová negociácia ju číta pred Accept-Language.
 
 ### SEO a viditeľnosť
 

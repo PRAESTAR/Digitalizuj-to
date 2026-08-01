@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { routing, LOCALE_META, type Locale } from '@/i18n/routing';
+import { persistLocaleChoice } from '@/lib/localeChoice';
 import FlagIcon from './FlagIcon';
 
 /**
@@ -38,7 +39,12 @@ export default function LanguageSwitcher() {
             aria-label={meta.label}
             aria-current={active ? 'true' : undefined}
             title={meta.label}
-            onClick={() => router.replace(pathname, { locale: l })}
+            onClick={() => {
+              // Manuálna voľba je trvalé rozhodnutie: koreňová negociácia ju
+              // odteraz číta pred Accept-Language a geo ponuka sa už neukáže.
+              persistLocaleChoice(l);
+              router.replace(pathname, { locale: l });
+            }}
             /* Žiadne pozadie ani rámček. Aktívny jazyk sa odlíši sýtosťou:
                neaktívne vlajky sú odfarbené a stlmené, aktívna je v plnej
                farbe. Dotyková plocha 44 px zostáva, len je neviditeľná. */

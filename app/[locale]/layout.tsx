@@ -6,6 +6,7 @@ import { setRequestLocale, getTranslations } from 'next-intl/server';
 import '../globals.css';
 import TextSizeControl from '@/components/ui/TextSizeControl';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
+import LocaleSuggestionBanner from '@/components/ui/LocaleSuggestionBanner';
 import { Link } from '@/i18n/navigation';
 import { routing, LOCALE_META, type Locale } from '@/i18n/routing';
 import { SITE_URL, OG_LOCALE, localeAlternates } from '@/lib/seo';
@@ -319,6 +320,9 @@ export default async function LocaleLayout({
           <main id="main-content" className="flex-1">
             {children}
           </main>
+          {/* Geo ponuka jazyka — vykreslí sa len návštevníkovi bez uloženej
+              voľby, ktorého krajina mapuje na inú mutáciu než aktuálnu. */}
+          <LocaleSuggestionBanner />
         {/* Reklamný banner — zatiaľ placeholder slot (bude nahradený reálnou
             reklamou), preto tichý/neutrálny, bez animácie a bez farebného
             gradientu, aby nekonkuroval zvyšku stránky. */}
