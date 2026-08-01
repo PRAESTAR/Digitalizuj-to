@@ -217,7 +217,7 @@ function buildJsonLd(locale: Locale, description: string) {
         browserRequirements: 'Vyžaduje JavaScript. Funguje v každom modernom prehliadači.',
         inLanguage: lang,
         countriesSupported: 'SK',
-        softwareVersion: '1.1.0',
+        softwareVersion: '1.0.0',
         releaseNotes: `${siteUrl}/sk/changelog`,
         isAccessibleForFree: true,
         description,
@@ -381,7 +381,7 @@ export default async function LocaleLayout({
                     kontrast ~1,5:1 — nečitateľné. text-xs + #86868b je zhodné
                     so zvyškom päty. */}
                 <span className="inline-flex flex-wrap items-center justify-center gap-x-1 font-mono text-xs text-[#86868b]">
-                  <span>v1.1.0 &middot; build</span>
+                  <span>v1.0.0 &middot; build</span>
                   <a
                     href={`https://github.com/PRAESTAR/digitalizuj/commit/${process.env.NEXT_PUBLIC_COMMIT_HASH || 'main'}`}
                     target="_blank"

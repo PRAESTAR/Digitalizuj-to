@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     type: 'article',
     // Signál čerstvosti — legislatívne a metodické témy sa re-crawlujú
     // častejšie a AI vyhľadávače uprednostňujú datovaný obsah.
-    modifiedTime: '2026-07-24T00:00:00.000Z',
+    modifiedTime: '2026-08-01T00:00:00.000Z',
     // openGraph sa na podstránke nahrádza celý — bez explicitného obrázka
     // by karta zdieľania prišla o vizuál z file-konvencie v [locale].
     images: ['/sk/opengraph-image'],
@@ -55,312 +55,152 @@ const breadcrumbSchema = {
 
 const changelog = [
   {
-    version: '1.1.0',
-    date: '2026-07-24',
+    version: '1.0',
+    date: '2026-08-01',
+    status: 'Otvorená verzia — priebežne dopĺňaná až do uzavretia v1',
     sections: [
       {
-        title: 'Trvalé odkazy',
+        title: 'Metodika a model',
         type: 'added' as const,
         items: [
           {
-            title: 'Automatické QR + hash',
-            description: 'Permanentný odkaz a QR kód sa vygenerujú a zobrazia hneď po dokončení kvízu — predtým vyžadovalo kliknutie na tlačidlo. Platí pre /results aj /r/[hash].',
+            title: 'Dvojvrstvový model merania',
+            description: 'DII-Compatible Layer (12 premenných Eurostat DII, dataset isoc_e_dii verzia 3, prieskum 2025) + Operational Digital Readiness Model so 6 váženými oblasťami A–F. Benchmark: SK 41,6/32,0/20,4/6,0 % vs EÚ-27 27,9/34,5/27,5/10,1 %.',
           },
           {
-            title: 'Opravený titulok zdieľaného výsledku',
-            description: 'Vlastný (nie peer) výsledok cez /r/[hash] už nezobrazuje zavádzajúci titulok „Výsledok nenájdený".',
+            title: 'Otázková banka v1.5 — 65 otázok, kontext 2026',
+            description: 'Adaptívny branching (15 alebo 43–49 otázok), nové otázky na NIS2 a zákon č. 366/2024 Z. z., povinnú B2B e-fakturáciu od 1. 1. 2027 (Peppol, EN 16931) a AI Act. Každá single-choice otázka má deklarovanú škálu; 35 ad-hoc škál normalizovaných.',
+          },
+          {
+            title: '14 rizikových faktorov a index technologického dlhu',
+            description: 'RF01–RF14 vrátane nepripravenosti na e-fakturáciu a NIS2; kritické riziká nemiznú v priemere — TDRI je samostatná dimenzia. Súčasťou aj AI & Automatizácia Readiness index.',
+          },
+          {
+            title: 'Business Impact ako tri krivky',
+            description: 'Konzervatívny, reálny a optimistický scenár úspor s ramp-up krivkou (9/6/3 mesiace) na 24-mesačnom horizonte — logika ako pri investičnom výhľade. Hodinová cena práce 30,8 €/h (Eurostat lc_lci_lev 2025, NACE J).',
+          },
+          {
+            title: 'Validátor modelu v builde',
+            description: 'Sedem tried integritných kontrol (branching ciele, poradie, osirotené rizikové faktory, škály…) beží pri každom builde — nekonzistentný model build zastaví. Pri prvom nasadení odhalil odpojený RF08.',
           },
         ],
       },
       {
-        title: 'Živá výsledková karta v hero sekcii',
+        title: 'Výsledky a zdieľanie',
         type: 'added' as const,
         items: [
           {
-            title: 'Karta strieda ukážkové výsledky',
-            description: 'V slučke sa striedajú štyri profily (skóre, DII, riziko, odhad úspory), aby bolo vidieť, že nástroj vracia rôzne výsledky. Hodnoty sa vysunú zospodu ako pri prepočítaní, radar sa prekreslí do nového tvaru.',
+            title: 'Automatický QR kód a permanentný odkaz',
+            description: 'Po dokončení kvízu sa hneď vygeneruje 16-znakový base62 hash, QR kód a trvalý odkaz /r/[hash] — bez klikania. Zdieľa sa len anonymizovaný agregát; plný výsledok zostáva v prehliadači.',
           },
           {
-            title: 'Radarový ping namiesto blikania',
-            description: 'Bodka „naživo v prehliadači" má teraz rozpínajúci sa prstenec; vonkajší obrys radaru pomaly dýcha. Pri prefers-reduced-motion sa nič nehýbe.',
+            title: 'Výsledkový dashboard',
+            description: 'DII skóre vs. EÚ a SK, radar 6 oblastí, risk panel, business impact s audit trailom a prioritizovaná roadmapa odporúčaní v 3 fázach. Benchmark tabuľka 50 anonymizovaných profilov na /peers.',
           },
         ],
       },
       {
-        title: 'Výsledková karta sa pri skrolovaní roztrhne a rozpadne',
+        title: 'Dizajn a UX',
         type: 'added' as const,
         items: [
           {
-            title: 'Text sa trhá spolu s papierom',
-            description: 'Každý pás nesie vlastnú kópiu obsahu orezanú na svoj tvar, takže nápisy a čísla sú prerezané trhacou líniou a zostávajú na svojom útržku („78/1|00"), namiesto aby padali zvlášť popri papieri.',
+            title: 'Apple-style dizajn naprieč celým webom',
+            description: 'Jednotný vizuálny jazyk, aurora pozadie so spojitým gradientom bez švov medzi sekciami, svetelná stopa za kurzorom (kométa s guľôčkou presne na kurzore) na celej úvodnej stránke.',
           },
           {
-            title: 'Roztrhnutie karty na päť zvislých pásov',
-            description: 'Karta sa pri skrolovaní roztrhne pozdĺž štyroch zubatých zvislých línií na päť pásov, ktoré sa rozostúpia do strán, pootočia a mierne padajú — ako roztrhnutý papier. Obsah sa súčasne rozsype cez vzniknuté trhliny. Pásy nestrácajú krytie, len odídu zo záberu. V pokoji na seba presne nadväzujú, karta vyzerá ako jeden celok.',
+            title: 'Živá výsledková karta s trhacou animáciou',
+            description: 'Karta v hero sekcii strieda štyri ukážkové profily a pri skrolovaní sa roztrhne na 5 zvislých pásov aj s textom — CSS scroll-driven animácia na kompozítore, žiadny JS listener. Rešpektuje prefers-reduced-motion.',
           },
           {
-            title: 'Animácia zodpovedá metodike',
-            description: 'Metodika sľubuje, že každé skóre je auditovateľné a spätne rozložiteľné — karta to predvedie. Poradie oddelenia kopíruje poradie odvodenia; headline skóre drží najdlhšie.',
-          },
-          {
-            title: 'Bez dopadu na plynulosť skrolovania',
-            description: 'CSS scroll-driven animácia (view-timeline) na kompozítore, nie JS scroll listener; animuje len transform a opacity. Pri prefers-reduced-motion alebo bez podpory v prehliadači zostane karta statická.',
+            title: 'Mobile-first optimalizácia',
+            description: 'Kartové zoznamy namiesto tabuliek, 44 px dotykové plochy (WCAG 2.2), skryté dekoratívne ikony na malých displejoch, ovládač veľkosti textu (100/125/150 %) na desktope.',
           },
         ],
       },
       {
-        title: 'Plynulý prechod hero → „Vyberte si diagnostiku"',
+        title: 'Viacjazyčnosť',
         type: 'added' as const,
         items: [
           {
-            title: 'Zmiznutý „šev" na hranici hero sekcie',
-            description: 'Aurora wash sa už neorezáva natvrdo na hranici sekcie (overflow-hidden), ale plynulo sa stráca (mask-image fade) do pozadia nasledujúcej sekcie.',
+            title: 'Štyri jazyky: SK (predvolený), CS, DE, EN',
+            description: 'Všetky routy pod jazykovým prefixom (/sk, /cs, /de, /en), prepínač cez SVG vlajky (Windows nemá font s vlajkovými emoji), jazyková negociácia koreňa podľa Accept-Language.',
           },
           {
-            title: 'Plynulé skrolovanie na kotvy',
-            description: `Pridané scroll-behavior: smooth — „Začať diagnostiku" a „Čo presne dostanete" už neskáču na cieľ okamžite.`,
-          },
-          {
-            title: 'Menej trhané skrolovanie cez hero',
-            description: 'Aurora-blob animácie už neanimujú scale() (len translate3d), čo predtým pri skrolovaní spôsobovalo sekanie.',
+            title: 'UI chrome preložený vo všetkých komponentoch',
+            description: '232 kľúčov na jazyk s overenou paritou; kvíz, výsledky, zákaznícka zóna aj chybové stránky. Formátovanie mien a dátumov cez Intl s locale odvodeným od jazyka. Obsahová vrstva (texty otázok, odporúčania) sa prekladá v ďalšom kroku cez databázu.',
           },
         ],
       },
       {
-        title: 'Business Impact — krivky namiesto jedného čísla',
+        title: 'SEO a viditeľnosť',
         type: 'added' as const,
         items: [
           {
-            title: 'Kumulatívna úspora ako tri krivky v čase',
-            description: 'Konzervatívny/reálny/optimistický scenár zobrazené ako krivky na 24-mesačnom horizonte (analogicky k investičnej projekcii), nie ako jedno statické ročné číslo. Lineárny nábeh k plnému run-rate za 3/6/9 mesiacov podľa scenára.',
+            title: 'Kompletná SEO revízia po i18n migrácii',
+            description: 'Self-canonical každej jazykovej mutácie s preloženými titulkami, plný hreflang cluster s x-default, sitemap so 4 jazykmi homepage, per-locale OG obrázky a metadáta. Nepreložené podstránky poctivo canonicalizujú na /sk verziu.',
           },
           {
-            title: `Scenár „Stredný" premenovaný na „Reálny"`,
-            description: 'Naprieč UI aj dokumentáciou — interný dátový kľúč zostáva mid.',
+            title: 'Viditeľné FAQ a verejná metodika',
+            description: '7 otázok (vrátane e-fakturácie 2027 a NIS2) viditeľných na stránke — FAQPage schéma sa stavia z tých istých prekladových kľúčov. Nová stránka /sk/metodika s DII pásmami, ODRM váhami a známymi obmedzeniami.',
+          },
+          {
+            title: 'Pripravené pre AI vyhľadávače',
+            description: 'llms.txt s metodikou a kľúčovými stránkami, explicitné povolenia pre AI crawlery v robots.txt, JSON-LD graf (Organization, WebSite, WebApplication, Dataset) s lokalizovaným inLanguage.',
+          },
+          {
+            title: 'Core Web Vitals',
+            description: 'Variabilný font namiesto 12 samostatných váh (3 preloady namiesto 13), immutable cache na statické assety, klientská navigácia bez layout shiftov, recharts len na výsledkovej ceste.',
           },
         ],
       },
       {
-        title: 'Vizuálny dizajn — plošná konzistencia',
+        title: 'Databáza a správa obsahu',
         type: 'added' as const,
         items: [
           {
-            title: 'Apple.com štýl naprieč celou aplikáciou',
-            description: 'Predtým len na homepage — teraz aj kvíz, výsledkový dashboard, /peers, /changelog, zdieľané výsledky a 404/error stránky. Zjednotená neutrálna paleta, jedno CTA tlačidlo (.btn-apple-primary), odstránené sýte gradienty, farebné glow tiene a bounce/idle animácie.',
+            title: 'Otázková banka v MariaDB 11.4',
+            description: '13 tabuliek s referenčnou integritou — cieľ vetvenia aj rizikový faktor musia existovať už na úrovni dát. Podmienky vetvenia uložené surovo aj štruktúrovane, i18n stĺpce pripravené na preklad obsahu.',
           },
           {
-            title: 'Reklamný banner bez animácie',
-            description: 'Placeholder pre budúcu reklamu zostáva, ale bez pôvodného pestrého animovaného gradientu.',
+            title: 'Publish s integritnou bránou',
+            description: 'Editácia v phpMyAdmin → publish.php spustí SQL kontroly (odmietne nekonzistentný model) a skompiluje verziovaný artefakt. Kompilát je hĺbkovo zhodný s pôvodným JSON; PHP a Node kompilátory dávajú bajtovo identický výstup (SHA-256).',
+          },
+          {
+            title: 'model:pull — most medzi DB a repozitárom',
+            description: 'Stiahne publikovaný artefakt, zvaliduje ho validátorom buildu a až potom prepíše zdrojové súbory; pri zlyhaní rollback. Git zostáva nasadzovacím zdrojom pravdy, DB editačným.',
           },
         ],
       },
       {
-        title: 'Oprava branching logiky',
-        type: 'added' as const,
-        items: [
-          {
-            title: `Akcia 'include' bola no-op`,
-            description: '5 otázok (cx_B06_ecommerce, cx_B05b_outsource, cx_D03_server, cx_D04_virtualization, cx_D05_cloud) sa zobrazovalo úplne všetkým respondentom bez ohľadu na relevanciu. Nahradené funkčnými invertovanými skip pravidlami; cx_D02 teraz správne pokrýva aj hodnotu saas_only.',
-          },
-          {
-            title: 'Reálne premenlivý počet otázok',
-            description: 'Komplexný kvíz teraz zobrazuje 43–49 otázok podľa vetvy namiesto takmer fixných ~48 pre každého.',
-          },
-        ],
-      },
-      {
-        title: 'Risk faktory — opravené a nové',
-        type: 'added' as const,
-        items: [
-          {
-            title: 'RF06 a RF12 už nie sú mŕtve',
-            description: 'Boli trvalo neaktivovateľné — žiadna otázka ich nemohla vyvolať. RF06 napojený na novú možnosť v cx_B02, RF12 na novú otázku cx_D08_app_lifecycle.',
-          },
-          {
-            title: 'RF13 a RF14 — dva nové risk faktory',
-            description: 'Nepripravenosť na povinnú e-fakturáciu od 1.1.2027 a nepripravenosť na NIS2 — spolu teraz 14 risk faktorov (RF01–RF14) namiesto 12.',
-          },
-          {
-            title: 'Nová NIS2 screening otázka',
-            description: 'cx_E08_nis2 (zákon č. 366/2024 Z. z.) sa zobrazuje len stredným/veľkým firmám vo výrobe, doprave/logistike a IT/telekomunikáciách.',
-          },
-        ],
-      },
-      {
-        title: 'Otázková banka — aktuálnosť 2026',
-        type: 'added' as const,
-        items: [
-          {
-            title: 'EU AI Act v tooltipe AI governance otázky',
-            description: 'Nariadenie EÚ 2024/1689, fázovo účinné 2025–2027.',
-          },
-          {
-            title: 'AI agenti v tooltipoch AI otázok',
-            description: 'Doplnené popri chatbotoch a generatívnej AI ako rýchlo rastúca kategória použitia.',
-          },
-        ],
-      },
-      {
-        title: 'Výkon',
-        type: 'added' as const,
-        items: [
-          {
-            title: 'AssessmentProvider scoped na kvízové routy',
-            description: '/peers a /changelog už nesťahujú 80 KB otázkovej banky a scoring enginov, ktoré nikdy nepoužijú.',
-          },
-          {
-            title: 'Lazy-loading RadarChart a QR kódu',
-            description: 'next/dynamic namiesto blokovania hydratácie celej výsledkovej stránky (~110 KB gzip recharts).',
-          },
-          {
-            title: 'Statické opengraph-image',
-            description: 'Odstránený edge runtime — generuje sa raz pri builde namiesto pri každom requeste.',
-          },
-        ],
-      },
-      {
-        title: 'Bezpečnosť',
-        type: 'added' as const,
-        items: [
-          {
-            title: 'Opravené 3 high-severity zraniteľnosti',
-            description: 'postcss a sharp (transitívne cez next) opravené cez package.json overrides namiesto downgradu Next.js na 9.3.3 — npm audit teraz hlási 0 zraniteľností.',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    version: '1.0.0',
-    date: '2026-07-24',
-    sections: [
-      {
-        title: 'Jadro platformy',
-        type: 'added' as const,
-        items: [
-          {
-            title: 'Adaptívny dotazník',
-            description: 'Indikatívny kvíz (15 otázok, 5–7 min) a komplexný kvíz (45+ otázok v 6 moduloch A–F, 15–20 min). Branching logika (skip, include, flag_risk), možnosť „Neviem" pri každej otázke.',
-          },
-          {
-            title: '5 nezávislých výstupov',
-            description: 'DII-Compatible Score (0–100 → 0–12), Operational Readiness Score (0–100, 6 kategórií), AI & Automatizácia Readiness (0–100, prierezový index), Technical Debt & Risk Index (0–100, 12 risk faktorov), Business Impact Potential (3 scenáre).',
-          },
-          {
-            title: 'Interaktívny výsledkový dashboard',
-            description: 'Score cards, radarový graf, Executive Summary, Risk panel, Business Impact tabuľka, 3-fázová roadmapa odporúčaní, benchmark porovnanie SK/EÚ/sektor/veľkosť, audit trail.',
-          },
-          {
-            title: 'Trvalé odkazy a peer porovnanie',
-            description: 'Zdieľateľný výsledok (/r/hash) s QR kódom, anonymizovaný snapshot bez PII, porovnanie voči firmám podobnej veľkosti a sektora.',
-          },
-          {
-            title: 'Lokálne spracovanie',
-            description: 'Žiadne dáta sa neodosielajú na server — všetko beží v prehliadači (localStorage pre trvalé odkazy).',
-          },
-          {
-            title: 'Konfiguračný priečinok',
-            description: 'config/model/ — editovateľné JSON/MD súbory pre otázky, scoring parametre, benchmark dáta a kompletnú metodickú dokumentáciu.',
-          },
-        ],
-      },
-      {
-        title: 'Metodika a benchmark dáta',
-        type: 'added' as const,
-        items: [
-          {
-            title: 'Benchmark ukotvený na Eurostat DII 2025',
-            description: 'Dataset ISOC_E_DII, verzia 2025-DII-v3 (prieskum 2025): SK distribúcia 41,6/32,0/20,4/6,0 %, EÚ-27 27,9/34,5/27,5/10,1 % podľa pásiem digitálnej intenzity; odvodené mediány SK 4,3 / EÚ 5,4.',
-          },
-          {
-            title: '12 DII premenných zosúladených s aktuálnou v3/2025 sadou',
-            description: 'Dvojročná rotácia verzií Eurostatu (v4/2024 ↔ v3/2025) zdokumentovaná; referenčné KPI Digitálnej dekády (SME so základnou digitálnou intenzitou: SK 57,1 % vs. EÚ 71,4 %, cieľ 90 % do 2030).',
-          },
-          {
-            title: 'ROI model s hodinovou cenou práce IT sektora SR',
-            description: '30,8 €/h (Eurostat lc_lci_lev 2025, NACE J — Informácie a komunikácia). Otázka na hodinovú cenu bola z dotazníka odstránená (citlivý údaj, nekonzistentné self-reported odhady) — model vždy počíta s benchmarkom naviazaným na sektor, ktorý digitalizačné projekty typicky rieši.',
-          },
-          {
-            title: 'Regulačný kontext 2025–2027',
-            description: 'NIS2 (zákon č. 366/2024 Z. z.), povinná B2B e-fakturácia od 1. 1. 2027 (Peppol, EN 16931), AI Act — premietnuté do metodiky a odporúčaní.',
-          },
-        ],
-      },
-      {
-        title: 'Dokumentácia zosúladená s implementáciou',
-        type: 'added' as const,
-        items: [
-          {
-            title: 'Kompletná revízia metodických dokumentov',
-            description: 'SCORING_SPEC.md, RECOMMENDATION_RULES.md a QUESTION_BANK_GUIDE.md prepísané tak, aby presne opisovali skutočné správanie kódu — predtým viaceré popisovali plánovanú, neimplementovanú logiku.',
-          },
-          {
-            title: 'METHODOLOGY.md, BENCHMARK_SPEC.md, ARCHITECTURE.md',
-            description: 'Odstránené „MVP draft" rámcovanie, doplnená AI & Automatizácia Readiness, opravený zastaraný dátový model a štruktúra súborov.',
-          },
-          {
-            title: 'README.md s diagramami architektúry',
-            description: 'Dva Mermaid diagramy — technologická architektúra vrstiev a aplikačný tok od dotazníka po zdieľaný odkaz.',
-          },
-        ],
-      },
-      {
-        title: 'Vizuálny dizajn',
-        type: 'added' as const,
-        items: [
-          {
-            title: 'Redizajn v apple.com štýle',
-            description: 'Svetlé pozadie, veľký nadpis s gradientovým akcentom, plávajúca náhľadová karta výsledkov, čierne „Buy"-štýl CTA tlačidlo.',
-          },
-          {
-            title: 'Font Onest',
-            description: 'SF Pro–podobné proporcie s plnou podporou slovenskej diakritiky — nahradil predchádzajúci fallback (opravený bug, kde telo stránky renderovalo v Arial/Helvetica).',
-          },
-        ],
-      },
-      {
-        title: 'Opravy scoringu a logiky',
-        type: 'added' as const,
-        items: [
-          {
-            title: 'Bezpečnostná penalizácia len pre meranú kategóriu E',
-            description: 'Predtým nemeraná kategória dostala maximálnu penalizáciu ORS −30 % bez jediného dôkazu o probléme.',
-          },
-          {
-            title: 'Risk index ignoruje „Neviem" a informačné otázky',
-            description: 'Predtým napr. RF06 penalta pre každého respondenta komplexného kvízu bez ohľadu na odpoveď.',
-          },
-          {
-            title: 'Benchmark gap prahy prepočítané pre DII škálu 0–12',
-            description: 'Extrémne popisky („Výrazne nad/pod priemerom") boli na tejto škále predtým matematicky nedosiahnuteľné.',
-          },
-          {
-            title: 'Transformačné odporúčania (12+ mesiacov) sa opäť zobrazujú',
-            description: 'Predtým sa vypočítali, ale zahadzovali pred zobrazením v roadmape.',
-          },
-        ],
-      },
-      {
-        title: 'Známe obmedzenia',
-        type: 'known' as const,
-        items: [
-          { title: 'Expertné benchmarky', description: 'Sektorové/veľkostné a ORS mediány sú odhady, nie empirické dáta z vlastného datasetu' },
-          { title: 'Zjednodušený ROI model', description: 'Odhaduje len potenciál úspor (bez investičných nákladov, bez adopčnej krivky) — výstup je ročný run-rate po plnej implementácii' },
-          { title: 'Mikrofirmy', description: 'Firmy s menej ako 10 zamestnancami nie sú pokryté Eurostat DII dátami' },
-          { title: 'Self-reported dáta', description: 'Bez nezávislej verifikácie' },
-          { title: 'DII aproximácia', description: 'Plochý priemer označených otázok, nie per-indikátorová agregácia podľa oficiálnej Eurostat metodiky (SCORING_SPEC.md §2)' },
-        ],
-      },
-      {
-        title: 'Technológie',
+        title: 'Hosting a nasadenie',
         type: 'tech' as const,
         items: [
-          { title: 'Next.js 16', description: 'App Router' },
-          { title: 'React 19', description: 'UI framework' },
-          { title: 'TypeScript 5', description: 'Typový systém' },
-          { title: 'Tailwind CSS 4', description: 'Utility-first styling' },
-          { title: 'Recharts 3', description: 'Radarový graf' },
-          { title: 'React Context API', description: 'State management (useReducer, žiadny backend)' },
+          {
+            title: 'Statický export pre Apache/PHP webhosting',
+            description: 'Build cez output:export (231 stránok); serverovú logiku preberá .htaccess — bezpečnostné hlavičky (CSP, HSTS), legacy 301 presmerovania, jazyková negociácia s Vary a mapovanie čistých URL na .html súbory.',
+          },
+          {
+            title: 'Staging na app.magors.net',
+            description: 'FTPS deploy s resume a paralelnými spojeniami; staging nesie X-Robots-Tag noindex do spustenia produkčnej domény. Bajtovo overená zhoda nasadených stránok s buildom.',
+          },
+          {
+            title: 'Súkromie ako architektúra',
+            description: 'Odpovede a výsledky sa spracúvajú výlučne v prehliadači — na server sa neodosielajú a databáza drží len obsah modelu. Web zatiaľ nepoužíva žiadne tracking cookies.',
+          },
+        ],
+      },
+      {
+        title: 'Kvalita a testy',
+        type: 'tech' as const,
+        items: [
+          {
+            title: 'Vitest v projekte',
+            description: 'Prvé jednotkové testy (16 testov roiEngine) vrátane opravy: indikatívny ROI už nemieša hodnoty otázky o systémoch do zoznamu manuálnych procesov.',
+          },
+          {
+            title: 'Bezpečnostný a výkonový audit',
+            description: 'CSP bez unsafe-eval v produkcii, security headers, audit výkonu načítavania; priebežné multi-agentové revízie dizajnu, otázkovej banky aj SEO s adversariálnou verifikáciou nálezov.',
+          },
         ],
       },
     ],
@@ -442,6 +282,12 @@ export default function ChangelogPage() {
                       day: 'numeric',
                     })}
                   </p>
+                  {release.status && (
+                    <p className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-[#0068d6]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#0068d6] shrink-0" aria-hidden="true" />
+                      {release.status}
+                    </p>
+                  )}
                 </div>
               </div>
 

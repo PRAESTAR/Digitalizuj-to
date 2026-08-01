@@ -5,7 +5,7 @@
 Jazyky rozhrania: slovenčina (https://digitalizuj.to/sk, plne preložená),
 čeština (/cs), nemčina (/de) a angličtina (/en) — mutácie CS/DE/EN majú zatiaľ
 preloženú úvodnú stránku, obsahové podstránky sú po slovensky.
-Doména: https://digitalizuj.to. Verzia platformy: 1.1.0.
+Doména: https://digitalizuj.to. Verzia platformy: 1.0.0.
 Prevádzkovateľ nepredáva softvér ani implementačné služby; odporúčania sú formulované
 ako typy opatrení a neuvádzajú konkrétnych dodávateľov ani produkty.
 

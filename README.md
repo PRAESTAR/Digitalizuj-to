@@ -4,7 +4,7 @@
 
 Metodicky obhajitelna platforma na meranie urovne digitalizacie firiem, identifikaciu rizik a generovanie prioritizovanych odporucani. Postavena na EU benchmark ramci (DII) a vlastnom Operational Digital Readiness Modeli.
 
-> **Verzia:** 1.1.0 | **Stav:** Release | **Jazyk rozhrania:** Slovencina
+> **Verzia:** 1.0.0 | **Stav:** v1 vo vývoji (otvorená verzia) | **Jazyk rozhrania:** Slovencina
 
 ---
 
@@ -416,4 +416,4 @@ Proprietary. (c) PRAESTAR.
 
 ---
 
-<sub>Verzia: 1.1.0 | Metodika: DII-Compatible + ODRM v1.4-MVP | Benchmark: Eurostat DII 2025 (isoc_e_dii, 2025-DII-v3)</sub>
+<sub>Verzia: 1.0.0 | Metodika: DII-Compatible + ODRM v1.4-MVP | Benchmark: Eurostat DII 2025 (isoc_e_dii, 2025-DII-v3)</sub>

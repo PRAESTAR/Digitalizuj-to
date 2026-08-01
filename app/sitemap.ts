@@ -15,7 +15,7 @@ export const dynamic = 'force-static';
  * (e-fakturácia 2027, NIS2) to najcennejšie, čo sitemap vie odovzdať.
  */
 const LAST_CONTENT_UPDATE = new Date('2026-07-27T00:00:00.000Z');
-const LAST_RELEASE = new Date('2026-07-24T00:00:00.000Z');
+const LAST_RELEASE = new Date('2026-08-01T00:00:00.000Z');
 
 /** hreflang kódy zhodné s layoutom (lib/seo.ts). */
 const HREFLANG: Record<string, string> = {
