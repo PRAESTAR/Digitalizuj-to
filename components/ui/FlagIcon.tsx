@@ -60,23 +60,22 @@ export default function FlagIcon({ locale }: { locale: Locale }) {
       );
     case 'en':
       // EÚ vlajka — anglická mutácia reprezentuje EÚ trh (priemer EÚ-27),
-      // nie Britániu. 12 hviezd v kruhu; pri 14 px sú hviezdy vykreslené ako
-      // body — päťcípy tvar by sa na tejto veľkosti aj tak zlial.
+      // nie Britániu. 12 hviezd v kruhu; pri 14 px sú vykreslené ako body.
+      // Súradnice sú PREDPOČÍTANÉ konštanty, nie Math.cos/sin za behu:
+      // trigonometria nie je bitovo stabilná medzi Node a prehliadačom
+      // a posledné desatinné miesto rozbíjalo React hydratáciu.
       return (
         <svg {...common}>
           <rect width="24" height="16" fill="#003399" />
-          {Array.from({ length: 12 }, (_, i) => {
-            const a = (i * Math.PI) / 6 - Math.PI / 2;
-            return (
-              <circle
-                key={i}
-                cx={12 + 5.2 * Math.cos(a)}
-                cy={8 + 5.2 * Math.sin(a)}
-                r="0.85"
-                fill="#FFCC00"
-              />
-            );
-          })}
+          {(
+            [
+              [12, 2.8], [14.6, 3.5], [16.5, 5.4], [17.2, 8],
+              [16.5, 10.6], [14.6, 12.5], [12, 13.2], [9.4, 12.5],
+              [7.5, 10.6], [6.8, 8], [7.5, 5.4], [9.4, 3.5],
+            ] as const
+          ).map(([cx, cy], i) => (
+            <circle key={i} cx={cx} cy={cy} r="0.85" fill="#FFCC00" />
+          ))}
         </svg>
       );
   }
