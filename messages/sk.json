@@ -270,7 +270,8 @@
     "vsEu": "DII vs. EÚ priemer",
     "vsSector": "DII vs. váš sektor",
     "orsVsSector": "Operačná zrelosť vs. sektor",
-    "source": "Benchmark dáta: {source}. Verzia: {version} ({date})."
+    "source": "Benchmark dáta: {source}. Verzia: {version} ({date}).",
+    "vsCz": "DII vs. Česko"
   },
   "customer": {
     "notFoundTitle": "Výsledok nie je dostupný na tomto zariadení",

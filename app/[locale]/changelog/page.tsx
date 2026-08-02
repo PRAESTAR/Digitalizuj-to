@@ -122,8 +122,8 @@ const changelog = [
         type: 'added' as const,
         items: [
           {
-            title: 'Štyri jazyky: SK (predvolený), CS, DE, EN',
-            description: 'Všetky routy pod jazykovým prefixom (/sk, /cs, /de, /en), prepínač cez SVG vlajky (Windows nemá font s vlajkovými emoji), jazyková negociácia koreňa podľa Accept-Language.',
+            title: 'Tri trhy: Slovensko, Česko a EÚ',
+            description: 'Voľba vlajky určuje jazyk AJ referenčné čísla: slovenčina nesie slovenský benchmark, čeština český (Eurostat DII 2025: ČR medián 5,6 — tesne nad priemerom EÚ), EÚ vlajka anglické rozhranie s priemerom EÚ-27. Routy pod /sk, /cs, /en; negociácia koreňa podľa Accept-Language.',
           },
           {
             title: 'UI chrome preložený vo všetkých komponentoch',

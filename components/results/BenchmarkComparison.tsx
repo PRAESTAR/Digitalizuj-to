@@ -27,14 +27,19 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
         </div>
 
         <div className="grid gap-3 sm:gap-4 md:grid-cols-2 stagger-children">
-          <BenchmarkCard
-            title={t('vsSk')}
-            icon="🇸🇰"
-            value={`${dii.score12}/12`}
-            gap={benchmarks.diiVsSk.gap}
-            label={benchmarks.diiVsSk.labelSk}
-            percentile={benchmarks.diiVsSk.percentile}
-          />
+          {/* Domáca karta podľa trhu mutácie (sk→SK, cs→ČR). V EÚ režime (en)
+              by bola len duplikátom EÚ karty, preto sa vynecháva. Staré
+              uložené výsledky homeMarket nemajú — fallback SK. */}
+          {(benchmarks.homeMarket ?? 'SK') !== 'EU27' && (
+            <BenchmarkCard
+              title={(benchmarks.homeMarket ?? 'SK') === 'CZ' ? t('vsCz') : t('vsSk')}
+              icon={(benchmarks.homeMarket ?? 'SK') === 'CZ' ? '🇨🇿' : '🇸🇰'}
+              value={`${dii.score12}/12`}
+              gap={benchmarks.diiVsSk.gap}
+              label={benchmarks.diiVsSk.labelSk}
+              percentile={benchmarks.diiVsSk.percentile}
+            />
+          )}
           <BenchmarkCard
             title={t('vsEu')}
             icon="🇪🇺"

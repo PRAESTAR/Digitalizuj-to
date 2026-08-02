@@ -264,6 +264,9 @@ export interface BenchmarkComparison {
 }
 
 export interface BenchmarkResults {
+  /** Domáci trh porovnania — odvodený od jazykovej mutácie (sk→SK, cs→CZ,
+   *  en→EU27). Staré uložené výsledky pole nemajú; fallback je SK. */
+  homeMarket?: 'SK' | 'CZ' | 'EU27';
   diiVsSk: BenchmarkComparison;
   diiVsEu: BenchmarkComparison;
   diiVsSector: BenchmarkComparison & { sector: string };

@@ -110,18 +110,22 @@ export default async function Home({
               </div>
 
               {/* Spec strip — čo zákazník reálne dostane */}
+              {/* Hodnoty z prekladov — kľúče hero.spec* existovali od začiatku
+                  i18n, ale sedeli tu natvrdo po slovensky (mŕtve kľúče).
+                  specDiiValue je navyše per trh: SK „vs. EÚ & SK",
+                  CZ „vs. EU & ČR", EÚ „vs. EU average". */}
               <dl className="flex flex-wrap gap-x-10 gap-y-5 pt-8 border-t border-black/10">
                 <div>
-                  <dt className="text-[11px] uppercase tracking-wider text-[#86868b] mb-1">DII skóre</dt>
-                  <dd className="text-sm font-semibold text-[#1d1d1f]">0&ndash;100 vs. EÚ &amp; SK</dd>
+                  <dt className="text-[11px] uppercase tracking-wider text-[#86868b] mb-1">{t('hero.specDii')}</dt>
+                  <dd className="text-sm font-semibold text-[#1d1d1f]">{t('hero.specDiiValue')}</dd>
                 </div>
                 <div>
-                  <dt className="text-[11px] uppercase tracking-wider text-[#86868b] mb-1">Risk Index</dt>
-                  <dd className="text-sm font-semibold text-[#1d1d1f]">technologický dlh</dd>
+                  <dt className="text-[11px] uppercase tracking-wider text-[#86868b] mb-1">{t('hero.specRisk')}</dt>
+                  <dd className="text-sm font-semibold text-[#1d1d1f]">{t('hero.specRiskValue')}</dd>
                 </div>
                 <div>
-                  <dt className="text-[11px] uppercase tracking-wider text-[#86868b] mb-1">Business Impact</dt>
-                  <dd className="text-sm font-semibold text-[#1d1d1f]">odhad úspor v &euro;</dd>
+                  <dt className="text-[11px] uppercase tracking-wider text-[#86868b] mb-1">{t('hero.specImpact')}</dt>
+                  <dd className="text-sm font-semibold text-[#1d1d1f]">{t('hero.specImpactValue')}</dd>
                 </div>
               </dl>
             </div>

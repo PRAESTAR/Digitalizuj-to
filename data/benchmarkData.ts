@@ -15,13 +15,29 @@ export const benchmarkData = {
       diiMedianScore: 4.3, // odvodené: 3.5 + (0.5 - 0.416) / 0.32 * 3
       orsEstimatedMedian: 38, // expertný odhad
     },
+    CZ: {
+      // Eurostat isoc_e_dii 2025 (rovnaký rez a vintage 2026-02-27 ako SK/EÚ;
+      // overené dvomi nezávislými API cestami — JSON-stat aj SDMX TSV):
+      // E_DI3_VLO 28.49 %, E_DI3_LO 30.58 %, E_DI3_HI 28.86 %, E_DI3_VHI 12.07 %
+      // (súčet presne 100.00). ČR je tesne NAD priemerom EÚ-27.
+      // DD KPI kontext: MSP so základnou DII 70.46 % (DESI 2026, ref. 2025).
+      diiDistribution: { very_low: 0.285, low: 0.306, high: 0.289, very_high: 0.121 },
+      diiMedianScore: 5.6, // odvodené: 3.5 + (0.5 - 0.2849) / 0.3058 * 3 = 5.61
+      // Expertný odhad rovnakou logikou ako SK/EÚ: lineárne škálovanie podľa
+      // pozície DII mediánu (SK 38 ↔ 4.29; EÚ 44 ↔ 5.4 → CZ ~45 ↔ 5.61).
+      orsEstimatedMedian: 45,
+    },
     EU27: {
       // Eurostat isoc_e_dii 2025: E_DI3_VLO 27.89 %, E_DI3_LO 34.52 %, E_DI3_HI 27.54 %, E_DI3_VHI 10.05 %
       diiDistribution: { very_low: 0.279, low: 0.345, high: 0.275, very_high: 0.101 },
       diiMedianScore: 5.4, // odvodené: 3.5 + (0.5 - 0.279) / 0.345 * 3
       orsEstimatedMedian: 44, // expertný odhad
     },
-  },
+  } as Partial<Record<'SK' | 'CZ' | 'EU27', {
+    diiDistribution: { very_low: number; low: number; high: number; very_high: number };
+    diiMedianScore: number;
+    orsEstimatedMedian: number;
+  }>>,
 
   // Sektorové hodnoty sú expertné odhady kalibrované na SK distribúciu (Eurostat nepublikuje
   // DII medián po sektoroch) — v UI sa zobrazujú s disclaimerom.

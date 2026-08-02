@@ -21,8 +21,7 @@ const LAST_RELEASE = new Date('2026-08-02T00:00:00.000Z');
 const HREFLANG: Record<string, string> = {
   sk: 'sk-SK',
   cs: 'cs-CZ',
-  de: 'de-DE',
-  en: 'en-GB',
+  en: 'en',
 };
 
 /** Mapa alternates pre routu preloženú do všetkých jazykov. */

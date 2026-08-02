@@ -43,7 +43,7 @@
     "ctaPrimary": "Start the assessment",
     "ctaSecondary": "What exactly you get",
     "specDii": "DII score",
-    "specDiiValue": "0–100 vs. EU & SK",
+    "specDiiValue": "0–100 vs. EU average",
     "specRisk": "Risk Index",
     "specRiskValue": "technical debt",
     "specImpact": "Business Impact",
@@ -101,7 +101,7 @@
     "tagOdrm": "ODRM model",
     "tagDap": "Adaptive DAP model",
     "build": "build",
-    "intro": "digitalizuj.to is a free online digital maturity test for small and medium-sized enterprises. In 5 minutes it measures your company’s level of digitalisation, compares it with the EU and SK benchmark (Eurostat DII 2025) and estimates annual savings from automation — anonymously and with no sign-up.",
+    "intro": "digitalizuj.to is a free online digital maturity test for small and medium-sized enterprises. In 5 minutes it measures your company’s level of digitalisation, compares it with the EU-27 average benchmark (Eurostat DII 2025) and estimates annual savings from automation — anonymously and with no sign-up.",
     "fullLink": "Full methodology"
   },
   "quiz": {
@@ -270,7 +270,8 @@
     "vsEu": "DII vs. EU average",
     "vsSector": "DII vs. your sector",
     "orsVsSector": "Operational maturity vs. sector",
-    "source": "Benchmark data: {source}. Version: {version} ({date})."
+    "source": "Benchmark data: {source}. Version: {version} ({date}).",
+    "vsCz": "DII vs. Czechia"
   },
   "customer": {
     "notFoundTitle": "The result is not available on this device",

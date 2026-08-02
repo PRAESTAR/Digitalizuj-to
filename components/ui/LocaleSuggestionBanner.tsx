@@ -30,26 +30,15 @@ import type { Locale } from '@/i18n/routing';
  */
 
 /** Krajina → jazyk mutácie. Krajiny mimo zoznamu ponuku nedostanú. */
-const COUNTRY_TO_LOCALE: Record<string, Locale> = {
-  SK: 'sk',
-  CZ: 'cs',
-  DE: 'de',
-  AT: 'de',
-  CH: 'de',
-  LI: 'de',
-  GB: 'en',
-  IE: 'en',
-  US: 'en',
-  CA: 'en',
-  AU: 'en',
-  NZ: 'en',
-};
+// SK a CZ maju vlastne mutacie; VSETKY ostatne krajiny mapuju na EU/anglicku
+// verziu (EU vlajka = priemer EU-27). Ziadny zoznam krajin — default je 'en'.
+const COUNTRY_TO_LOCALE = (country: string): Locale =>
+  country === 'SK' ? 'sk' : country === 'CZ' ? 'cs' : 'en';
 
 /** Veta ponuky + tlačidlo prepnutia v CIEĽOVOM jazyku. */
 const OFFER: Record<Locale, { text: string; cta: string }> = {
   sk: { text: 'Tento web je dostupný aj v slovenčine.', cta: 'Prepnúť do slovenčiny' },
   cs: { text: 'Tento web je k dispozici i v češtině.', cta: 'Přepnout do češtiny' },
-  de: { text: 'Diese Website ist auch auf Deutsch verfügbar.', cta: 'Zu Deutsch wechseln' },
   en: { text: 'This website is also available in English.', cta: 'Switch to English' },
 };
 
@@ -68,7 +57,7 @@ export default function LocaleSuggestionBanner() {
     fetch('/geo.php', { signal: ctl.signal })
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { country?: string | null } | null) => {
-        const suggested = data?.country ? COUNTRY_TO_LOCALE[data.country] : undefined;
+        const suggested = data?.country ? COUNTRY_TO_LOCALE(data.country) : undefined;
         if (suggested && suggested !== locale) setTarget(suggested);
       })
       .catch(() => {

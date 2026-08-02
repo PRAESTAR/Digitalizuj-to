@@ -1,5 +1,6 @@
 import type { BenchmarkResults, BenchmarkComparison, DIIScore, ORSScore } from '@/types';
 import { benchmarkData } from '@/data/benchmarkData';
+import { MARKET_LABEL, type Market } from '@/lib/market';
 
 export function calculateBenchmarks(
   dii: DIIScore,
@@ -7,10 +8,19 @@ export function calculateBenchmarks(
   sector: string,
   // TODO(IMPROVEMENT_CHECKLIST.md P1): orsVsSize/orsVsCountry porovnania zatiaľ
   // nie sú implementované, hoci sizeBenchmarks dáta existujú — zámerne nepoužité.
-  _sizeBand: string
+  _sizeBand: string,
+  /**
+   * Domáci trh referenčných čísel — odvodený od jazykovej mutácie
+   * (sk→SK, cs→CZ, en→EÚ priemer). Pole `diiVsSk` z historických dôvodov
+   * nesie porovnanie s DOMÁCIM trhom (názov zostal kvôli uloženým
+   * výsledkom v localStorage a peer snapshotom); pri EU27 je zhodné
+   * s `diiVsEu` a zobrazovacia vrstva ho skryje.
+   */
+  market: Market = 'SK'
 ): BenchmarkResults {
   return {
-    diiVsSk: calculateDIIBenchmark(dii, 'SK'),
+    homeMarket: market,
+    diiVsSk: calculateDIIBenchmark(dii, market),
     diiVsEu: calculateDIIBenchmark(dii, 'EU27'),
     diiVsSector: {
       ...calculateSectorBenchmark(dii, sector),
@@ -22,7 +32,7 @@ export function calculateBenchmarks(
 
 function calculateDIIBenchmark(
   dii: DIIScore,
-  country: 'SK' | 'EU27'
+  country: Market
 ): BenchmarkComparison {
   const countryData = benchmarkData.countryBenchmarks[country];
   if (!countryData) {
@@ -46,7 +56,7 @@ function calculateDIIBenchmark(
   percentile = Math.round(Math.min(99, Math.max(1, percentile)));
 
   const gap = Math.round((dii.score12 - countryData.diiMedianScore) * 10) / 10;
-  const label = getGapLabel(gap, country === 'SK' ? 'SK' : 'EÚ', 'dii12');
+  const label = getGapLabel(gap, MARKET_LABEL[country], 'dii12');
 
   return { percentile, gap, labelSk: label };
 }

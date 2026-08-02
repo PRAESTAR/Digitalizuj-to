@@ -13,7 +13,6 @@ export const SITE_URL = 'https://digitalizuj.to';
 export const OG_LOCALE: Record<Locale, string> = {
   sk: 'sk_SK',
   cs: 'cs_CZ',
-  de: 'de_DE',
   en: 'en_GB',
 };
 
@@ -21,8 +20,7 @@ export const OG_LOCALE: Record<Locale, string> = {
 const HREFLANG: Record<Locale, string> = {
   sk: 'sk-SK',
   cs: 'cs-CZ',
-  de: 'de-DE',
-  en: 'en-GB',
+  en: 'en',
 };
 
 /**

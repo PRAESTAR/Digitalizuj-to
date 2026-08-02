@@ -15,20 +15,25 @@ import { defineRouting } from 'next-intl/routing';
  * nemecky hovoriaci používateľ na Slovensku má vidieť slovenský benchmark.
  * Preto sa krajina rieši samostatne a jazyk určuje len jazyk rozhrania.
  */
+/**
+ * Tri možnosti = tri trhy (medzikrok k úlohe #34, krajina ako primárna os):
+ * slovenčina nesie slovenské referenčné čísla, čeština české a EÚ vlajka
+ * anglické rozhranie s priemerom EÚ-27. Nemčina vyradená rozhodnutím
+ * z 2. 8. 2026 (messages/de.json žije v git histórii, vráti sa s #34).
+ */
 export const routing = defineRouting({
-  locales: ['sk', 'cs', 'de', 'en'],
+  locales: ['sk', 'cs', 'en'],
   defaultLocale: 'sk',
   localePrefix: 'always',
 });
 
 export type Locale = (typeof routing.locales)[number];
 
-/** Metadáta pre prepínač jazykov — vlajka + názov v danom jazyku. */
+/** Metadáta pre prepínač — vlajka reprezentuje TRH (en = EÚ vlajka). */
 export const LOCALE_META: Record<Locale, { flag: string; label: string; htmlLang: string }> = {
   sk: { flag: '🇸🇰', label: 'Slovenčina', htmlLang: 'sk-SK' },
   cs: { flag: '🇨🇿', label: 'Čeština', htmlLang: 'cs-CZ' },
-  de: { flag: '🇩🇪', label: 'Deutsch', htmlLang: 'de-DE' },
-  en: { flag: '🇬🇧', label: 'English', htmlLang: 'en-GB' },
+  en: { flag: '🇪🇺', label: 'English (EU)', htmlLang: 'en' },
 };
 
 /**

@@ -55,8 +55,10 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ### Viacjazyčnosť
 
-- Štyri jazyky — SK (predvolený), CS, DE, EN — všetky routy pod `/{locale}`,
-  prepínač cez inline SVG vlajky, jazyková negociácia koreňa podľa
+- Tri trhy — Slovensko, Česko a EÚ: voľba vlajky určuje jazyk AJ referenčné
+  čísla (sk→SK benchmark, cs→ČR benchmark s Eurostat DII 2025 dátami ČR —
+  medián 5,6, tesne nad priemerom EÚ; EÚ vlajka→angličtina + priemer EÚ-27).
+  Routy pod `/{locale}`, inline SVG vlajky, negociácia koreňa podľa
   Accept-Language.
 - UI chrome preložený vo všetkých komponentoch (232 kľúčov/jazyk, overená
   parita); `Intl` formátovanie odvodené od jazyka. Obsahová vrstva (texty
@@ -115,7 +117,7 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 - Mikrofirmy (< 10 zamestnancov) nie sú pokryté Eurostat DII dátami.
 - Self-reported dáta bez nezávislej verifikácie.
 - DII skóre je aproximácia (plochý priemer označených otázok), nie per-indikátorová agregácia podľa oficiálnej Eurostat metodiky — podrobnosti v `SCORING_SPEC.md` §2.
-- CS/DE/EN mutácie majú preložené rozhranie, obsahové podstránky zatiaľ po slovensky; benchmark referencie sú kalibrované na SK.
+- CS/EN mutácie majú preložené rozhranie, obsahové podstránky zatiaľ po slovensky. ROI hodinová sadzba je zatiaľ jednotná (SK NACE J 30,8 €/h) — per-trh sadzby sú v pláne (ČR 2025: 34,9 €/h už zresearchované).
 - Ďalšie otvorené položky sledované v `IMPROVEMENT_CHECKLIST.md`.
 
 ### Technológie

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import { useLocale } from 'next-intl';
 import type { Assessment, AssessmentType, Answer, ResultSnapshot, Question, ModelVersionInfo } from '@/types';
 import {
   getQuizQuestions,
@@ -14,6 +15,7 @@ import { calculateTDRI } from '@/engines/riskEngine';
 import { calculateAIReadiness } from '@/engines/aiReadinessEngine';
 import { calculateBusinessImpact, extractROIInputs } from '@/engines/roiEngine';
 import { calculateBenchmarks } from '@/engines/benchmarkEngine';
+import { marketForLocale, type Market } from '@/lib/market';
 import { generateRecommendations } from '@/engines/recommendationEngine';
 import { scoringConfig } from '@/data/scoringConfig';
 import { benchmarkData } from '@/data/benchmarkData';
@@ -147,6 +149,15 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
   }
 }
 
+/**
+ * Aktívny trh referenčných čísel (SK/CZ/EU27), nastavovaný providerom podľa
+ * jazykovej mutácie. Modulová premenná namiesto pretláčania cez action
+ * payload: reducer je v tomto module, appka je statická per-locale (trh sa
+ * mení len s prepnutím jazyka = plný re-render providera) a výpočet
+ * výsledku číta hodnotu v momente dokončenia kvízu.
+ */
+let activeMarket: Market = 'SK';
+
 function computeResult(assessment: Assessment, questions: Question[]): ResultSnapshot {
   const { answers, respondent, riskFlags } = assessment;
 
@@ -161,7 +172,8 @@ function computeResult(assessment: Assessment, questions: Question[]): ResultSna
   const benchmarks = calculateBenchmarks(
     dii, ors,
     respondent.sector || 'other',
-    respondent.employeeCountBand || 'small'
+    respondent.employeeCountBand || 'small',
+    activeMarket
   );
 
   const recommendations = generateRecommendations(answers, questions, ors, tdri, dii, aiReadiness);
@@ -200,6 +212,9 @@ const AssessmentContext = createContext<AssessmentContextValue | null>(null);
 
 export function AssessmentProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  // Trh referencnych cisel sleduje jazykovu mutaciu (sk->SK, cs->CZ, en->EU27).
+  const locale = useLocale();
+  activeMarket = marketForLocale(locale);
 
   const startQuiz = useCallback((type: AssessmentType) => {
     dispatch({ type: 'START_QUIZ', quizType: type });

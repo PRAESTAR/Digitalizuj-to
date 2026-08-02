@@ -77,18 +77,22 @@ AddType application/manifest+json .webmanifest
   # Poradie signálov: ULOŽENÁ VOĽBA (cookie NEXT_LOCALE — nastavuje vlajkový
   # prepínač aj geo banner) má prednosť pred jazykom prehliadača. Kto si raz
   # jazyk vybral, koreň ho tam pošle bez ohľadu na Accept-Language.
-  RewriteCond %{HTTP_COOKIE} (^|;\s*)NEXT_LOCALE=(sk|cs|de|en) [NC]
+  RewriteCond %{HTTP_COOKIE} (^|;\s*)NEXT_LOCALE=(sk|cs|en) [NC]
   RewriteRule ^$ /%2 [R=302,E=LANG_NEGOTIATED:1,L]
-  # Zrkadlo proxy.ts: / → /de|/cs|/en podľa Accept-Language, inak /sk.
+  # / → /cs|/en podľa Accept-Language, inak /sk. Nemecké prehliadače idú na
+  # EÚ (anglickú) mutáciu — nemčina bola vyradená (tri trhy: SK/CZ/EÚ).
   # 302 (nie 301): cieľ závisí od hlavičky požiadavky, trvalé presmerovanie
   # by si prehliadače a CDN cachli bez ohľadu na jazyk.
-  RewriteCond %{HTTP:Accept-Language} ^de [NC]
-  RewriteRule ^$ /de [R=302,E=LANG_NEGOTIATED:1,L]
   RewriteCond %{HTTP:Accept-Language} ^cs [NC]
   RewriteRule ^$ /cs [R=302,E=LANG_NEGOTIATED:1,L]
-  RewriteCond %{HTTP:Accept-Language} ^en [NC]
+  RewriteCond %{HTTP:Accept-Language} ^(en|de) [NC]
   RewriteRule ^$ /en [R=302,E=LANG_NEGOTIATED:1,L]
   RewriteRule ^$ /sk [R=302,E=LANG_NEGOTIATED:1,L]
+
+  # Nemecká mutácia zrušená (2. 8. 2026) — staré /de adresy natrvalo na
+  # anglickú/EÚ verziu, nech zaindexované URL nekončia 404.
+  RewriteRule ^de$ /en [R=301,L]
+  RewriteRule ^de/(.*)$ /en/$1 [R=301,L]
 
   # --- 2. Legacy presmerovania (pred-i18n adresy) ---------------------------
   # Zrkadlo redirects() z next.config.ts — trvalé 301.

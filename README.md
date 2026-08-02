@@ -125,7 +125,7 @@ flowchart TD
 - **Odpovede nikdy neopúšťajú prehliadač** — celý výpočet beží client-side; server (Apache) servíruje len statické súbory. Otázky, scoring aj benchmarky sú zatiaľ statické JSON/TS súbory bundlované s appkou; migrácia obsahu do MariaDB je naplánovaná (viď Deployment nižšie).
 - **Engines sú čisté funkcie** (`answers, questions -> Score`) — žiadny interný state, ľahko testovateľné a auditovateľné (audit trail = spätná rekonštrukcia z tých istých vstupov).
 - **`config/model/` je editovateľná kópia** `data/` súborov pre netechnických editorov obsahu — synchronizácia je zatiaľ manuálna (viď `IMPROVEMENT_CHECKLIST.md`).
-- **Viacjazyčnosť cez next-intl** — všetky routy žijú pod `/{locale}` (sk je default a plne preložená; cs/de/en majú preloženú úvodnú stránku). Preklady v `messages/*.json`.
+- **Viacjazyčnosť cez next-intl** — všetky routy žijú pod `/{locale}` (sk default + SK benchmark; cs = ČR benchmark; en = EÚ vlajka a priemer EÚ-27). Preklady v `messages/*.json`.
 
 ### Ako appka funguje (aplikačný tok)
 

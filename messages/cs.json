@@ -43,7 +43,7 @@
     "ctaPrimary": "Začít diagnostiku",
     "ctaSecondary": "Co přesně dostanete",
     "specDii": "DII skóre",
-    "specDiiValue": "0–100 vs. EU & SK",
+    "specDiiValue": "0–100 vs. EU & ČR",
     "specRisk": "Risk Index",
     "specRiskValue": "technologický dluh",
     "specImpact": "Business Impact",
@@ -101,7 +101,7 @@
     "tagOdrm": "ODRM Model",
     "tagDap": "Adaptivní model DAP",
     "build": "build",
-    "intro": "digitalizuj.to je bezplatný online test digitální zralosti pro malé a střední podniky. Za 5 minut změří úroveň digitalizace vaší firmy, porovná ji s benchmarkem EU a SK (Eurostat DII 2025) a odhadne roční úspory z automatizace — anonymně a bez registrace.",
+    "intro": "digitalizuj.to je bezplatný online test digitální zralosti pro malé a střední podniky. Za 5 minut změří úroveň digitalizace vaší firmy, porovná ji s benchmarkem EU a ČR (Eurostat DII 2025) a odhadne roční úspory z automatizace — anonymně a bez registrace.",
     "fullLink": "Celá metodika"
   },
   "quiz": {
@@ -270,7 +270,8 @@
     "vsEu": "DII vs. průměr EU",
     "vsSector": "DII vs. váš sektor",
     "orsVsSector": "Provozní zralost vs. sektor",
-    "source": "Benchmarková data: {source}. Verze: {version} ({date})."
+    "source": "Benchmarková data: {source}. Verze: {version} ({date}).",
+    "vsCz": "DII vs. Česko"
   },
   "customer": {
     "notFoundTitle": "Výsledek není na tomto zařízení dostupný",

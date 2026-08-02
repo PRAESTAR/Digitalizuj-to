@@ -58,22 +58,25 @@ export default function FlagIcon({ locale }: { locale: Locale }) {
           <path d="M0 0l12 8L0 16z" fill="#11457e" />
         </svg>
       );
-    case 'de':
-      return (
-        <svg {...common}>
-          <rect width="24" height="5.33" fill="#000" />
-          <rect y="5.33" width="24" height="5.33" fill="#d00" />
-          <rect y="10.66" width="24" height="5.34" fill="#ffce00" />
-        </svg>
-      );
     case 'en':
+      // EÚ vlajka — anglická mutácia reprezentuje EÚ trh (priemer EÚ-27),
+      // nie Britániu. 12 hviezd v kruhu; pri 14 px sú hviezdy vykreslené ako
+      // body — päťcípy tvar by sa na tejto veľkosti aj tak zlial.
       return (
         <svg {...common}>
-          <rect width="24" height="16" fill="#012169" />
-          <path d="M0 0l24 16M24 0L0 16" stroke="#fff" strokeWidth="3.2" />
-          <path d="M0 0l24 16M24 0L0 16" stroke="#c8102e" strokeWidth="1.9" />
-          <path d="M12 0v16M0 8h24" stroke="#fff" strokeWidth="5.3" />
-          <path d="M12 0v16M0 8h24" stroke="#c8102e" strokeWidth="3.2" />
+          <rect width="24" height="16" fill="#003399" />
+          {Array.from({ length: 12 }, (_, i) => {
+            const a = (i * Math.PI) / 6 - Math.PI / 2;
+            return (
+              <circle
+                key={i}
+                cx={12 + 5.2 * Math.cos(a)}
+                cy={8 + 5.2 * Math.sin(a)}
+                r="0.85"
+                fill="#FFCC00"
+              />
+            );
+          })}
         </svg>
       );
   }

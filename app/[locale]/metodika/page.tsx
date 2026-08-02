@@ -169,11 +169,15 @@ export default async function MethodologyPage({
             </p>
             <p>
               Referenčné hodnoty: rozdelenie podnikov podľa pásiem digitálnej
-              intenzity je pre Slovensko 41,6 / 32,0 / 20,4 / 6,0 % a pre
-              EÚ-27 27,9 / 34,5 / 27,5 / 10,1 %; odvodené mediány SK 4,3
+              intenzity je pre Slovensko 41,6 / 32,0 / 20,4 / 6,0 %, pre
+              Česko 28,5 / 30,6 / 28,9 / 12,1 % a pre EÚ-27
+              27,9 / 34,5 / 27,5 / 10,1 %; odvodené mediány SK 4,3, ČR 5,6
               a EÚ 5,4 (Eurostat ISOC_E_DII, prieskum 2025). KPI Digitálnej
               dekády — podiel MSP so základnou digitálnou intenzitou:
-              Slovensko 57,1 %, EÚ 71,4 %, cieľ 90 % do roku 2030.
+              Slovensko 57,1 %, Česko 70,5 %, EÚ 71,4 %, cieľ 90 % do roku
+              2030. Voľba jazykovej mutácie určuje domáci benchmark:
+              slovenčina porovnáva so SK, čeština s ČR, anglická (EÚ)
+              mutácia s priemerom EÚ-27.
             </p>
           </div>
         </section>

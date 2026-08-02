@@ -2,9 +2,9 @@
 
 > Bezplatný online test digitálnej zrelosti firmy pre malé a stredné podniky (MSP) na Slovensku. Firma vyplní adaptívny dotazník a okamžite dostane skóre digitálnej zrelosti porovnané s benchmarkom EÚ a SK, index technologického dlhu a rizík, odhad ročných úspor a prioritizované odporúčania. Anonymne, bez registrácie, bez zadávania e-mailu. Celý výpočet beží v prehliadači — na server sa neodosielajú žiadne odpovede ani výsledky.
 
-Jazyky rozhrania: slovenčina (https://digitalizuj.to/sk, plne preložená),
-čeština (/cs), nemčina (/de) a angličtina (/en) — mutácie CS/DE/EN majú zatiaľ
-preloženú úvodnú stránku, obsahové podstránky sú po slovensky.
+Tri trhy a jazyky: slovenčina (https://digitalizuj.to/sk, domáci benchmark SK),
+čeština (/cs, benchmark ČR) a angličtina (/en, EÚ vlajka = priemer EÚ-27).
+Obsahové podstránky sú zatiaľ po slovensky.
 Doména: https://digitalizuj.to. Verzia platformy: 1.0.0.
 Prevádzkovateľ nepredáva softvér ani implementačné služby; odporúčania sú formulované
 ako typy opatrení a neuvádzajú konkrétnych dodávateľov ani produkty.
@@ -37,10 +37,11 @@ Meranie stojí na dvoch komplementárnych vrstvách.
 premenných v dvojročnej rotácii (prieskum 2024 = verzia 4, prieskum 2025 = verzia 3,
 líši sa 7 z 12 premenných), preto sú benchmark dáta aj otázky ukotvené na jednu verziu
 a jeden prieskumný rok. Referenčné hodnoty: rozdelenie podnikov podľa pásiem digitálnej
-intenzity je pre Slovensko 41,6 / 32,0 / 20,4 / 6,0 % a pre EÚ-27 27,9 / 34,5 / 27,5 /
-10,1 %; odvodené mediány SK 4,3 a EÚ 5,4 (Eurostat ISOC_E_DII, prieskum 2025). KPI
-Digitálnej dekády — podiel MSP so základnou digitálnou intenzitou: Slovensko 57,1 %,
-EÚ 71,4 %, cieľ 90 % do roku 2030.
+intenzity je pre Slovensko 41,6 / 32,0 / 20,4 / 6,0 %, pre Česko 28,5 / 30,6 / 28,9 /
+12,1 % a pre EÚ-27 27,9 / 34,5 / 27,5 / 10,1 %; odvodené mediány SK 4,3, ČR 5,6 a EÚ 5,4
+(Eurostat ISOC_E_DII, prieskum 2025). KPI Digitálnej dekády — podiel MSP so základnou
+digitálnou intenzitou: Slovensko 57,1 %, Česko 70,5 %, EÚ 71,4 %, cieľ 90 % do roku 2030.
+Voľba jazykovej mutácie určuje domáci benchmark (sk→SK, cs→ČR, en→EÚ-27).
 
 **ODRM vrstva** (Operational Digital Readiness Model) meria šesť oblastí prevádzkovej
 zrelosti s pevnými váhami: A — procesy a digitalizácia práce (20 %), B — systémy
