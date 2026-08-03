@@ -63,7 +63,7 @@ export async function generateMetadata({
     title: {
       // Titulok cieli na vyhľadávanú frázu, značka až za oddeľovačom.
       default: t('title'),
-      template: '%s | digitalizuj.to',
+      template: '%s | MATPEX SK',
     },
     // Do 155 znakov, konkrétny prísľub (čas, výstup), diferenciátory vpredu.
     description: t('description'),
