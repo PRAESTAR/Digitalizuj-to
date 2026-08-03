@@ -296,6 +296,24 @@ export default async function LocaleLayout({
       className={`${onest.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="relative min-h-full flex flex-col bg-[#fbfbfd] text-[#1d1d1f]">
+        {/* Cookie banner (CookieYes). Zámerne ako obyčajný <script> v SSR HTML,
+            nie cez next/script ani podmienene z Reactu: musí bežať čo najskôr
+            a nezávisle od hydratácie — je to jediná vec, ktorá sa načíta pred
+            súhlasom, lebo bez nej by sa nemal kto pýtať. Meranie samo (GA4)
+            čaká na jeho rozhodnutie, viď GoogleAnalytics nižšie.
+            Kľúč v URL je verejný identifikátor webu, nie tajomstvo.
+            POZOR pri lokálnom vývoji: skript má natvrdo zadrôtované
+            `registeredDomain: "matpex.sk"` a na inom hostiteľovi (localhost)
+            zámerne vyhodí výnimku „Looks like your website URL has changed".
+            Nie je to chyba nasadenia — banner sa dá overiť len na ostrej
+            doméne. Dôsledok je bezpečný: bez bannera niet súhlasu, teda sa
+            lokálne nespustí ani meranie.
+            SRI (`integrity`) tu zámerne NIE JE: dodávateľ skript priebežne
+            mení a hash by pri prvej ich aktualizácii zhodil zber súhlasu. */}
+        <script
+          id="cookieyes"
+          src="https://cdn-cookieyes.com/client_data/af08152e82680b3cb39ae1711a14ff62/script.js"
+        />
         {/* Obnoví zvolenú veľkosť písma ešte pred prvým vykreslením, aby text
             pri načítaní stránky "neposkočil" zo 150 % späť na 100 %.
             Statický, vývojárom napísaný kód — žiadny používateľský vstup sa

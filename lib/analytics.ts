@@ -10,31 +10,18 @@
  * 7 dní. Pod týmto prahom sa nemodeluje nič, takže advanced režim by na tomto
  * webe posielal dáta návštevníkov do Google výmenou za prázdne reporty.
  *
- * Dôsledok pre cookie banner (úloha #31): stačí, aby zavolal `updateConsent`.
- * Voľba sa uloží, GoogleAnalytics komponent si ju vypočuje a gtag.js pripojí
- * okamžite — bez reloadu stránky.
- *
- * Meracie ID je verejné (chodí v URL skriptu), takže nie je tajomstvo a nemusí
- * ísť cez env premennú — v statickom exporte by aj tak skončilo v HTML.
+ * ZDROJ PRAVDY O SÚHLASE JE COOKIEYES, nie tento modul. Vlastnú kópiu voľby
+ * si zámerne nedržíme: používateľ si ju môže kedykoľvek zmeniť v ich widgete
+ * a druhý záznam by sa ticho rozišiel. Tento modul len dostane výsledné dve
+ * booleovské hodnoty (viď components/ui/GoogleAnalytics.tsx) a podľa nich
+ * gtag pripojí alebo prepne.
  */
 
 export const GA_MEASUREMENT_ID = 'G-1NDEBQNTS3';
 
-/** Kľúč v localStorage. Menný priestor zhodný s `digitalizuj.textScale`. */
-export const CONSENT_STORAGE_KEY = 'digitalizuj.consent';
-
-/**
- * Vlastná DOM udalosť, ktorou sa banner dorozumie s GoogleAnalytics
- * komponentom. Bez nej by sa gtag.js pripojil až pri ďalšom načítaní stránky
- * a prvá — najzaujímavejšia — návšteva by sa nezmerala.
- */
-export const CONSENT_CHANGED_EVENT = 'digitalizuj:consent-changed';
-
-export interface ConsentChoice {
+export interface ConsentState {
   analytics: boolean;
   ads: boolean;
-  /** Kedy návštevník voľbu spravil (ISO milisekundy) — pre audit aj expiráciu. */
-  ts: number;
 }
 
 type GtagArgs =
@@ -43,67 +30,98 @@ type GtagArgs =
   | [command: 'event', eventName: string, params?: Record<string, unknown>]
   | [command: 'consent', mode: 'default' | 'update', params: Record<string, string>];
 
+/** Tvar, ktorý vracia globálna funkcia CookieYes `getCkyConsent()`. */
+export interface CkyConsent {
+  categories?: Record<string, boolean>;
+  isUserActionCompleted?: boolean;
+}
+
 declare global {
   interface Window {
     dataLayer?: unknown[];
     gtag?: (...args: GtagArgs) => void;
+    /** Definuje CookieYes až po načítaní svojho skriptu. */
+    getCkyConsent?: () => CkyConsent;
   }
 }
 
-/** Uložená voľba, alebo null ak sa návštevník ešte nerozhodol. */
-export function readConsent(): ConsentChoice | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = window.localStorage.getItem(CONSENT_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<ConsentChoice>;
-    // Tvarová kontrola: poškodený alebo cudzí zápis sa musí správať ako
-    // „nerozhodnuté", nie ako súhlas.
-    if (typeof parsed?.analytics !== 'boolean' || typeof parsed?.ads !== 'boolean') {
-      return null;
-    }
-    return { analytics: parsed.analytics, ads: parsed.ads, ts: parsed.ts ?? 0 };
-  } catch {
-    // localStorage nedostupný (privátny režim, zakázané úložisko) — bez
-    // uloženej voľby platí, že súhlas nie je.
-    return null;
-  }
-}
+/** Beží už gtag? Modulová premenná, nie stav komponentu — pripojenie je globálne. */
+let bootstrapped = false;
+
+const flag = (ok: boolean) => (ok ? 'granted' : 'denied');
 
 /**
- * Zaznamená rozhodnutie návštevníka. Volá to cookie banner (úloha #31) —
- * pri súhlase AJ pri odmietnutí, aby sa banner prestal pýtať.
- *
- * Nevolá `gtag('event', 'page_view')` po udelení súhlasu zámerne: v basic
- * režime pred súhlasom neodletel žiadny page_view, takže ho netreba dobiehať —
- * `gtag('config', …)` pri pripojení skriptu ho pošle sám. Doplnkové volanie
- * by vstupnú stránku započítalo dvakrát.
+ * Jediný vstupný bod pre zmenu súhlasu. Volá sa pri načítaní bannera,
+ * pri každej zmene voľby, aj pri návrate používateľa s uloženým rozhodnutím.
+ * Je idempotentná — opakované volanie s rovnakým stavom nič nepokazí.
  */
-export function updateConsent(opts: { analytics: boolean; ads: boolean }): void {
+export function applyConsent(consent: ConsentState): void {
   if (typeof window === 'undefined') return;
 
-  const choice: ConsentChoice = { analytics: opts.analytics, ads: opts.ads, ts: Date.now() };
-  try {
-    window.localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(choice));
-  } catch {
-    // Bez úložiska sa voľba nezapamätá do ďalšej návštevy, ale v rámci tejto
-    // relácie musí platiť — preto sa pokračuje aj po zlyhaní zápisu.
+  if (!bootstrapped) {
+    // Bez súhlasu s analytikou sa skript nepripája vôbec — to je celá pointa
+    // basic režimu. Reklamné kategórii bez analytiky tu nemáme čo obsluhovať.
+    if (!consent.analytics) return;
+    bootstrapGtag(consent);
+    return;
   }
 
-  // Ak gtag už beží (návštevník mení skôr udelenú voľbu), oznám mu zmenu.
-  // Ak ešte nebeží, postará sa o pripojenie GoogleAnalytics komponent nižšie.
-  if (typeof window.gtag === 'function') {
-    const v = (ok: boolean) => (ok ? 'granted' : 'denied');
-    window.gtag('consent', 'update', {
-      analytics_storage: v(opts.analytics),
-      personalization_storage: v(opts.analytics),
-      ad_storage: v(opts.ads),
-      ad_user_data: v(opts.ads),
-      ad_personalization: v(opts.ads),
-    });
-  }
+  // Skript už beží — používateľ mení skôr udelenú voľbu (vrátane odvolania).
+  // gtag sa odinštalovať nedá, ale `update` na denied zastaví ukladanie
+  // a ďalšie zásahy sa prestanú viazať na identifikátor.
+  window.gtag?.('consent', 'update', {
+    analytics_storage: flag(consent.analytics),
+    personalization_storage: flag(consent.analytics),
+    ad_storage: flag(consent.ads),
+    ad_user_data: flag(consent.ads),
+    ad_personalization: flag(consent.ads),
+  });
+}
 
-  window.dispatchEvent(new CustomEvent(CONSENT_CHANGED_EVENT));
+function bootstrapGtag(consent: ConsentState): void {
+  bootstrapped = true;
+
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    // Google posiela ARGUMENTS objekt, nie pole — držíme sa doslovného vzoru
+    // z oficiálneho snippetu, aby sa správanie nelíšilo v detaile, ktorý
+    // Google nikde nešpecifikuje.
+    // eslint-disable-next-line prefer-rest-params
+    window.dataLayer!.push(arguments);
+  }
+  window.gtag = gtag as unknown as typeof window.gtag;
+
+  // Východiskový stav je odmietnutie VŽDY, aj keď skript pripájame až po
+  // súhlase. Je to lacná poistka: keby sa sem niekedy dostal iný tag skôr,
+  // než dobehne `update` nižšie, nesmie mu prejsť implicitné „not set".
+  // Poradie default → update → config je kritické a preto je celé v jednom
+  // bloku: gtag.js spracúva dataLayer v poradí vloženia.
+  window.gtag!('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+    personalization_storage: 'denied',
+    // Nevyhnutné pre chod webu (voľba jazyka, veľkosť písma) — nie sledovanie.
+    functionality_storage: 'granted',
+    security_storage: 'granted',
+  });
+
+  window.gtag!('consent', 'update', {
+    analytics_storage: flag(consent.analytics),
+    personalization_storage: flag(consent.analytics),
+    ad_storage: flag(consent.ads),
+    ad_user_data: flag(consent.ads),
+    ad_personalization: flag(consent.ads),
+  });
+
+  window.gtag!('js', new Date());
+  window.gtag!('config', GA_MEASUREMENT_ID);
+
+  const s = document.createElement('script');
+  s.async = true;
+  s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+  document.head.appendChild(s);
 }
 
 /**

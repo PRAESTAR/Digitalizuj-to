@@ -59,13 +59,18 @@ const GA_SCRIPT_SRC = "https://www.googletagmanager.com";
 const GA_CONNECT_SRC =
   "https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com";
 
+// CookieYes (cookie banner). Pozor na dve RÔZNE domény: skript beží na
+// `cdn-cookieyes.com` (spojovník, nie poddoména!), zvyšok služby na
+// poddoménach `*.cookieyes.com` — wildcard prvú NEPOKRÝVA.
+const CKY_HOSTS = "https://cdn-cookieyes.com https://*.cookieyes.com";
+
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${GA_SCRIPT_SRC}`,
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${GA_SCRIPT_SRC} ${CKY_HOSTS}`,
+  `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${CKY_HOSTS}`,
   "img-src 'self' data: blob: https:",
-  "font-src 'self' data: https://fonts.gstatic.com",
-  `connect-src 'self' ${GA_CONNECT_SRC}`,
+  `font-src 'self' data: https://fonts.gstatic.com ${CKY_HOSTS}`,
+  `connect-src 'self' ${GA_CONNECT_SRC} ${CKY_HOSTS}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

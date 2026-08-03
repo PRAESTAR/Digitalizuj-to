@@ -1,102 +1,93 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import {
-  GA_MEASUREMENT_ID,
-  CONSENT_CHANGED_EVENT,
-  readConsent,
-  type ConsentChoice,
-} from '@/lib/analytics';
+import { useEffect } from 'react';
+import { applyConsent, type CkyConsent } from '@/lib/analytics';
 
 /**
- * Pripojí Google Analytics 4 — ale AŽ po udelení súhlasu („basic consent
- * mode", zdôvodnenie v lib/analytics.ts). Bez súhlasu tento komponent
- * nevykreslí a nespustí vôbec nič, takže na Google neodíde ani IP adresa.
+ * Most medzi cookie bannerom (CookieYes) a Google Analytics.
  *
- * Prečo sa skript pripája imperatívne v `useEffect`, a nie cez `next/script`
- * ani `<script>` v JSX:
- *  - `<script>` vložený Reactom až pri klientskom renderi sa NIKDY nevykoná
- *    (prehliadač spúšťa len skripty prítomné v pôvodnom HTML). Keďže sa tu
- *    rozhoduje podľa localStorage, teda až na klientovi, JSX variant je slepá
- *    ulička.
- *  - `next/script` by fungoval, ale poradie inicializácie by záviselo od jeho
- *    internej stratégie. Tu je poradie kritické (consent PRED config), takže
- *    je lacnejšie mať ho doslovne pod kontrolou než sa spoliehať na cudziu
- *    implementáciu.
+ * Sám nič nevykresľuje — banner rieši CookieYes, meranie rieši lib/analytics.
+ * Tento komponent len počúva rozhodnutie návštevníka a preklápa ho na súhlas
+ * pre gtag. Kým súhlas nie je, gtag.js sa nenačíta a na Google neodíde ani
+ * IP adresa.
  *
- * page_view sa NEPOSIELA ručne: `gtag('config')` ho pošle pri pripojení a
- * klientske prechody medzi routami zachytáva GA4 Enhanced Measurement
- * („Page changes based on browser history events" — Next App Router volá
- * natívne `history.pushState`). Vlastný listener na zmenu cesty by preto
- * počítal každé zobrazenie dvakrát.
+ * Prečo TRI zdroje toho istého údaja: každý sám má dieru.
+ *  - `cookieyes_banner_load` sa vystrelí raz pri načítaní bannera a nesie stav
+ *    aj u vracajúceho sa návštevníka — ale ak sa CookieYes stihne načítať skôr
+ *    než React namountuje tento komponent, listener ho už nezachytí.
+ *  - `getCkyConsent()` presne túto dieru zaláta, lenže existuje až po načítaní
+ *    CookieYes — pri prvom zobrazení stránky spravidla ešte nie je.
+ *  - `cookieyes_consent_update` pokrýva zmeny voľby počas návštevy.
+ * Spolu pokryjú všetky poradia. `applyConsent` je idempotentná, takže
+ * prekrytie dvoch ciest nič nepokazí.
  */
 
-/** Poistka proti dvojitému pripojeniu (StrictMode v deve efekty púšťa 2×). */
-let gtagBootstrapped = false;
+/** Názvy kategórií podľa CookieYes. „advertisement" = reklamná vetva. */
+const ANALYTICS_CATEGORY = 'analytics';
+const ADS_CATEGORY = 'advertisement';
 
-function bootstrapGtag(choice: ConsentChoice) {
-  if (gtagBootstrapped) return;
-  gtagBootstrapped = true;
+/** Obe pravopisné varianty, ktoré dokumentácia CookieYes uvádza. */
+const BANNER_LOAD_EVENTS = ['cookieyes_banner_load', 'cookieyes_banner_loaded'] as const;
 
-  window.dataLayer = window.dataLayer || [];
-  function gtag() {
-    // Google posiela ARGUMENTS objekt, nie pole — držíme sa doslovného vzoru
-    // z oficiálneho snippetu, aby sa správanie nelíšilo v detaile, ktorý
-    // Google nikde nešpecifikuje.
-    // eslint-disable-next-line prefer-rest-params
-    window.dataLayer!.push(arguments);
-  }
-  window.gtag = gtag as unknown as typeof window.gtag;
-
-  const v = (ok: boolean) => (ok ? 'granted' : 'denied');
-
-  // Východzí stav je odmietnutie VŽDY, aj keď skript pripájame až po súhlase.
-  // Je to lacná poistka: keby sa sem niekedy dostal iný tag skôr, než dobehne
-  // `update` nižšie, nesmie mu prejsť implicitné „not set" ako súhlas.
-  window.gtag!('consent', 'default', {
-    ad_storage: 'denied',
-    ad_user_data: 'denied',
-    ad_personalization: 'denied',
-    analytics_storage: 'denied',
-    personalization_storage: 'denied',
-    // Nevyhnutné pre chod webu (voľba jazyka, veľkosť písma) — nie sledovanie.
-    functionality_storage: 'granted',
-    security_storage: 'granted',
-  });
-
-  window.gtag!('consent', 'update', {
-    analytics_storage: v(choice.analytics),
-    personalization_storage: v(choice.analytics),
-    ad_storage: v(choice.ads),
-    ad_user_data: v(choice.ads),
-    ad_personalization: v(choice.ads),
-  });
-
-  window.gtag!('js', new Date());
-  window.gtag!('config', GA_MEASUREMENT_ID);
-
-  const s = document.createElement('script');
-  s.async = true;
-  s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
-  document.head.appendChild(s);
-}
+type BannerLoadDetail = { categories?: Record<string, boolean> };
+type ConsentUpdateDetail = { accepted?: string[] };
 
 export default function GoogleAnalytics() {
-  const [choice, setChoice] = useState<ConsentChoice | null>(null);
-
   useEffect(() => {
-    const sync = () => setChoice(readConsent());
-    sync();
-    // Banner volá updateConsent(), ktorý túto udalosť vystrelí — vďaka tomu sa
-    // meranie zapne okamžite a nezmešká sa práve prebiehajúca návšteva.
-    window.addEventListener(CONSENT_CHANGED_EVENT, sync);
-    return () => window.removeEventListener(CONSENT_CHANGED_EVENT, sync);
+    const fromCategories = (categories: Record<string, boolean> | undefined) => {
+      if (!categories) return;
+      applyConsent({
+        analytics: categories[ANALYTICS_CATEGORY] === true,
+        ads: categories[ADS_CATEGORY] === true,
+      });
+    };
+
+    const onBannerLoad = (e: Event) => {
+      fromCategories((e as CustomEvent<BannerLoadDetail>).detail?.categories);
+    };
+
+    // Pri zmene voľby má detail INÝ tvar než pri načítaní: polia názvov
+    // kategórií namiesto objektu s booleanmi. Nie je to nekonzistencia z našej
+    // strany — takto to CookieYes posiela.
+    const onConsentUpdate = (e: Event) => {
+      const accepted = (e as CustomEvent<ConsentUpdateDetail>).detail?.accepted ?? [];
+      applyConsent({
+        analytics: accepted.includes(ANALYTICS_CATEGORY),
+        ads: accepted.includes(ADS_CATEGORY),
+      });
+    };
+
+    // Dva názvy tej istej udalosti zámerne: dokumentácia CookieYes ju na
+    // jednom mieste uvádza ako `cookieyes_banner_load` a inde ako
+    // `cookieyes_banner_loaded`. Ktorá platí, sa lokálne overiť nedá (skript
+    // je zamknutý na doménu), a počúvať obe nič nestojí.
+    BANNER_LOAD_EVENTS.forEach((evt) => document.addEventListener(evt, onBannerLoad));
+    document.addEventListener('cookieyes_consent_update', onConsentUpdate);
+
+    // Ohraničené dopytovanie ako poistka. Dôvod je konkrétny: skript
+    // z cdn-cookieyes.com je len zavádzač (24 kB, bez jediného dispatchEvent) —
+    // samotný banner aj jeho udalosti sa dotiahnu až za behu, a keďže je skript
+    // zamknutý na doménu matpex.sk, názvy udalostí sa nedajú overiť lokálne.
+    // Ak by teda listenery vyššie minuli cieľ, `getCkyConsent()` stav aj tak
+    // vyzdvihne. Je to konečné (10 s) a končí hneď po prvom úspechu, takže to
+    // nie je nekonečná slučka na pozadí.
+    let ticks = 0;
+    const poll = window.setInterval(() => {
+      const state: CkyConsent | undefined = window.getCkyConsent?.();
+      if (state?.categories) {
+        fromCategories(state.categories);
+        window.clearInterval(poll);
+      } else if (++ticks >= 20) {
+        window.clearInterval(poll);
+      }
+    }, 500);
+
+    return () => {
+      BANNER_LOAD_EVENTS.forEach((evt) => document.removeEventListener(evt, onBannerLoad));
+      document.removeEventListener('cookieyes_consent_update', onConsentUpdate);
+      window.clearInterval(poll);
+    };
   }, []);
 
-  useEffect(() => {
-    if (choice?.analytics) bootstrapGtag(choice);
-  }, [choice]);
-
-  // Komponent nič nevykresľuje — existuje len kvôli vedľajšiemu účinku.
   return null;
 }
