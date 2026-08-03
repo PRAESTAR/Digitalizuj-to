@@ -105,6 +105,12 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
   token); pôvodný docroot niesol aktívny WordPress, ktorý bol pred
   nasadením appky odstránený. Staging noindex blok sa na produkcii
   nepoužíva, canonicaly mieria priamo na `matpex.sk`.
+- **Cloudflare Turnstile pred spustením kvízu** — výzva sa overuje SERVEROVO
+  (PHP → siteverify), takže samotný klientsky callback bránu neotvorí. Token
+  je jednorazový, viazaný na akciu aj na hostname. Pred zdieľaným výsledkom
+  (`/r/<hash>`) je widget tiež, ale vedome len ako UX prvok, nie ochrana:
+  tie stránky sú statické súbory a ten istý anonymizovaný dataset verejne
+  stojí na `/peers`. Na botov slúži WAF v Cloudflare, nie táto výzva.
 - Značka rozlíšená: `digitalizuj.to` je marketingový názov nástroja,
   `MATPEX SK` je spoločnosť, ktorá za projektom stojí — premietnuté do
   štruktúrovaných dát (Organization vs. WebApplication) aj do názvu karty

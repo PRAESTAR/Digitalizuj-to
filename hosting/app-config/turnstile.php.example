@@ -1,0 +1,16 @@
+<?php
+/**
+ * Konfigurácia pre api/verify-turnstile.php — VZOR.
+ *
+ * Skutočný súbor žije na hostingu NAD docrootom:
+ *   /matpex.sk/app-config/turnstile.php
+ * (docroot je /matpex.sk/web, takže webserver tento súbor nikdy neservíruje —
+ * ani pri vypnutom PHP handleri by nevytiekol.)
+ *
+ * Do gitu sa skutočný secret NIKDY nedáva. Site key tajomstvo nie je (chodí
+ * v HTML každej stránky), preto žije priamo v lib/turnstile.ts.
+ */
+return [
+  // Cloudflare Turnstile → widget → Secret key
+  'secret' => 'DOPLN',
+];
