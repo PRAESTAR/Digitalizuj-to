@@ -26,7 +26,7 @@
     "q3": "Co je DII (Digital Intensity Index)?",
     "a3": "DII je oficiální ukazatel digitální intenzity firem, který sbírá Eurostat napříč EU. Skóruje adopci 12 digitálních technologií a pomáhá porovnávat firmy vůči benchmarku EU.",
     "q4": "Odesílají se mé odpovědi někam?",
-    "a4": "Ne. Všechna data se zpracovávají lokálně ve vašem prohlížeči. Žádné odpovědi, výsledky ani identifikační údaje se neodesílají na server.",
+    "a4": "Ne. Odpovědi i celý výpočet skóre běží výhradně ve vašem prohlížeči — žádné odpovědi, výsledky ani identifikační údaje se neodesílají na server. Web měří pouze anonymní návštěvnost (Google Analytics), a to až po vašem souhlasu; obsah vašich odpovědí se do měření nikdy nedostane.",
     "q5": "Jak dlouho trvá hodnocení?",
     "a5": "Indikativní kvíz trvá 5–7 minut (15 otázek). Komplexní diagnostika trvá 15–20 minut (43–49 otázek s adaptivním branchingem).",
     "q6": "Co je povinná e-fakturace od 1. 1. 2027?",
@@ -111,7 +111,7 @@
     "skip": "Nevím / Přeskočit",
     "tooltipLabel": "Vysvětlení otázky",
     "multiSelectHint": "Vyberte vše, co platí",
-    "localNotice": "Vaše odpovědi se zpracovávají lokálně. Žádná data se neodesílají na server.",
+    "localNotice": "Vaše odpovědi se zpracovávají lokálně ve vašem prohlížeči — neodesílají se na server ani do analytiky.",
     "emptyTitle": "Žádný aktivní kvíz",
     "emptyText": "Vyberte si typ diagnostiky na úvodní stránce."
   },

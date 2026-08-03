@@ -42,7 +42,12 @@ AddType application/manifest+json .webmanifest
 
 # --- 1. Bezpečnostné hlavičky ------------------------------------------------
 <IfModule mod_headers.c>
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; manifest-src 'self'; worker-src 'self' blob:; upgrade-insecure-requests"
+  # GA4 (gtag.js) sa pripája až po súhlase, ale CSP ho musí povoliť tak či tak.
+  # Wildcard v connect-src je nutnosť: GA4 posiela zásahy na regionálne
+  # endpointy (region1.google-analytics.com), samotné www.google-analytics.com
+  # by v EÚ meranie zabilo. Reklamné domény (doubleclick, googlesyndication)
+  # tu zámerne nie sú — treba ich až pri Google Ads / Signals.
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; media-src 'self'; manifest-src 'self'; worker-src 'self' blob:; upgrade-insecure-requests"
   Header always set X-Frame-Options "DENY"
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"

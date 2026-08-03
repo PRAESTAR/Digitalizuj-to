@@ -26,7 +26,7 @@
     "q3": "What is the DII (Digital Intensity Index)?",
     "a3": "The DII is the official indicator of enterprise digital intensity collected by Eurostat across the EU. It scores the adoption of 12 digital technologies and enables comparison against the EU benchmark.",
     "q4": "Are my answers sent anywhere?",
-    "a4": "No. All data is processed locally in your browser. No answers, results or identifying information are sent to any server.",
+    "a4": "No. Your answers and the entire score calculation run solely in your browser — no answers, results or identifying information are sent to any server. The site measures anonymous traffic only (Google Analytics), and only after you consent; the content of your answers never enters that measurement.",
     "q5": "How long does the assessment take?",
     "a5": "The indicative quiz takes 5–7 minutes (15 questions). The comprehensive assessment takes 15–20 minutes (43–49 questions with adaptive branching).",
     "q6": "What is the mandatory e-invoicing requirement from 1 January 2027?",
@@ -111,7 +111,7 @@
     "skip": "Don't know / Skip",
     "tooltipLabel": "Explanation of the question",
     "multiSelectHint": "Select all that apply",
-    "localNotice": "Your answers are processed locally. No data is sent to any server.",
+    "localNotice": "Your answers are processed locally in your browser — they are never sent to a server or into analytics.",
     "emptyTitle": "No active assessment",
     "emptyText": "Choose an assessment type on the home page."
   },

@@ -20,7 +20,8 @@ Firma vyplni adaptivny dotaznik (15 alebo 43-49 otazok) a dostane:
 | **Technical Debt & Risk Index** | 0-100 (vyssie = horsie) | Bezpecnostne a technologicke rizika |
 | **Business Impact Potential** | hodiny/MD/EUR rocne | Odhad uspor s 3 scenarmi |
 
-Vsetko bezi lokalne v prehliadaci — ziadne data sa neodosilaju na server.
+Vyhodnotenie bezi lokalne v prehliadaci — odpovede ani vysledky sa neodosielaju
+na server. Web meria len navstevnost (GA4), a to az po udeleni suhlasu.
 
 ---
 

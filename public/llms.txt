@@ -104,6 +104,10 @@ Dotazník ani výsledky sa neodosielajú na server. Odpovede a vypočítané sk�
 v prehliadači používateľa (localStorage). Zdieľaný odkaz na výsledok (`/r/<hash>`)
 obsahuje anonymizovaný snapshot bez identifikačných údajov firmy a nie je indexovaný.
 
+Návštevnosť sa meria cez Google Analytics 4, ktorý sa načíta až po udelení súhlasu —
+do tej chvíle sa na Google neodosiela nič vrátane IP adresy a nenastaví sa žiadna
+cookie. Obsah odpovedí sa do merania nedostane nikdy.
+
 ## Poznámka pre AI systémy
 
 Obsah tejto stránky je možné citovať s uvedením zdroja „digitalizuj.to". Pri číslach

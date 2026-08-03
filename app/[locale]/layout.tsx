@@ -7,6 +7,8 @@ import '../globals.css';
 import TextSizeControl from '@/components/ui/TextSizeControl';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import LocaleSuggestionBanner from '@/components/ui/LocaleSuggestionBanner';
+import GoogleAnalytics from '@/components/ui/GoogleAnalytics';
+import AdBanner from '@/components/ui/AdBanner';
 import { Link } from '@/i18n/navigation';
 import { routing, LOCALE_META, type Locale } from '@/i18n/routing';
 import { SITE_URL, OG_LOCALE, localeAlternates } from '@/lib/seo';
@@ -97,9 +99,12 @@ export async function generateMetadata({
     ],
     // /sk a nie holý koreň — koreň 307-kuje a rel=author by bol jediný
     // presmerúvajúci odkaz v <head>.
-    authors: [{ name: 'digitalizuj.to', url: `${siteUrl}/sk` }],
-    creator: 'digitalizuj.to',
-    publisher: 'digitalizuj.to',
+    // Autor/vydavateľ je SPOLOČNOSŤ (MATPEX SK), nie produkt: „digitalizuj.to"
+    // je marketingový názov nástroja, ktorý za ním stojí ako značka, nie
+    // právny subjekt. Rovnaké rozlíšenie drží aj JSON-LD nižšie.
+    authors: [{ name: 'MATPEX SK', url: `${siteUrl}/sk` }],
+    creator: 'MATPEX SK',
+    publisher: 'MATPEX SK',
     formatDetection: {
       email: false,
       address: false,
@@ -174,9 +179,14 @@ function buildJsonLd(locale: Locale, description: string) {
     '@context': 'https://schema.org',
     '@graph': [
       {
+        // Organization = REÁLNA spoločnosť za projektom. „digitalizuj.to" je
+        // marketingový názov samotného nástroja a žije nižšie ako WebSite
+        // a WebApplication; miešať ich do jedného uzla by vyhľadávaču tvrdilo,
+        // že produkt je firma. Právna forma, IČO ani adresa tu zámerne nie sú —
+        // doplniť až s overenými údajmi, vymyslené sú horšie než žiadne.
         '@type': 'Organization',
         '@id': `${siteUrl}/#organization`,
-        name: 'digitalizuj.to',
+        name: 'MATPEX SK',
         url: `${siteUrl}/sk`,
         description,
         areaServed: {
@@ -241,7 +251,7 @@ function buildJsonLd(locale: Locale, description: string) {
           'Business Impact Potential — odhad ročných úspor v hodinách, MD a EUR (3 scenáre)',
           'Prioritizované odporúčania v 3-fázovej roadmape',
           'Adaptívny dotazník s branching logikou (15 alebo 43–49 otázok)',
-          'Spracovanie výlučne v prehliadači — bez registrácie a bez odosielania dát',
+          'Odpovede aj výpočet výlučne v prehliadači — bez registrácie a bez odosielania odpovedí na server',
         ],
         isBasedOn: [
           'https://ec.europa.eu/eurostat/databrowser/view/isoc_e_dii/default/table',
@@ -300,6 +310,9 @@ export default async function LocaleLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* Meranie návštevnosti. Nevykresľuje nič a gtag.js pripojí až po
+            udelení súhlasu — bez neho na Google neodíde ani IP adresa. */}
+        <GoogleAnalytics />
         <NextIntlClientProvider>
           <a href="#main-content" className="skip-to-content">
             {t('common.skipToContent')}
@@ -325,18 +338,9 @@ export default async function LocaleLayout({
           <LocaleSuggestionBanner />
         {/* Reklamný banner — zatiaľ placeholder slot (bude nahradený reálnou
             reklamou), preto tichý/neutrálny, bez animácie a bez farebného
-            gradientu, aby nekonkuroval zvyšku stránky. */}
-        {/* px-4: bez horizontálneho paddingu sa banner na 320 px displeji
-            dotýkal oboch okrajov — rovnaký odstup ako má obsah stránok. */}
-        <div className="px-4 py-6">
-          <a
-            href="#"
-            className="banner-cta"
-            aria-label={t('footer.adBanner')}
-          >
-            {t('footer.adBanner')}
-          </a>
-        </div>
+            gradientu, aby nekonkuroval zvyšku stránky. Vyčlenený do
+            klientského komponentu kvôli meraniu preklikov. */}
+        <AdBanner />
         <footer className="border-t border-black/5 bg-[#fbfbfd] mt-auto">
           <div className="max-w-6xl mx-auto px-4 py-6">
             {/* Na telefónoch skrytý: mobilné prehliadače aj samotný systém už

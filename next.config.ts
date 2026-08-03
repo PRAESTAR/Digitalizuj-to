@@ -48,13 +48,24 @@ const modelHash = getModelHash();
  */
 const isDev = process.env.NODE_ENV === "development";
 
+// Google Analytics 4 (gtag.js). Pripája sa až po súhlase, ale CSP musí tie
+// zdroje povoliť tak či tak — inak by sa po súhlase ticho nenačítal.
+// Wildcard v connect-src je nutnosť, nie pohodlnosť: GA4 posiela zásahy na
+// REGIONÁLNE endpointy (region1.google-analytics.com), takže samotné
+// www.google-analytics.com by v EÚ meranie zabilo.
+// Reklamné domény (doubleclick, googlesyndication) tu ZÁMERNE nie sú — treba
+// ich až pri prepojení na Google Ads / Google Signals, ktoré nepoužívame.
+const GA_SCRIPT_SRC = "https://www.googletagmanager.com";
+const GA_CONNECT_SRC =
+  "https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com";
+
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${GA_SCRIPT_SRC}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://fonts.gstatic.com",
-  "connect-src 'self'",
+  `connect-src 'self' ${GA_CONNECT_SRC}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

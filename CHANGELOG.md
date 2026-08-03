@@ -105,8 +105,21 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
   token); pôvodný docroot niesol aktívny WordPress, ktorý bol pred
   nasadením appky odstránený. Staging noindex blok sa na produkcii
   nepoužíva, canonicaly mieria priamo na `matpex.sk`.
+- Značka rozlíšená: `digitalizuj.to` je marketingový názov nástroja,
+  `MATPEX SK` je spoločnosť, ktorá za projektom stojí — premietnuté do
+  štruktúrovaných dát (Organization vs. WebApplication) aj do názvu karty
+  prehliadača.
+- **Meranie návštevnosti (GA4) so súhlasom vopred** — Google Analytics 4 sa
+  načíta až po udelení súhlasu; bez neho na Google neodíde ani IP adresa.
+  Rozhodnutie je meraný záver, nie opatrnosť: v režime „denied" by pingy
+  odchádzali, ale do reportov by sa dostali výlučne cez behaviorálne
+  modelovanie od 1 000 súhlasiacich používateľov denne — prah pre web tejto
+  veľkosti nedosiahnuteľný, čiže dáta von a reporty prázdne. Preklik na
+  spodný reklamný banner sa meria ako `select_promotion`.
 - Súkromie ako architektúra: odpovede sa nikdy neodosielajú na server,
-  DB drží len obsah modelu, žiadne tracking cookies.
+  DB drží len obsah modelu. Meranie návštevnosti (GA4) sa načíta až po
+  udelení súhlasu — dovtedy na Google neodchádza nič, ani IP adresa;
+  obsah odpovedí sa nemeria nikdy.
 
 ### Kvalita a testy
 

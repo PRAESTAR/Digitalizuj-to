@@ -192,8 +192,12 @@ const changelog = [
             description: 'Nový FTP účet a nová databáza Digitalizuj (rotované prihlasovacie údaje a publish token). Pôvodný docroot niesol aktívny WordPress, ktorý bol pred nasadením appky odstránený. Canonicaly mieria priamo na matpex.sk, staging noindex blok sa na produkcii nepoužíva.',
           },
           {
+            title: 'Meranie návštevnosti so súhlasom vopred',
+            description: 'Google Analytics 4 sa načíta až po udelení súhlasu — dovtedy na Google neodíde ani IP adresa. Alternatíva (skript beží, úložisko odmietnuté) by dáta posielala, ale do reportov by sa dostali len cez modelovanie od 1 000 súhlasiacich používateľov denne, čo je pre web tejto veľkosti nedosiahnuteľné. Preklik na spodný reklamný banner sa meria ako select_promotion.',
+          },
+          {
             title: 'Súkromie ako architektúra',
-            description: 'Odpovede a výsledky sa spracúvajú výlučne v prehliadači — na server sa neodosielajú a databáza drží len obsah modelu. Web zatiaľ nepoužíva žiadne tracking cookies.',
+            description: 'Odpovede a výsledky sa spracúvajú výlučne v prehliadači — na server sa neodosielajú a databáza drží len obsah modelu. Návštevnosť meriame cez Google Analytics 4, ktorý sa načíta až po udelení súhlasu: dovtedy na Google neodchádza nič, ani IP adresa, a nenastaví sa žiadna cookie. Obsah odpovedí sa do merania nedostane nikdy.',
           },
         ],
       },
