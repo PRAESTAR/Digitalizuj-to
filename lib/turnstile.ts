@@ -30,7 +30,7 @@
  * tam ani nebeží); brána zostane zatvorená, čo je správne zlyhanie.
  */
 export const TURNSTILE_SITE_KEY =
-  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAEFMaQHTFwO5VI6e';
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAEFMaQHTFw05VI6e';
 
 /** PHP endpoint nad ktorým beží serverové overenie (siteverify). */
 export const TURNSTILE_VERIFY_URL = '/api/verify-turnstile.php';
