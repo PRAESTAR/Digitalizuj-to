@@ -192,10 +192,6 @@ const changelog = [
             description: 'Nový FTP účet a nová databáza Digitalizuj (rotované prihlasovacie údaje a publish token). Pôvodný docroot niesol aktívny WordPress, ktorý bol pred nasadením appky odstránený. Canonicaly mieria priamo na matpex.sk, staging noindex blok sa na produkcii nepoužíva.',
           },
           {
-            title: 'Overenie Cloudflare Turnstile pred spustením kvízu',
-            description: 'Výzva sa overuje na serveri (PHP volá Cloudflare siteverify), takže samotný klientsky callback bránu neotvorí. Token platí jednorazovo, päť minút, a je viazaný na konkrétnu akciu aj na doménu. Pred zdieľaným výsledkom je widget tiež, ale vedome len ako prvok rozhrania — tie stránky sú predgenerované súbory a rovnaký anonymizovaný dataset je verejne dostupný na stránke benchmarku.',
-          },
-          {
             title: 'Meranie návštevnosti so súhlasom vopred',
             description: 'Google Analytics 4 sa načíta až po udelení súhlasu — dovtedy na Google neodíde ani IP adresa. Alternatíva (skript beží, úložisko odmietnuté) by dáta posielala, ale do reportov by sa dostali len cez modelovanie od 1 000 súhlasiacich používateľov denne, čo je pre web tejto veľkosti nedosiahnuteľné. Preklik na spodný reklamný banner sa meria ako select_promotion.',
           },

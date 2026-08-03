@@ -17,14 +17,6 @@
   "suggestion": {
     "stay": "Stay"
   },
-  "turnstile": {
-    "title": "Quick check",
-    "description": "Please confirm you are not a bot. This usually completes on its own and asks nothing of you.",
-    "loading": "Loading verification…",
-    "error": "Verification failed. Please try again.",
-    "retry": "Try again",
-    "cancel": "Cancel"
-  },
   "faq": {
     "heading": "Frequently asked questions about digital maturity",
     "q1": "What is company digital maturity?",

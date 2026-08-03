@@ -12,7 +12,6 @@ import { isValidHash, formatHashGroups } from '@/lib/resultHash';
 import PeerComparisonPanel from '@/components/customer/PeerComparisonPanel';
 import QRCodeCard from '@/components/customer/QRCodeCard';
 import UserOwnResultView from '@/components/customer/UserOwnResultView';
-import ResultGate from '@/components/ui/ResultGate';
 
 const SITE_URL = 'https://matpex.sk';
 
@@ -82,8 +81,6 @@ export default async function ResultByHashPage({
 
   // Unknown hash — could be the user's own result stored in localStorage.
   // Fall through to a client-side view that reads localStorage.
-  // Vlastný výsledok používateľa žije v localStorage a na server sa nikdy
-  // nedostane — brána pred ním by nemala čo chrániť, preto tu nie je.
   if (!peer) {
     return <UserOwnResultView hash={hash} />;
   }
@@ -99,7 +96,6 @@ export default async function ResultByHashPage({
   });
 
   return (
-    <ResultGate>
     <div className="max-w-5xl mx-auto px-4 pt-16 pb-6 sm:pt-8 sm:pb-8 space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in-up">
@@ -179,7 +175,6 @@ export default async function ResultByHashPage({
         </p>
       </div>
     </div>
-    </ResultGate>
   );
 }
 

@@ -1,10 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { useAssessment } from '@/context/AssessmentContext';
-import TurnstileGate from '@/components/ui/TurnstileGate';
 import type { AssessmentType } from '@/types';
 
 /**
@@ -21,19 +19,8 @@ export default function QuizSelector() {
   const router = useRouter();
   const { startQuiz } = useAssessment();
 
-  /**
-   * Kvíz sa nespustí priamo — najprv Turnstile. Zvolený typ čaká v stave a
-   * `startQuiz` sa zavolá až po ÚSPEŠNOM SERVEROVOM overení tokenu, takže
-   * obídenie klientskeho callbacku nič nezískava.
-   */
-  const [pending, setPending] = useState<AssessmentType | null>(null);
-
-  const handleSelect = (type: AssessmentType) => setPending(type);
-
-  const startVerified = () => {
-    if (!pending) return;
-    startQuiz(pending);
-    setPending(null);
+  const handleSelect = (type: AssessmentType) => {
+    startQuiz(type);
     router.push('/quiz');
   };
 
@@ -118,13 +105,6 @@ export default function QuizSelector() {
           </div>
         </div>
       </button>
-
-      <TurnstileGate
-        open={pending !== null}
-        action="quiz_start"
-        onVerified={startVerified}
-        onCancel={() => setPending(null)}
-      />
     </div>
   );
 }

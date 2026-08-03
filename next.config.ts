@@ -64,17 +64,9 @@ const GA_CONNECT_SRC =
 // poddoménach `*.cookieyes.com` — wildcard prvú NEPOKRÝVA.
 const CKY_HOSTS = "https://cdn-cookieyes.com https://*.cookieyes.com";
 
-// Cloudflare Turnstile. `frame-src` je povinný — widget beží v cross-origin
-// iframe a bez tejto direktívy padne na `default-src 'self'`, takže by sa
-// ticho zablokoval (chyba 200500 "iframe load error").
-// `style-src` ani `connect-src` netreba: vizuál aj sieťová komunikácia výzvy
-// sú vnútri iframe, na ktorý sa CSP rodičovskej stránky nevzťahuje.
-const TURNSTILE_HOST = "https://challenges.cloudflare.com";
-
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${GA_SCRIPT_SRC} ${CKY_HOSTS} ${TURNSTILE_HOST}`,
-  `frame-src ${TURNSTILE_HOST}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} ${GA_SCRIPT_SRC} ${CKY_HOSTS}`,
   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${CKY_HOSTS}`,
   "img-src 'self' data: blob: https:",
   `font-src 'self' data: https://fonts.gstatic.com ${CKY_HOSTS}`,

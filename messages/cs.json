@@ -17,14 +17,6 @@
   "suggestion": {
     "stay": "Zůstat"
   },
-  "turnstile": {
-    "title": "Krátké ověření",
-    "description": "Potvrďte prosím, že nejste automat. Obvykle proběhne samo a nic po vás nechce.",
-    "loading": "Načítám ověření…",
-    "error": "Ověření se nezdařilo. Zkuste to prosím znovu.",
-    "retry": "Zkusit znovu",
-    "cancel": "Zrušit"
-  },
   "faq": {
     "heading": "Časté dotazy o digitální zralosti",
     "q1": "Co je digitální zralost firmy?",
