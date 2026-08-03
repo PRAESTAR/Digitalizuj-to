@@ -17,6 +17,14 @@
   "suggestion": {
     "stay": "Zostať"
   },
+  "turnstile": {
+    "title": "Krátke overenie",
+    "description": "Potvrďte prosím, že nie ste automat. Zvyčajne to prebehne samo a nič od vás nechce.",
+    "loading": "Načítavam overenie…",
+    "error": "Overenie sa nepodarilo. Skúste to prosím znova.",
+    "retry": "Skúsiť znova",
+    "cancel": "Zrušiť"
+  },
   "faq": {
     "heading": "Časté otázky o digitálnej zrelosti",
     "q1": "Čo je digitálna zrelosť firmy?",
