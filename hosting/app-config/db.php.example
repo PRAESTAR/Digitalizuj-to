@@ -3,8 +3,8 @@
  * Konfigurácia pre admin/publish.php — VZOR.
  *
  * Skutočný súbor žije na hostingu NAD docrootom:
- *   /magors.net/sub/app-config/db.php
- * (docroot je /magors.net/sub/app, takže webserver tento súbor nikdy
+ *   /matpex.sk/app-config/db.php
+ * (docroot je /matpex.sk/web, takže webserver tento súbor nikdy
  * neservíruje — ani pri vypnutom PHP handleri by nevytiekol.)
  *
  * Do gitu sa skutočné hodnoty NIKDY nedávajú.
@@ -12,7 +12,7 @@
 return [
   'db_host' => 'db.r6.websupport.sk',
   'db_port' => 3306,
-  'db_name' => 'digitalizacia',
+  'db_name' => 'Digitalizuj',
   'db_user' => 'DOPLN',
   'db_pass' => 'DOPLN',
   // vygeneruj napr.: openssl rand -hex 24

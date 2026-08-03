@@ -7,7 +7,7 @@ import { routing, LOCALE_META, type Locale } from '@/i18n/routing';
  * (layout, sitemap, podstránky) — a každá sa rozišla inak. Podstránky mapu
  * strácali úplne, layout mal natvrdo '/sk' canonical pre všetky jazyky.
  */
-export const SITE_URL = 'https://digitalizuj.to';
+export const SITE_URL = 'https://matpex.sk';
 
 /** og:locale hodnoty (podčiarkovník, nie pomlčka — OpenGraph konvencia). */
 export const OG_LOCALE: Record<Locale, string> = {

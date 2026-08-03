@@ -2,10 +2,10 @@
 
 > Bezplatný online test digitálnej zrelosti firmy pre malé a stredné podniky (MSP) na Slovensku. Firma vyplní adaptívny dotazník a okamžite dostane skóre digitálnej zrelosti porovnané s benchmarkom EÚ a SK, index technologického dlhu a rizík, odhad ročných úspor a prioritizované odporúčania. Anonymne, bez registrácie, bez zadávania e-mailu. Celý výpočet beží v prehliadači — na server sa neodosielajú žiadne odpovede ani výsledky.
 
-Tri trhy a jazyky: slovenčina (https://digitalizuj.to/sk, domáci benchmark SK),
+Tri trhy a jazyky: slovenčina (https://matpex.sk/sk, domáci benchmark SK),
 čeština (/cs, benchmark ČR) a angličtina (/en, EÚ vlajka = priemer EÚ-27).
 Obsahové podstránky sú zatiaľ po slovensky.
-Doména: https://digitalizuj.to. Verzia platformy: 1.0.0.
+Doména: https://matpex.sk. Verzia platformy: 1.0.0.
 Prevádzkovateľ nepredáva softvér ani implementačné služby; odporúčania sú formulované
 ako typy opatrení a neuvádzajú konkrétnych dodávateľov ani produkty.
 
@@ -76,18 +76,18 @@ Uvádzame ich explicitne, pretože ovplyvňujú interpretáciu výsledkov:
 
 ## Kľúčové stránky
 
-- [Úvod a spustenie diagnostiky](https://digitalizuj.to/sk): vstupná stránka nástroja —
+- [Úvod a spustenie diagnostiky](https://matpex.sk/sk): vstupná stránka nástroja —
   popis oboch diagnostík, prehľad výstupov a odpovede na časté otázky. Odtiaľto sa
   test spúšťa.
-- [Metodika](https://digitalizuj.to/sk/metodika): verejná metodika merania — 12
+- [Metodika](https://matpex.sk/sk/metodika): verejná metodika merania — 12
   premenných Eurostat DII 2025, model ODRM so 6 oblasťami, 14 rizikových faktorov,
   výpočtový základ úspor a explicitne uvedené známe obmedzenia.
-- [Benchmark digitálnej zrelosti](https://digitalizuj.to/sk/peers): referenčná vzorka
+- [Benchmark digitálnej zrelosti](https://matpex.sk/sk/peers): referenčná vzorka
   50 anonymizovaných profilov naprieč 8 sektormi a 4 veľkostnými kategóriami
   (mikro, malé, stredné, veľké) s hodnotami DII, ORS, TDRI a odhadom úspor. Ide
   o deterministickú testovaciu vzorku kalibrovanú na distribúcie Eurostat DII 2025,
   nie o zber reálnych odpovedí — žiadna konkrétna firma nie je reprezentovaná.
-- [Changelog](https://digitalizuj.to/sk/changelog): verejná história zmien metodiky,
+- [Changelog](https://matpex.sk/sk/changelog): verejná história zmien metodiky,
   scoringu, benchmark dát a otázkovej banky vrátane dátumov a verzií.
 
 ## Ďalšie zdroje

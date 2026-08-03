@@ -9,7 +9,7 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 ## [1.0.0] — vo vývoji
 
 > **Otvorená verzia.** Tento záznam sa priebežne dopĺňa až do uzavretia
-> verzie 1 (štart produkčnej domény). Posledná aktualizácia: 2026-08-02.
+> verzie 1. Posledná aktualizácia: 2026-08-03.
 > Podrobná história jednotlivých krokov žije v git logu; sem patrí
 > konsolidovaný obraz toho, čo verzia 1 prináša.
 
@@ -98,8 +98,13 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 - Statický export (`output: 'export'`, 231 stránok) pre Apache/PHP
   webhosting; `.htaccess` preberá bezpečnostné hlavičky (CSP, HSTS…),
   legacy 301, jazykovú negociáciu s `Vary` a mapovanie čistých URL.
-- Staging `app.magors.net` s `X-Robots-Tag: noindex` do štartu produkčnej
-  domény; FTPS deploy s resume; bajtovo overená zhoda nasadenia s buildom.
+- Staging `app.magors.net` s `X-Robots-Tag: noindex` počas prípravy;
+  FTPS deploy s resume; bajtovo overená zhoda nasadenia s buildom.
+- **Produkčná doména `matpex.sk` spustená (3. 8. 2026)** — nový FTP účet aj
+  nová databáza `Digitalizuj` (rotované prihlasovacie údaje aj publish
+  token); pôvodný docroot niesol aktívny WordPress, ktorý bol pred
+  nasadením appky odstránený. Staging noindex blok sa na produkcii
+  nepoužíva, canonicaly mieria priamo na `matpex.sk`.
 - Súkromie ako architektúra: odpovede sa nikdy neodosielajú na server,
   DB drží len obsah modelu, žiadne tracking cookies.
 

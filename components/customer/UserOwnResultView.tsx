@@ -17,7 +17,7 @@ import QRCodeCard from './QRCodeCard';
 const SITE_URL =
   typeof window !== 'undefined'
     ? window.location.origin
-    : 'https://digitalizuj.to';
+    : 'https://matpex.sk';
 
 interface Props {
   hash: string;

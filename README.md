@@ -200,34 +200,34 @@ cez `output: 'export'` a serverovú logiku Nextu preberá `.htaccess`.
 
 | | |
 |---|---|
-| Staging URL | https://app.magors.net (produkčná doména `digitalizuj.to` príde neskôr) |
+| Produkčná URL | https://matpex.sk (3. 8. 2026 — nahradilo staging `app.magors.net`) |
 | Hosting | Apache 2.4 + PHP 8.x, prístup len cez FTP |
-| FTP docroot | `/magors.net/sub/app` |
+| FTP docroot | `/matpex.sk/web` (predtým beží aktívny WordPress — pri prechode zmazaný) |
 | Build | `STATIC_EXPORT=1 npm run build` → `out/` (~2 280 súborov, 231 stránok) |
 | Deploy | FTP upload obsahu `out/` do docrootu (FTPS; resumovateľný skript, 3 paralelné spojenia) |
-| Databáza | MariaDB 11.4 (`digitalizacia` @ db.r6.websupport.sk) — **pripravená, zatiaľ nepoužitá**; model otázok stále žije v `data/questionBank.json` |
+| Databáza | MariaDB 11.4 (`Digitalizuj` @ db.r6.websupport.sk) — **aktívne používaná**, obsahová pravda pre otázkovú banku (`data/questionBank.json` je nasadzovací artefakt kompilovaný z DB) |
 
 ```mermaid
 flowchart LR
     Repo["git (develop)"] -->|"STATIC_EXPORT=1 npm run build"| Out["out/ — statický export"]
-    Out -->|"FTP (FTPS)"| Doc["Apache docroot\n/magors.net/sub/app"]
-    Doc --> Visitor["Návštevník\nhttps://app.magors.net"]
+    Out -->|"FTP (FTPS)"| Doc["Apache docroot\n/matpex.sk/web"]
+    Doc --> Visitor["Návštevník\nhttps://matpex.sk"]
     HT[".htaccess"] -.riadi.-> Doc
-    DB[("MariaDB 11.4\ndigitalizacia")] -.plánované:\npublish.php → model.json.-> Out
+    DB[("MariaDB 11.4\nDigitalizuj")] -->|"publish.php → model.json"| Out
 ```
 
 **Čo robí `.htaccess`** (`public/.htaccess`, exportom sa dostane do koreňa):
 - bezpečnostné hlavičky (CSP, HSTS, X-Frame-Options…) — zrkadlo `headers()` z `next.config.ts`,
-- jazykovú negociáciu koreňa: `/` → `/sk|/cs|/de|/en` podľa `Accept-Language` (302 + `Vary`),
+- jazykovú negociáciu koreňa: `/` → `/cs|/en` podľa `Accept-Language` (inak `/sk`), plus prednosť
+  uloženej voľby (`NEXT_LOCALE` cookie) pred Accept-Language — tri trhy SK/CZ/EU (302 + `Vary`),
 - legacy 301 presmerovania starých adries (`/quiz` → `/sk/quiz`, `/r/<hash>` → `/sk/r/<hash>`…),
 - mapovanie čistých URL na `.html` súbory exportu (interný rewrite, žiadne presmerovanie — canonicaly sa nemenia),
 - `DirectorySlash Off` — export tvorí pre stránky aj adresáre a mod_dir by inak vyrábal slučku presmerovaní,
 - immutable cache na `/_next/static`, `ForceType image/png` na OG obrázky a ikonu (súbory bez prípony).
 
-**Staging špecifikum:** nasadená kópia `.htaccess` má na konci blok
-`X-Robots-Tag: noindex` — kópia webu sa nesmie zaindexovať pred spustením
-produkčnej domény. Blok NIE JE v repozitári; pri go-live sa jednoducho
-nepridá. Canonicaly už teraz mieria na `https://digitalizuj.to`.
+matpex.sk je produkčná doména — nasadená kópia `.htaccess` NEnesie staging
+`X-Robots-Tag: noindex` blok (ten sa používal len na predošlom staging
+nasadení app.magors.net). Canonicaly mieria na `https://matpex.sk`.
 
 ### Obsah modelu v databáze (tok editácie)
 

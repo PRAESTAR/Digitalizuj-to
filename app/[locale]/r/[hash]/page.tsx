@@ -13,7 +13,7 @@ import PeerComparisonPanel from '@/components/customer/PeerComparisonPanel';
 import QRCodeCard from '@/components/customer/QRCodeCard';
 import UserOwnResultView from '@/components/customer/UserOwnResultView';
 
-const SITE_URL = 'https://digitalizuj.to';
+const SITE_URL = 'https://matpex.sk';
 
 type Params = Promise<{ locale: string; hash: string }>;
 

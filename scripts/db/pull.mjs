@@ -21,7 +21,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const URL = process.argv[2] || 'https://app.magors.net/model/current.json';
+const URL = process.argv[2] || 'https://matpex.sk/model/current.json';
 const TARGETS = [
   path.join(ROOT, 'data/questionBank.json'),
   path.join(ROOT, 'config/model/questionBank.json'),

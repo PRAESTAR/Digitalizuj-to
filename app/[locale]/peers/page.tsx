@@ -7,7 +7,7 @@ import {
   getCountryAverages,
 } from '@/data/peerData';
 
-const SITE_URL = 'https://digitalizuj.to';
+const SITE_URL = 'https://matpex.sk';
 
 const SECTORS = Array.from(new Set(PEER_DATA.map((p) => p.sector)));
 

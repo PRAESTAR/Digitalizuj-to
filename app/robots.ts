@@ -4,7 +4,7 @@ import type { MetadataRoute } from 'next';
 // V serverovom rezime neskodne (routa je aj tak staticka).
 export const dynamic = 'force-static';
 
-const siteUrl = 'https://digitalizuj.to';
+const siteUrl = 'https://matpex.sk';
 
 /**
  * Jediné Disallow je /api/ — všetko ostatné rieši meta `noindex`.

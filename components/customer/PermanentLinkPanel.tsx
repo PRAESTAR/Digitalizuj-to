@@ -13,7 +13,7 @@ interface Props {
 }
 
 const SITE_URL =
-  typeof window !== 'undefined' ? window.location.origin : 'https://digitalizuj.to';
+  typeof window !== 'undefined' ? window.location.origin : 'https://matpex.sk';
 
 /**
  * Automaticky vygeneruje trvalý hash + QR kód pre výsledok, hneď ako sa

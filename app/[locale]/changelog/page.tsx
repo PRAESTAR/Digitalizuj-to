@@ -42,13 +42,13 @@ const breadcrumbSchema = {
       '@type': 'ListItem',
       position: 1,
       name: 'Úvod',
-      item: 'https://digitalizuj.to/sk',
+      item: 'https://matpex.sk/sk',
     },
     {
       '@type': 'ListItem',
       position: 2,
       name: 'Changelog',
-      item: 'https://digitalizuj.to/sk/changelog',
+      item: 'https://matpex.sk/sk/changelog',
     },
   ],
 };
@@ -56,7 +56,7 @@ const breadcrumbSchema = {
 const changelog = [
   {
     version: '1.0',
-    date: '2026-08-02',
+    date: '2026-08-03',
     status: 'Otvorená verzia — priebežne dopĺňaná až do uzavretia v1',
     sections: [
       {
@@ -185,7 +185,11 @@ const changelog = [
           },
           {
             title: 'Staging na app.magors.net',
-            description: 'FTPS deploy s resume a paralelnými spojeniami; staging nesie X-Robots-Tag noindex do spustenia produkčnej domény. Bajtovo overená zhoda nasadených stránok s buildom.',
+            description: 'FTPS deploy s resume a paralelnými spojeniami počas prípravy; staging niesol X-Robots-Tag noindex. Bajtovo overená zhoda nasadených stránok s buildom.',
+          },
+          {
+            title: 'Produkčná doména matpex.sk spustená',
+            description: 'Nový FTP účet a nová databáza Digitalizuj (rotované prihlasovacie údaje a publish token). Pôvodný docroot niesol aktívny WordPress, ktorý bol pred nasadením appky odstránený. Canonicaly mieria priamo na matpex.sk, staging noindex blok sa na produkcii nepoužíva.',
           },
           {
             title: 'Súkromie ako architektúra',

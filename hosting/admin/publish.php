@@ -9,7 +9,8 @@
  *
  * Nasadenie: docroot/admin/publish.php + docroot/admin/checks.sql.
  * Konfigurácia s prihlasovacími údajmi žije NAD docrootom
- * (../../app-config/db.php), takže ju webserver nikdy neservíruje.
+ * (../../app-config/db.php → /matpex.sk/app-config/db.php), takže ju
+ * webserver nikdy neservíruje.
  *
  * Volanie:
  *   /admin/publish.php?token=...&dry=1   — len kontroly + kompilácia (nič nezapíše)
