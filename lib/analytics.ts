@@ -1,5 +1,5 @@
 /**
- * Tenká vrstva nad gtag.js (Google Analytics 4) — meracie ID G-1NDEBQNTS3.
+ * Tenká vrstva nad gtag.js (Google Analytics 4) — meracie ID G-VY93FHZ43M.
  *
  * REŽIM SÚHLASU: „basic consent mode" — gtag.js sa NENAČÍTA VÔBEC, kým
  * návštevník neudelí súhlas. Nie je to len opatrnosť, je to meraný záver:
@@ -17,7 +17,9 @@
  * gtag pripojí alebo prepne.
  */
 
-export const GA_MEASUREMENT_ID = 'G-1NDEBQNTS3';
+// Prepnuté 5. 8. 2026 z pôvodnej property G-1NDEBQNTS3 — historické dáta
+// zostávajú v starej property, od tohto dátumu zbiera už len táto.
+export const GA_MEASUREMENT_ID = 'G-VY93FHZ43M';
 
 export interface ConsentState {
   analytics: boolean;
