@@ -44,11 +44,13 @@ export default function ExecutiveSummary({ result }: ExecutiveSummaryProps) {
             slovenske slova, ktore na 320 px inak vytecu z panela */}
         <div className="space-y-4 text-[#1d1d1f] leading-relaxed break-words">
           <p>
-            {t.rich('exec.maturity', {
-              s: strong,
-              label: t(`levels.maturity.${ors.maturityLevel}`),
-              score: Math.round(ors.scorePenalized),
-            })}
+            {ors.scorePenalized !== null && ors.maturityLevel !== null
+              ? t.rich('exec.maturity', {
+                  s: strong,
+                  label: t(`levels.maturity.${ors.maturityLevel}`),
+                  score: Math.round(ors.scorePenalized),
+                })
+              : t('exec.maturityUnmeasured')}
             {ors.penaltyApplied && (
               <span className="inline-flex items-center gap-1.5 ml-1 max-w-full text-amber-600">
                 <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-amber-500" aria-hidden="true" />
@@ -58,11 +60,20 @@ export default function ExecutiveSummary({ result }: ExecutiveSummaryProps) {
           </p>
 
           <p>
-            {t.rich('exec.dii', {
-              s: strong,
-              points: dii.score12,
-              label: t(`levels.dii.${dii.level}`),
-            })}
+            {dii.measured && dii.score12 !== null && dii.level !== null ? (
+              <>
+                {t.rich('exec.dii', {
+                  s: strong,
+                  points: dii.score12,
+                  label: t(`levels.dii.${dii.level}`),
+                })}
+                {dii.measuredIndicators < 12 && (
+                  <> {t('exec.diiCoverage', { measured: dii.measuredIndicators })}</>
+                )}
+              </>
+            ) : (
+              t('exec.diiUnmeasured')
+            )}
           </p>
 
           <p>

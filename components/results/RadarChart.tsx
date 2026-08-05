@@ -18,12 +18,28 @@ interface RadarChartProps {
 
 export default function RadarChart({ categories }: RadarChartProps) {
   const t = useTranslations();
-  const data = Object.entries(categories).map(([, cat]) => ({
-    category: cat.name.split(' ')[0],
-    fullName: cat.name,
-    score: Math.round(cat.score),
-    fullMark: 100,
-  }));
+  // Len merané kategórie — nemeraná so score null by sa inak vykreslila ako
+  // falošný špic do stredu (nula), nerozlíšiteľný od reálne katastrofálnej.
+  const data = Object.entries(categories)
+    .filter(([, cat]) => cat.measured && cat.score !== null)
+    .map(([, cat]) => ({
+      category: cat.name.split(' ')[0],
+      fullName: cat.name,
+      score: Math.round(cat.score as number),
+      fullMark: 100,
+    }));
+
+  // Polygon s menej ako 3 bodmi je degenerovaný (čiara/bod) — radar sa
+  // skryje, hodnoty nesie textová legenda pod ním.
+  if (data.length < 3) {
+    return (
+      <div className="w-full h-80 flex items-center justify-center text-center px-6">
+        <p className="text-sm text-[#86868b] leading-relaxed">
+          {t('results.radarInsufficient')}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-80 animate-scale-in">

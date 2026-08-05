@@ -28,21 +28,39 @@ export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: Scor
             </div>
             <span className="text-sm font-medium text-[#6e6e73]">DII Score</span>
           </div>
-          <div className="flex items-baseline gap-2 animate-count-up">
-            <span className="text-4xl font-black text-[#1d1d1f] tracking-tight">
-              {Math.round(dii.score100)}
-            </span>
-            <span className="text-sm text-[#86868b] font-medium">/100</span>
-          </div>
-          <div className="text-xs text-[#6e6e73] mt-2 font-medium">
-            {dii.score12}/12 (DII) &middot; {t('levels.dii.' + dii.level)}
-          </div>
-          <div className="mt-3 h-2.5 rounded-full bg-black/5 overflow-hidden shadow-inner">
-            <div
-              className="h-full rounded-full bg-[#0068d6] transition-all duration-1000 ease-out"
-              style={{ width: `${Math.max(dii.score100, 2)}%` }}
-            />
-          </div>
+          {dii.measured && dii.score100 !== null && dii.score12 !== null && dii.level !== null ? (
+            <>
+              <div className="flex items-baseline gap-2 animate-count-up">
+                <span className="text-4xl font-black text-[#1d1d1f] tracking-tight">
+                  {Math.round(dii.score100)}
+                </span>
+                <span className="text-sm text-[#86868b] font-medium">/100</span>
+              </div>
+              <div className="text-xs text-[#6e6e73] mt-2 font-medium">
+                {dii.score12}/12 (DII) &middot; {t('levels.dii.' + dii.level)}
+              </div>
+              {dii.measuredIndicators < 12 && (
+                <div className="text-xs text-[#86868b] mt-1 font-medium">
+                  {t('cards.diiCoverage', { measured: dii.measuredIndicators })}
+                </div>
+              )}
+              <div className="mt-3 h-2.5 rounded-full bg-black/5 overflow-hidden shadow-inner">
+                <div
+                  className="h-full rounded-full bg-[#0068d6] transition-all duration-1000 ease-out"
+                  style={{ width: `${Math.max(dii.score100, 2)}%` }}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-2xl font-semibold text-[#86868b]">
+                &ndash;
+              </div>
+              <div className="text-xs text-[#86868b] mt-2 font-medium">
+                {t('cards.diiUnmeasured')}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -95,27 +113,40 @@ export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: Scor
             </div>
             <span className="text-sm font-medium text-[#6e6e73]">{t('card.operationalMaturity')}</span>
           </div>
-          <div className="flex items-baseline gap-2 animate-count-up">
-            <span className="text-4xl font-black text-[#1d1d1f] tracking-tight">
-              {Math.round(ors.scorePenalized)}
-            </span>
-            <span className="text-sm text-[#86868b] font-medium">/100</span>
-          </div>
-          <div className="text-xs text-[#6e6e73] mt-2 font-medium">
-            Level {ors.maturityLevel} &middot; {t('levels.maturity.' + ors.maturityLevel)}
-          </div>
-          {ors.penaltyApplied && (
-            <div className="flex items-center gap-1.5 mt-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-              <span className="text-xs text-amber-600 font-medium">{t('cards.securityPenalty')}</span>
-            </div>
+          {ors.scorePenalized !== null && ors.maturityLevel !== null ? (
+            <>
+              <div className="flex items-baseline gap-2 animate-count-up">
+                <span className="text-4xl font-black text-[#1d1d1f] tracking-tight">
+                  {Math.round(ors.scorePenalized)}
+                </span>
+                <span className="text-sm text-[#86868b] font-medium">/100</span>
+              </div>
+              <div className="text-xs text-[#6e6e73] mt-2 font-medium">
+                Level {ors.maturityLevel} &middot; {t('levels.maturity.' + ors.maturityLevel)}
+              </div>
+              {ors.penaltyApplied && (
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <span className="text-xs text-amber-600 font-medium">{t('cards.securityPenalty')}</span>
+                </div>
+              )}
+              <div className="mt-3 h-2.5 rounded-full bg-black/5 overflow-hidden shadow-inner">
+                <div
+                  className="h-full rounded-full bg-[#0068d6] transition-all duration-1000 ease-out"
+                  style={{ width: `${Math.max(ors.scorePenalized, 2)}%` }}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-2xl font-semibold text-[#86868b]">
+                &ndash;
+              </div>
+              <div className="text-xs text-[#86868b] mt-2 font-medium">
+                {t('cards.orsUnmeasured')}
+              </div>
+            </>
           )}
-          <div className="mt-3 h-2.5 rounded-full bg-black/5 overflow-hidden shadow-inner">
-            <div
-              className="h-full rounded-full bg-[#0068d6] transition-all duration-1000 ease-out"
-              style={{ width: `${Math.max(ors.scorePenalized, 2)}%` }}
-            />
-          </div>
         </div>
       </div>
 

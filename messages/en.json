@@ -145,7 +145,9 @@
     "auditColScore": "Score",
     "auditColUnknown": "Don’t know",
     "auditColSkipped": "Skipped",
-    "scoringConfig": "Scoring configuration"
+    "scoringConfig": "Scoring configuration",
+    "categoryUnmeasured": "Not measured",
+    "radarInsufficient": "The radar chart appears once at least 3 categories are measured — measured values are listed below."
   },
   "share": {
     "title": "Your permanent link",
@@ -225,7 +227,10 @@
     "debtUrgent": "The most critical risks require immediate attention.",
     "strengths": "Strengths",
     "criticalRisks": "Critical risks",
-    "quickWins": "Top 3 Quick Wins"
+    "quickWins": "Top 3 Quick Wins",
+    "maturityUnmeasured": "We could not measure operational maturity (ORS) — no category has enough valid answers.",
+    "diiUnmeasured": "We could not measure digital intensity (DII) — the questionnaire has no valid answers to questions mapped to DII indicators.",
+    "diiCoverage": "The estimate is based on {measured} of 12 measured indicators."
   },
   "risk": {
     "title": "Technical debt and risks",
@@ -236,7 +241,10 @@
     "securityPenalty": "Security penalty",
     "techDebt": "Technical debt",
     "annualSavings": "Annual savings potential",
-    "mdConservative": "{md} PD conservative"
+    "mdConservative": "{md} PD conservative",
+    "diiUnmeasured": "Not measured — no valid answers to DII questions",
+    "diiCoverage": "Estimate from {measured}/12 measured indicators",
+    "orsUnmeasured": "Not measured — no category has valid answers"
   },
   "impact": {
     "scenario": {
@@ -292,7 +300,11 @@
     "eurPerYearMid": "EUR / year (mid)",
     "anonResult": "Anonymised result",
     "aboutTitle": "About this view",
-    "aboutBody": "This is an anonymised result snapshot from a test sample of 50 companies in Slovakia. No identifying company data is stored or displayed. The page is reachable only via this specific hash and is not indexed by search engines."
+    "aboutBody": "This is an anonymised result snapshot from a test sample of 50 companies in Slovakia. No identifying company data is stored or displayed. The page is reachable only via this specific hash and is not indexed by search engines.",
+    "diiUnmeasured": "DII not measured",
+    "diiEstimate": "estimate from {measured}/12 indicators",
+    "legacyV1": "legacy methodology v1",
+    "legacyNote": "This result was saved with an older version of the methodology (v1) — DII was a rough average conversion and unmeasured categories were stored as 0. Values may not be directly comparable with newer results."
   },
   "peersPanel": {
     "title": "Comparison with peer group and country",
@@ -303,6 +315,11 @@
     "metric": "Metric",
     "you": "You",
     "anonTitle": "Anonymisation:",
-    "anonBody": "only aggregates are shown — no identifying company data. The Δ comparison is against the peer-group median (same sector and size)."
+    "anonBody": "only aggregates are shown — no identifying company data. The Δ comparison is against the peer-group median (same sector and size).",
+    "percentileWord": "percentile",
+    "top25": "Top 25 %",
+    "aboveAvg": "Above average",
+    "belowAvg": "Below average",
+    "bottom25": "Bottom 25 %"
   }
 }

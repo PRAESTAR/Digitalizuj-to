@@ -145,7 +145,9 @@
     "auditColScore": "Skóre",
     "auditColUnknown": "Neviem",
     "auditColSkipped": "Preskočená",
-    "scoringConfig": "Scoring konfigurácia"
+    "scoringConfig": "Scoring konfigurácia",
+    "categoryUnmeasured": "Nemerané",
+    "radarInsufficient": "Radar sa zobrazuje pri aspoň 3 meraných kategóriách — merané hodnoty nájdete v zozname nižšie."
   },
   "share": {
     "title": "Váš permanentný odkaz",
@@ -225,7 +227,10 @@
     "debtUrgent": "Najkritickejšie riziká vyžadujú okamžitú pozornosť.",
     "strengths": "Silné stránky",
     "criticalRisks": "Kritické riziká",
-    "quickWins": "Top 3 Quick Wins"
+    "quickWins": "Top 3 Quick Wins",
+    "maturityUnmeasured": "Prevádzkovú zrelosť (ORS) sme nezmerali — žiadna kategória nemá dostatok platných odpovedí.",
+    "diiUnmeasured": "Digitálnu intenzitu (DII) sme nezmerali — v dotazníku nie sú platné odpovede na otázky mapované na DII indikátory.",
+    "diiCoverage": "Odhad vychádza z {measured} z 12 meraných indikátorov."
   },
   "risk": {
     "title": "Technologický dlh a riziká",
@@ -236,7 +241,10 @@
     "securityPenalty": "Penalizácia za bezpečnosť",
     "techDebt": "Technologický dlh",
     "annualSavings": "Ročný potenciál úspor",
-    "mdConservative": "{md} MD konzervatívne"
+    "mdConservative": "{md} MD konzervatívne",
+    "diiUnmeasured": "Nezmerané — chýbajú platné odpovede na DII otázky",
+    "diiCoverage": "Odhad z {measured}/12 meraných indikátorov",
+    "orsUnmeasured": "Nezmerané — žiadna kategória nemá platné odpovede"
   },
   "impact": {
     "scenario": {
@@ -292,7 +300,11 @@
     "eurPerYearMid": "EUR / rok (mid)",
     "anonResult": "Anonymizovaný výsledok",
     "aboutTitle": "O tomto zobrazení",
-    "aboutBody": "Toto je anonymizovaný snapshot výsledku z testovacej vzorky 50 firiem na Slovensku. Žiadne identifikačné údaje firmy sa neukladajú a nezobrazujú. Stránka je dostupná iba cez tento konkrétny hash a nie je indexovaná vyhľadávačmi."
+    "aboutBody": "Toto je anonymizovaný snapshot výsledku z testovacej vzorky 50 firiem na Slovensku. Žiadne identifikačné údaje firmy sa neukladajú a nezobrazujú. Stránka je dostupná iba cez tento konkrétny hash a nie je indexovaná vyhľadávačmi.",
+    "diiUnmeasured": "DII nemerané",
+    "diiEstimate": "odhad z {measured}/12 indikátorov",
+    "legacyV1": "staršia metodika v1",
+    "legacyNote": "Tento výsledok bol uložený staršou verziou metodiky (v1) — DII bolo hrubým prepočtom priemeru a nemerané kategórie sa ukladali ako 0. Hodnoty nemusia byť priamo porovnateľné s novšími výsledkami."
   },
   "peersPanel": {
     "title": "Porovnanie s peer skupinou a krajinou",
@@ -303,6 +315,11 @@
     "metric": "Metrika",
     "you": "Vy",
     "anonTitle": "Anonymizácia:",
-    "anonBody": "zobrazené sú iba agregáty — žiadne identifikačné údaje firiem. Δ porovnanie je oproti mediánu peer skupiny (rovnaký sektor a veľkosť)."
+    "anonBody": "zobrazené sú iba agregáty — žiadne identifikačné údaje firiem. Δ porovnanie je oproti mediánu peer skupiny (rovnaký sektor a veľkosť).",
+    "percentileWord": "percentil",
+    "top25": "Top 25 %",
+    "aboveAvg": "Nadpriemer",
+    "belowAvg": "Pod priemer",
+    "bottom25": "Spodných 25 %"
   }
 }

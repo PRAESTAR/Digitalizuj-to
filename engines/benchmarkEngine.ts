@@ -36,7 +36,11 @@ function calculateDIIBenchmark(
 ): BenchmarkComparison {
   const countryData = benchmarkData.countryBenchmarks[country];
   if (!countryData) {
-    return { gap: 0, labelSk: 'Nedostupné', percentile: 0 };
+    // gap null + žiadny percentil — 0 by sa tvárilo ako reálna (najhoršia) hodnota
+    return { gap: null, labelSk: 'Nedostupné' };
+  }
+  if (!dii.measured || dii.score12 === null) {
+    return { gap: null, labelSk: 'Nedostupné — DII nemerané' };
   }
 
   const dist = countryData.diiDistribution;
@@ -67,7 +71,10 @@ function calculateSectorBenchmark(
 ): BenchmarkComparison {
   const sectorData = benchmarkData.sectorBenchmarks[sector];
   if (!sectorData) {
-    return { gap: 0, labelSk: 'Sektorový benchmark nedostupný' };
+    return { gap: null, labelSk: 'Sektorový benchmark nedostupný' };
+  }
+  if (!dii.measured || dii.score12 === null) {
+    return { gap: null, labelSk: 'Nedostupné — DII nemerané' };
   }
 
   const gap = Math.round((dii.score12 - sectorData.diiMedian) * 10) / 10;
@@ -86,9 +93,16 @@ function calculateORSSectorBenchmark(
   const sectorData = benchmarkData.sectorBenchmarks[sector];
   if (!sectorData) {
     return {
-      gap: 0,
+      gap: null,
       labelSk: 'Sektorový benchmark nedostupný',
       disclaimer: 'ORS benchmarky sú expertné odhady, nie empirické dáta.',
+    };
+  }
+  if (ors.scorePenalized === null) {
+    return {
+      gap: null,
+      labelSk: 'Nedostupné — ORS nemerané',
+      disclaimer: 'ORS benchmarky sú expertné odhady odvodené z DII dát, nie priamo merané.',
     };
   }
 

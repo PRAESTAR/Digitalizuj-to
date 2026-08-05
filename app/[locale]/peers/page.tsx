@@ -82,7 +82,7 @@ const datasetSchema = {
   // @id, takže sa dataset deduplikuje na jednu entitu.
   '@id': `${SITE_URL}/sk/peers#dataset`,
   name: 'Benchmark digitálnej zrelosti slovenských MSP — referenčná vzorka',
-  description: `Referenčná vzorka ${PEER_DATA.length} anonymizovaných profilov digitálnej zrelosti malých a stredných podnikov na Slovensku, rozložená naprieč ${SECTORS.length} sektormi a 4 veľkostnými kategóriami (mikro, malé, stredné, veľké). Pre každý profil: DII-Compatible Score (0–100 a 0–12), Operational Readiness Score (0–100) vrátane 6 čiastkových kategórií, Technical Debt & Risk Index (0–100) a Business Impact Potential v EUR ročne. Ide o deterministickú testovaciu vzorku kalibrovanú na distribúcie Eurostat DII 2025 (ISOC_E_DII) pre Slovensko — nie o zber reálnych odpovedí; žiadna konkrétna firma nie je reprezentovaná.`,
+  description: `Referenčná vzorka ${PEER_DATA.length} anonymizovaných profilov digitálnej zrelosti malých a stredných podnikov na Slovensku, rozložená naprieč ${SECTORS.length} sektormi a 4 veľkostnými kategóriami (mikro, malé, stredné, veľké). Pre každý profil: DII-Compatible Score (0–100 a 0–12 podľa 12 indikátorov DII v3/2025), Operational Readiness Score (0–100) vrátane 6 čiastkových kategórií, Technical Debt & Risk Index (0–100) a Business Impact Potential v EUR ročne. Ide o deterministickú testovaciu vzorku kalibrovanú na distribúcie Eurostat DII 2025 (ISOC_E_DII) pre Slovensko — nie o zber reálnych odpovedí; žiadna konkrétna firma nie je reprezentovaná.`,
   url: `${SITE_URL}/sk/peers`,
   inLanguage: 'sk-SK',
   isAccessibleForFree: true,
@@ -98,7 +98,7 @@ const datasetSchema = {
   ],
   variableMeasured: [
     'DII-Compatible Score (0–100)',
-    'DII raw score (0–12)',
+    'DII score (0–12, per-indikátorové mapovanie DII v3/2025)',
     'Operational Readiness Score (0–100)',
     'Technical Debt & Risk Index (0–100)',
     'Business Impact Potential (EUR / rok)',

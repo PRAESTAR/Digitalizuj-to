@@ -2,8 +2,8 @@ import { describe, expect, test } from 'vitest';
 import { calculateBenchmarks } from './benchmarkEngine';
 import type { DIIScore, ORSScore } from '@/types';
 
-// Minimálne validné vstupy — benchmark číta len score12 a scorePenalized.
-const dii = { score12: 6, score100: 50 } as DIIScore;
+// Minimálne validné vstupy — benchmark číta len measured+score12 a scorePenalized.
+const dii = { score12: 6, score100: 50, measured: true } as DIIScore;
 const ors = { scorePenalized: 40 } as ORSScore;
 
 describe('calculateBenchmarks — trh podľa jazykovej mutácie', () => {
@@ -35,5 +35,23 @@ describe('calculateBenchmarks — trh podľa jazykovej mutácie', () => {
     const b = calculateBenchmarks(dii, ors, 'other', 'small', 'CZ');
     // score12=6 = koniec pásma LO: percentil = (0.285 + 0.306) * 100 ≈ 59
     expect(b.diiVsSk.percentile).toBe(59);
+  });
+});
+
+describe('calculateBenchmarks — nemerané skóre', () => {
+  test('nemerané DII: gap null, žiadny percentil, label Nedostupné', () => {
+    const unmeasured = { score12: null, score100: null, measured: false } as DIIScore;
+    const b = calculateBenchmarks(unmeasured, ors, 'manufacturing', 'small');
+    expect(b.diiVsSk.gap).toBeNull();
+    expect(b.diiVsSk.percentile).toBeUndefined();
+    expect(b.diiVsSk.labelSk).toContain('Nedostupné');
+    expect(b.diiVsSector.gap).toBeNull();
+  });
+
+  test('nemerané ORS: orsVsSector gap null s labelom Nedostupné', () => {
+    const orsNull = { scorePenalized: null } as ORSScore;
+    const b = calculateBenchmarks(dii, orsNull, 'manufacturing', 'small');
+    expect(b.orsVsSector.gap).toBeNull();
+    expect(b.orsVsSector.labelSk).toContain('Nedostupné');
   });
 });

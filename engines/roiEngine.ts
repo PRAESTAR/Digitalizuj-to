@@ -14,7 +14,8 @@ interface ROIInputs {
   manualProcesses: string[];
   invoicingVolumeBand: string;
   adminHeadcountBand: string;
-  categoryScoreF: number;
+  /** null = kategória F (governance) nemeraná — disclaimer sa nevyhodnocuje. */
+  categoryScoreF: number | null;
 }
 
 export function calculateBusinessImpact(
@@ -137,7 +138,8 @@ export function calculateBusinessImpact(
   const gapPercentage = Math.max(0, Math.round((1 - inputs.maturityLevel / 4) * 100));
 
   // Governance adjustment for displayed scenario
-  const governanceNote = inputs.categoryScoreF < 50
+  // Len MERANÁ nízka governance — nemerané F nie je zistenie o pripravenosti.
+  const governanceNote = inputs.categoryScoreF !== null && inputs.categoryScoreF < 50
     ? 'Nízka organizačná pripravenosť znižuje pravdepodobnosť realizácie plného potenciálu.'
     : '';
 
@@ -293,7 +295,7 @@ function generateMitigations(answers: Answer[], questions: Question[]): string[]
 export function extractROIInputs(
   answers: Answer[],
   questions: Question[],
-  categoryScoreF: number
+  categoryScoreF: number | null
 ): ROIInputs {
   const getAnswerValue = (qId: string): string => {
     const ans = answers.find(a => a.questionId === qId);

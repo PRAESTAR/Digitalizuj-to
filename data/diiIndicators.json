@@ -1,0 +1,109 @@
+{
+  "version": "1.0",
+  "methodology": "DII v3 (Eurostat isoc_e_dii, prieskum 2025) — METHODOLOGY.md §2.1",
+  "comment": "Per-indikátorové mapovanie otázok na 12 oficiálnych v3/2025 DII premenných. Indikátor je MERANÝ, ak aspoň jedna kritériová otázka má platnú odpoveď (nie Neviem, nie preskočená), a SPLNENÝ, ak ľubovoľné kritérium sedí. Kritériá naprieč oboma kvízmi — v behu sa uplatnia len otázky prítomné v aktívnom kvíze. Súbor číta engines/scoringEngine.ts (cez data/diiIndicators.ts) aj scripts/validate-model.mjs.",
+  "skipSemantics": "Otázka preskočená vetvením = indikátor nemeraný (žiadna fabrikácia hodnôt). Vedomá nepresnosť v1: firma bez e-shopu má cx_B06_ecommerce preskočený, hoci fakticky je DII10 nesplnený — extrapolácia to mierne nadhodnotí. Riešenie (skipImplies: not_met) je plánovaná druhá iterácia.",
+  "excludedDiiQuestions": [
+    { "questionId": "ind_10", "reason": "Security basics — nie je v3/2025 premenná (patrí do v4 rotácie); ďalej sýti ors_E." },
+    { "questionId": "cx_A02", "reason": "Automatizácia fakturácie — nie je v3/2025 premenná; ďalej sýti ors_A." },
+    { "questionId": "cx_D06", "reason": "Remote access — v4 premenná, nie v3/2025; ďalej sýti ors_D." },
+    { "questionId": "cx_F04", "reason": "Digitálne zručnosti — nie je v3/2025 premenná; ďalej sýti ors_F." },
+    { "questionId": "cx_DII02b", "reason": "E-fakturácia — nie je v3/2025 premenná. Kategória 'dii' → po vyradení nesýti žiadne skóre; ďalej spúšťa RF13. Rekategorizácia je DB operácia (item mapa, známy stav)." },
+    { "questionId": "cx_DII04", "reason": "ICT špecialisti — v4 premenná, nie v3/2025. Do DII nevstupuje; cez svoj ors_F tag ďalej sýti kategóriu F (ORS smeruje podľa maps_to_score kontraktu)." }
+  ],
+  "indicators": [
+    {
+      "code": "DII1",
+      "nameSk": "Viac ako 50 % zamestnancov používa internet na pracovné účely",
+      "criteria": [],
+      "uncoveredReason": "Žiadna otázka nezisťuje podiel zamestnancov pracujúcich s internetom — kandidát na novú otázku cez DB workflow."
+    },
+    {
+      "code": "DII2",
+      "nameSk": "Najrýchlejšie pevné pripojenie ≥ 30 Mbps",
+      "criteria": [
+        { "questionId": "cx_D01", "metWhen": { "minScore": 33 }, "rationale": "Možnosť basic (33) = pásmo 30–100 Mbps — už spĺňa prah ≥ 30 Mbps; slow (0) je pod prahom." }
+      ]
+    },
+    {
+      "code": "DII3",
+      "nameSk": "Firma má webovú stránku",
+      "criteria": [
+        { "questionId": "cx_DII01", "metWhen": { "minScore": 25 }, "rationale": "Aj základná vizitková stránka (basic, 25) je webová stránka v zmysle Eurostat premennej." },
+        { "questionId": "ind_12", "metWhen": { "minScore": 25 }, "rationale": "basic_web (25) = existujúca stránka; none (0) = žiadny web." }
+      ]
+    },
+    {
+      "code": "DII4",
+      "nameSk": "Využívanie sociálnych médií",
+      "criteria": [
+        { "questionId": "cx_DII02", "metWhen": { "minScore": 33 }, "rationale": "presence (33) = profily existujú — Eurostat počíta samotné využívanie, nie stratégiu." },
+        { "questionId": "ind_12", "metWhen": { "minScore": 50 }, "rationale": "PROXY: active_web (50) = web s aktívnym obsahom a sociálnymi sieťami; stupne 75/100 (eshop/platforma) sociálne siete negarantujú — vedomá nepresnosť indikatívneho kvízu." }
+      ]
+    },
+    {
+      "code": "DII5",
+      "nameSk": "Nákup cloud computing služieb",
+      "criteria": [
+        { "questionId": "cx_DII03b", "metWhen": { "anyOfValues": ["email_cloud", "storage", "accounting_cloud", "crm_cloud", "iaas"] }, "rationale": "Ľubovoľná zvolená cloud služba = nákup cloudu; voľba none = meraný a nesplnený." },
+        { "questionId": "cx_D02", "metWhen": { "minScore": 60 }, "rationale": "Sekundárne kritérium: hybrid (60), cloud (75), cloud_native (90), saas_only (70) implikujú nákup cloud služieb; hosted (50) ešte nie." },
+        { "questionId": "ind_08", "metWhen": { "minScore": 60 }, "rationale": "hybrid (60) a vyššie; hodnota none (70) = žiadna vlastná infraštruktúra, čisto SaaS firma — cloud kritérium korektne spĺňa." }
+      ]
+    },
+    {
+      "code": "DII6",
+      "nameSk": "Nákup sofistikovaných/stredne pokročilých cloud služieb",
+      "criteria": [
+        { "questionId": "cx_DII03b", "metWhen": { "anyOfValues": ["accounting_cloud", "crm_cloud", "iaas"] }, "rationale": "Eurostat rozlišuje basic (e-mail, storage) od sofistikovaných služieb (účtovný/CRM softvér v cloude, výpočtová platforma) — skóre prah by basic od sofistikovaného nerozlíšil, preto výber podľa hodnôt." }
+      ]
+    },
+    {
+      "code": "DII7",
+      "nameSk": "ERP softvér",
+      "criteria": [
+        { "questionId": "cx_B01", "metWhen": { "anyOfValues": ["erp"] }, "rationale": "Priama zhoda s premennou — firma uvádza ERP medzi používanými systémami." },
+        { "questionId": "ind_05", "metWhen": { "anyOfValues": ["erp"] }, "rationale": "Priama zhoda s premennou v indikatívnom kvíze." }
+      ]
+    },
+    {
+      "code": "DII8",
+      "nameSk": "CRM softvér",
+      "criteria": [
+        { "questionId": "cx_B01", "metWhen": { "anyOfValues": ["crm"] }, "rationale": "Priama zhoda s premennou — firma uvádza CRM medzi používanými systémami." },
+        { "questionId": "ind_05", "metWhen": { "anyOfValues": ["crm"] }, "rationale": "Priama zhoda s premennou v indikatívnom kvíze." }
+      ]
+    },
+    {
+      "code": "DII9",
+      "nameSk": "Dátová analytika (vlastnými zamestnancami alebo externe)",
+      "criteria": [
+        { "questionId": "cx_C01", "metWhen": { "minScore": 75 }, "rationale": "Stupeň 3 (75) = KPI dashboardy a pravidelná analytika; stupne 0–50 sú len základný reporting bez analytiky." },
+        { "questionId": "cx_B01", "metWhen": { "anyOfValues": ["bi"] }, "rationale": "Používanie BI nástroja implikuje dátovú analytiku." },
+        { "questionId": "ind_07", "metWhen": { "minScore": 75 }, "rationale": "Rovnaká škála ako cx_C01 v indikatívnom kvíze." },
+        { "questionId": "ind_05", "metWhen": { "anyOfValues": ["bi"] }, "rationale": "BI nástroj v indikatívnom zozname systémov." }
+      ]
+    },
+    {
+      "code": "DII10",
+      "nameSk": "E-commerce predaje ≥ 1 % obratu",
+      "criteria": [
+        { "questionId": "cx_B06_ecommerce", "metWhen": { "minScore": 33 }, "rationale": "low (33) = pásmo 1–10 % obratu — spĺňa prah ≥ 1 %." },
+        { "questionId": "ind_12", "metWhen": { "minScore": 75 }, "rationale": "PROXY: eshop (75) = funkčný e-shop, ale negarantuje podiel ≥ 1 % obratu — vedomá nepresnosť indikatívneho kvízu." }
+      ]
+    },
+    {
+      "code": "DII11",
+      "nameSk": "Web predaje > 1 % obratu a B2C web predaje > 10 % web predajov",
+      "criteria": [],
+      "uncoveredReason": "B2C podiel web predajov sa v žiadnom kvíze nezisťuje — bez neho premenná nie je vyhodnotiteľná."
+    },
+    {
+      "code": "DII12",
+      "nameSk": "Využívanie akejkoľvek AI technológie",
+      "criteria": [
+        { "questionId": "cx_DII03", "metWhen": { "minScore": 33 }, "rationale": "experimenting (33) = firma AI reálne používa — Eurostat premenná je 'akákoľvek AI technológia'." },
+        { "questionId": "ind_15_ai", "metWhen": { "minScore": 33 }, "rationale": "Rovnaká škála v indikatívnom kvíze." }
+      ]
+    }
+  ]
+}

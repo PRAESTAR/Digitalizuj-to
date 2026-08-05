@@ -5,6 +5,10 @@ import type { PeerSnapshot, ResultSnapshot, Respondent } from '@/types';
  *
  * The PeerSnapshot is the only thing we put behind a sharable hash URL — it
  * contains aggregates only (no per-question answers, no PII).
+ *
+ * schemaVersion 2: nemerané skóre sa ukladá ako null (v1 ho ticho koercovalo
+ * na 0, čím sa N/A stalo nerozlíšiteľným od reálnej nuly) a diiMeasured nesie
+ * počet meraných DII indikátorov — priznanie extrapolácie na zdieľanej stránke.
  */
 export function toPeerSnapshot(
   hash: string,
@@ -18,28 +22,31 @@ export function toPeerSnapshot(
 
   return {
     hash,
+    schemaVersion: 2,
     sector,
     sizeBand,
     country: 'SK',
-    diiScore100: Math.round(result.dii.score100),
-    diiScore12: Math.round(result.dii.score12),
-    orsScore: Math.round(result.ors.scorePenalized ?? result.ors.score),
+    diiScore100: roundOrNull(result.dii.score100),
+    diiScore12: roundOrNull(result.dii.score12),
+    diiMeasured: result.dii.measuredIndicators,
+    orsScore: roundOrNull(result.ors.scorePenalized ?? result.ors.score),
     tdriScore: Math.round(result.tdri.score),
     businessImpactEur: Math.round(result.businessImpact.financialImpact.eurPerYear.mid),
     completedAt: completedAt ?? new Date().toISOString(),
     orsCategories: {
-      procesy: round(cats.A?.score),
-      systemy: round(cats.B?.score),
-      data: round(cats.C?.score),
-      infra: round(cats.D?.score),
-      security: round(cats.E?.score),
-      governance: round(cats.F?.score),
+      procesy: roundOrNull(cats.A?.score),
+      systemy: roundOrNull(cats.B?.score),
+      data: roundOrNull(cats.C?.score),
+      infra: roundOrNull(cats.D?.score),
+      security: roundOrNull(cats.E?.score),
+      governance: roundOrNull(cats.F?.score),
     },
   };
 }
 
-function round(value: number | undefined): number {
-  return Number.isFinite(value) ? Math.round(value as number) : 0;
+/** Nemerané (null/undefined/nekonečno) zostáva null — nikdy nie 0. */
+function roundOrNull(value: number | null | undefined): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.round(value) : null;
 }
 
 /**

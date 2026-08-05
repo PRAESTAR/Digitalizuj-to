@@ -52,9 +52,14 @@ export async function generateMetadata({
   const sectorLabel = SECTOR_LABELS_SK[peer.sector] ?? peer.sector;
   const sizeLabel = SIZE_BAND_LABELS_SK[peer.sizeBand];
 
+  const scoreParts = [
+    peer.diiScore100 !== null ? `DII ${peer.diiScore100}/100` : null,
+    peer.orsScore !== null ? `ORS ${peer.orsScore}/100` : null,
+  ].filter(Boolean).join(', ');
+
   return {
     title: `Výsledok #${hash.slice(0, 6)}`,
-    description: `Anonymizovaný výsledok diagnostiky digitálnej zrelosti — ${sectorLabel}, ${sizeLabel}. DII ${peer.diiScore100}/100, ORS ${peer.orsScore}/100.`,
+    description: `Anonymizovaný výsledok diagnostiky digitálnej zrelosti — ${sectorLabel}, ${sizeLabel}. ${scoreParts}.`,
     // Canonical tu zámerne NIE JE: stránka je noindex,nofollow a canonical
     // na noindex stránke je protirečivý signál (canonical hovorí „indexuj
     // túto adresu", noindex hovorí „neindexuj nič"). Prázdny objekt zároveň
@@ -137,14 +142,14 @@ export default async function ResultByHashPage({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 animate-fade-in-up">
         <ScoreCard
           label="DII Score"
-          value={`${peer.diiScore100}`}
-          unit="/100"
-          subtitle={`${peer.diiScore12}/12 (DII raw)`}
+          value={peer.diiScore100 !== null ? `${peer.diiScore100}` : '–'}
+          unit={peer.diiScore100 !== null ? '/100' : ''}
+          subtitle={diiSubtitle(peer, t)}
         />
         <ScoreCard
           label="Operational Readiness"
-          value={`${peer.orsScore}`}
-          unit="/100"
+          value={peer.orsScore !== null ? `${peer.orsScore}` : '–'}
+          unit={peer.orsScore !== null ? '/100' : ''}
           subtitle="ODRM model"
         />
         <ScoreCard
@@ -181,6 +186,25 @@ export default async function ResultByHashPage({
     </div>
     </ResultGate>
   );
+}
+
+/**
+ * Podtitulok DII karty podľa verzie snapshotu: v2 priznáva extrapoláciu
+ * (odhad z N meraných indikátorov), legacy v1 nesie označenie starej
+ * metodiky (raw prepočet priemeru, N/A ako 0).
+ */
+function diiSubtitle(
+  peer: import('@/types').PeerSnapshot,
+  t: Awaited<ReturnType<typeof getTranslations>>
+): string {
+  if (peer.diiScore12 === null) return t('customer.diiUnmeasured');
+  if (peer.schemaVersion === 2) {
+    if (peer.diiMeasured !== undefined && peer.diiMeasured < 12) {
+      return `${peer.diiScore12}/12 · ${t('customer.diiEstimate', { measured: peer.diiMeasured })}`;
+    }
+    return `${peer.diiScore12}/12 (DII)`;
+  }
+  return `${peer.diiScore12}/12 (DII raw · ${t('customer.legacyV1')})`;
 }
 
 function ScoreCard({

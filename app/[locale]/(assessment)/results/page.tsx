@@ -124,13 +124,19 @@ export default function ResultsPage() {
                 {Object.entries(result.ors.categories).map(([key, cat]) => (
                   <div key={key} className="flex items-center justify-between gap-2 text-sm px-3 py-2 rounded-xl bg-black/[0.03] border border-black/5 hover:bg-black/5 transition-colors">
                     <span className="text-[#6e6e73] min-w-0 break-words font-medium text-xs sm:text-sm">{cat.name}</span>
-                    <span className={`font-mono font-bold shrink-0 px-2 py-0.5 rounded-lg text-xs ${
-                      cat.score >= 70 ? 'text-emerald-700 bg-emerald-500/10' :
-                      cat.score >= 40 ? 'text-[#1d1d1f] bg-black/5' :
-                      'text-rose-700 bg-rose-500/10'
-                    }`}>
-                      {Math.round(cat.score)}
-                    </span>
+                    {cat.measured && cat.score !== null ? (
+                      <span className={`font-mono font-bold shrink-0 px-2 py-0.5 rounded-lg text-xs ${
+                        cat.score >= 70 ? 'text-emerald-700 bg-emerald-500/10' :
+                        cat.score >= 40 ? 'text-[#1d1d1f] bg-black/5' :
+                        'text-rose-700 bg-rose-500/10'
+                      }`}>
+                        {Math.round(cat.score)}
+                      </span>
+                    ) : (
+                      <span className="font-mono font-bold shrink-0 px-2 py-0.5 rounded-lg text-xs text-[#86868b] bg-black/[0.03]" title={t('results.categoryUnmeasured')}>
+                        &ndash;
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>

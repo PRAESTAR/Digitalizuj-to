@@ -45,32 +45,42 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
   );
   const country = getCountryAverages();
 
-  const allDii = PEER_DATA.map((p) => p.diiScore100).sort((a, b) => a - b);
-  const allOrs = PEER_DATA.map((p) => p.orsScore).sort((a, b) => a - b);
+  // Nemerané (null) hodnoty nevstupujú do distribúcií ani do riadkov —
+  // v2 snapshoty môžu mať DII/ORS null, keď sa daná vrstva nemerala.
+  const measuredOnly = (values: (number | null)[]): number[] =>
+    values.filter((v): v is number => v !== null);
+
+  const allDii = measuredOnly(PEER_DATA.map((p) => p.diiScore100)).sort((a, b) => a - b);
+  const allOrs = measuredOnly(PEER_DATA.map((p) => p.orsScore)).sort((a, b) => a - b);
   const allTdri = PEER_DATA.map((p) => p.tdriScore).sort((a, b) => a - b);
 
   const userPercentiles = {
-    dii: percentile(allDii, current.diiScore100),
-    ors: percentile(allOrs, current.orsScore),
+    dii: current.diiScore100 !== null ? percentile(allDii, current.diiScore100) : null,
+    ors: current.orsScore !== null ? percentile(allOrs, current.orsScore) : null,
     // For risk, lower is better — flip the percentile semantics so 100 = best.
     tdri: 100 - percentile(allTdri, current.tdriScore),
   };
 
-  const rows: MetricRow[] = [
-    {
+  const rows: MetricRow[] = [];
+  if (current.diiScore100 !== null) {
+    rows.push({
       label: 'DII Score',
       yours: current.diiScore100,
-      cohortValues: cohort.map((p) => p.diiScore100),
+      cohortValues: measuredOnly(cohort.map((p) => p.diiScore100)),
       countryAvg: country.diiScore100,
       format: (v) => `${v}/100`,
-    },
-    {
+    });
+  }
+  if (current.orsScore !== null) {
+    rows.push({
       label: 'Operational Readiness',
       yours: current.orsScore,
-      cohortValues: cohort.map((p) => p.orsScore),
+      cohortValues: measuredOnly(cohort.map((p) => p.orsScore)),
       countryAvg: country.orsScore,
       format: (v) => `${v}/100`,
-    },
+    });
+  }
+  rows.push(
     {
       label: 'Risk Index (TDRI)',
       yours: current.tdriScore,
@@ -90,8 +100,8 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
           currency: 'EUR',
           maximumFractionDigits: 0,
         }).format(v),
-    },
-  ];
+    }
+  );
 
   const sectorLabel =
     SECTOR_LABELS_SK[current.sector] ?? current.sector;
@@ -144,8 +154,8 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
           rastie spolu s textom, takže čipy sa pri 125/150 % samy preskupia
           do dvoch riadkov a pri 100 % zostanú tri vedľa seba. */}
       <div className="flex flex-wrap gap-2 mt-6 mb-6">
-        <PercentileChip label="DII" pct={userPercentiles.dii} />
-        <PercentileChip label="ORS" pct={userPercentiles.ors} />
+        {userPercentiles.dii !== null && <PercentileChip label="DII" pct={userPercentiles.dii} />}
+        {userPercentiles.ors !== null && <PercentileChip label="ORS" pct={userPercentiles.ors} />}
         <PercentileChip label="Risk" pct={userPercentiles.tdri} />
       </div>
 
@@ -220,7 +230,7 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
               <th className="text-left py-3 px-4 text-[#6e6e73] font-bold">{t('metric')}</th>
               <th className="text-right py-3 px-4 text-[#0068d6] font-bold">{t('you')}</th>
               <th className="text-right py-3 px-4 text-[#6e6e73] font-bold">{t('peerMedian')}</th>
-              <th className="text-right py-3 px-4 text-[#6e6e73] font-bold">SK priemer</th>
+              <th className="text-right py-3 px-4 text-[#6e6e73] font-bold">{t('skAverage')}</th>
               <th className="text-right py-3 px-4 text-[#6e6e73] font-bold">Δ vs peer</th>
             </tr>
           </thead>
@@ -282,6 +292,7 @@ export default function PeerComparisonPanel({ current }: PeerComparisonPanelProp
 }
 
 function PercentileChip({ label, pct }: { label: string; pct: number }) {
+  const t = useTranslations('peersPanel');
   const color =
     pct >= 75
       ? 'text-emerald-600'
@@ -298,7 +309,7 @@ function PercentileChip({ label, pct }: { label: string; pct: number }) {
           zostáva nezmenený), od sm sa zobrazí normálne. */}
       <p className="text-[11px] sm:text-xs font-bold text-[#6e6e73] uppercase tracking-wide mb-1 break-words">
         {label}
-        <span className="sr-only sm:not-sr-only"> percentil</span>
+        <span className="sr-only sm:not-sr-only"> {t('percentileWord')}</span>
       </p>
       {/* Rovnaká škála ako ScoreCard na /r/[hash]; break-words je posledná
           poistka, aby hodnota nikdy nevytiekla mimo zaoblený rámček. */}
@@ -307,12 +318,12 @@ function PercentileChip({ label, pct }: { label: string; pct: number }) {
       </p>
       <p className="text-[11px] sm:text-xs text-[#6e6e73] mt-1 break-words">
         {pct >= 75
-          ? 'Top 25 %'
+          ? t('top25')
           : pct >= 50
-            ? 'Nadpriemer'
+            ? t('aboveAvg')
             : pct >= 25
-              ? 'Pod priemer'
-              : 'Spodných 25 %'}
+              ? t('belowAvg')
+              : t('bottom25')}
       </p>
     </div>
   );

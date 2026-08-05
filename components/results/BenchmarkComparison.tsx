@@ -11,6 +11,8 @@ interface BenchmarkComparisonProps {
 
 export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkComparisonProps) {
   const t = useTranslations('bench');
+  // Nemerané DII (score12 null) — karty ukážu label „Nedostupné“ bez čísla.
+  const diiValue = dii.score12 !== null ? `${dii.score12}/12` : undefined;
   return (
     // p-8 na mobile ukrojilo 64 px zo šírky karty; padding nabieha až od sm
     <div className="bg-white rounded-3xl border border-black/5 shadow-sm p-5 sm:p-6 lg:p-8 animate-fade-in-up relative overflow-hidden">
@@ -34,7 +36,7 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
             <BenchmarkCard
               title={(benchmarks.homeMarket ?? 'SK') === 'CZ' ? t('vsCz') : t('vsSk')}
               icon={(benchmarks.homeMarket ?? 'SK') === 'CZ' ? '🇨🇿' : '🇸🇰'}
-              value={`${dii.score12}/12`}
+              value={diiValue}
               gap={benchmarks.diiVsSk.gap}
               label={benchmarks.diiVsSk.labelSk}
               percentile={benchmarks.diiVsSk.percentile}
@@ -43,7 +45,7 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
           <BenchmarkCard
             title={t('vsEu')}
             icon="🇪🇺"
-            value={`${dii.score12}/12`}
+            value={diiValue}
             gap={benchmarks.diiVsEu.gap}
             label={benchmarks.diiVsEu.labelSk}
             percentile={benchmarks.diiVsEu.percentile}
@@ -51,7 +53,7 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
           <BenchmarkCard
             title={t('vsSector')}
             icon="🏢"
-            value={`${dii.score12}/12`}
+            value={diiValue}
             gap={benchmarks.diiVsSector.gap}
             label={benchmarks.diiVsSector.labelSk}
           />
@@ -88,12 +90,12 @@ function BenchmarkCard({
   title: string;
   icon: string;
   value?: string;
-  gap: number;
+  gap: number | null;
   label: string;
   percentile?: number;
   disclaimer?: string;
 }) {
-  const isPositive = gap >= 0;
+  const isPositive = gap !== null && gap >= 0;
 
   return (
     <div className="group p-4 sm:p-5 rounded-2xl bg-white border border-black/5 hover:border-black/10 hover:shadow-sm transition-all duration-300 hover-lift">
@@ -106,13 +108,19 @@ function BenchmarkCard({
         {value && (
           <span className="text-xl font-bold text-[#1d1d1f] tabular-nums">{value}</span>
         )}
-        <span className={`text-sm font-bold px-2.5 py-0.5 rounded-full tabular-nums ${
-          isPositive
-            ? 'bg-emerald-500/10 text-emerald-700'
-            : 'bg-rose-500/10 text-rose-700'
-        }`}>
-          {isPositive ? '+' : ''}{gap.toFixed(1)}
-        </span>
+        {gap !== null ? (
+          <span className={`text-sm font-bold px-2.5 py-0.5 rounded-full tabular-nums ${
+            isPositive
+              ? 'bg-emerald-500/10 text-emerald-700'
+              : 'bg-rose-500/10 text-rose-700'
+          }`}>
+            {isPositive ? '+' : ''}{gap.toFixed(1)}
+          </span>
+        ) : (
+          <span className="text-sm font-bold px-2.5 py-0.5 rounded-full tabular-nums bg-black/5 text-[#86868b]">
+            &mdash;
+          </span>
+        )}
       </div>
       <div className="text-sm text-[#6e6e73] leading-relaxed break-words">{label}</div>
       {percentile !== undefined && (

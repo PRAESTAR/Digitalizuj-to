@@ -2,6 +2,7 @@ import type {
   Answer,
   Question,
   ORSScore,
+  CategoryScore,
   TDRIScore,
   DIIScore,
   AIReadinessScore,
@@ -9,6 +10,18 @@ import type {
   Recommendation,
   Strength,
 } from '@/types';
+
+/**
+ * Skóre kategórie len ak je MERANÁ — nemeraná kategória nespúšťa žiadne
+ * odporúčanie ani strength (nezmerané nie je nula: bez merania niet nálezu).
+ */
+function measuredScore(
+  cats: Record<string, CategoryScore>,
+  key: string
+): number | null {
+  const cat = cats[key];
+  return cat && cat.measured && cat.score !== null ? cat.score : null;
+}
 
 export function generateRecommendations(
   answers: Answer[],
@@ -120,8 +133,13 @@ function generateQuickWins(
 ): Recommendation[] {
   const recs: Recommendation[] = [];
   const cats = ors.categories;
+  const scoreA = measuredScore(cats, 'A');
+  const scoreB = measuredScore(cats, 'B');
+  const scoreC = measuredScore(cats, 'C');
+  const scoreE = measuredScore(cats, 'E');
+  const scoreF = measuredScore(cats, 'F');
 
-  if (cats['A'] && cats['A'].score < 40) {
+  if (scoreA !== null && scoreA < 40) {
     recs.push({
       id: 'rec_qw_process_auto',
       type: 'quick_win',
@@ -135,7 +153,7 @@ function generateQuickWins(
     });
   }
 
-  if (cats['B'] && cats['B'].score < 40) {
+  if (scoreB !== null && scoreB < 40) {
     recs.push({
       id: 'rec_qw_integration',
       type: 'quick_win',
@@ -149,7 +167,7 @@ function generateQuickWins(
     });
   }
 
-  if (cats['C'] && cats['C'].score < 30) {
+  if (scoreC !== null && scoreC < 30) {
     recs.push({
       id: 'rec_qw_reporting',
       type: 'quick_win',
@@ -163,7 +181,7 @@ function generateQuickWins(
     });
   }
 
-  if (cats['F'] && cats['F'].score < 30) {
+  if (scoreF !== null && scoreF < 30) {
     recs.push({
       id: 'rec_qw_ownership',
       type: 'quick_win',
@@ -177,7 +195,7 @@ function generateQuickWins(
     });
   }
 
-  if (cats['E'] && cats['E'].score < 50) {
+  if (scoreE !== null && scoreE < 50) {
     recs.push({
       id: 'rec_qw_security_basics',
       type: 'quick_win',
@@ -202,8 +220,12 @@ function generateStrategic(
 ): Recommendation[] {
   const recs: Recommendation[] = [];
   const cats = ors.categories;
+  const scoreA = measuredScore(cats, 'A');
+  const scoreB = measuredScore(cats, 'B');
+  const scoreE = measuredScore(cats, 'E');
+  const scoreF = measuredScore(cats, 'F');
 
-  if (cats['A'] && cats['A'].score < 50) {
+  if (scoreA !== null && scoreA < 50) {
     recs.push({
       id: 'rec_str_erp',
       type: 'strategic',
@@ -217,7 +239,7 @@ function generateStrategic(
     });
   }
 
-  if (cats['B'] && cats['B'].score < 50) {
+  if (scoreB !== null && scoreB < 50) {
     recs.push({
       id: 'rec_str_integration',
       type: 'strategic',
@@ -231,7 +253,7 @@ function generateStrategic(
     });
   }
 
-  if (cats['E'] && cats['E'].score < 50) {
+  if (scoreE !== null && scoreE < 50) {
     recs.push({
       id: 'rec_str_security',
       type: 'strategic',
@@ -245,7 +267,7 @@ function generateStrategic(
     });
   }
 
-  if (cats['F'] && cats['F'].score < 40) {
+  if (scoreF !== null && scoreF < 40) {
     recs.push({
       id: 'rec_str_roadmap',
       type: 'strategic',
@@ -269,7 +291,7 @@ function generateLongTerm(
 ): Recommendation[] {
   const recs: Recommendation[] = [];
 
-  if (ors.scorePenalized > 60) {
+  if (ors.scorePenalized !== null && ors.scorePenalized > 60) {
     const aiAnswer = answers.find(a => ['cx_DII03'].includes(a.questionId));
     // Odporúčanie len pri explicitnom "nevyužívame AI" — chýbajúca alebo "Neviem"
     // odpoveď nie je dôkaz o nevyužívaní.
@@ -288,7 +310,7 @@ function generateLongTerm(
     }
   }
 
-  if (ors.scorePenalized > 70) {
+  if (ors.scorePenalized !== null && ors.scorePenalized > 70) {
     recs.push({
       id: 'rec_lt_transformation',
       type: 'long_term',
@@ -361,7 +383,7 @@ function generateStrengths(
   const strengths: Strength[] = [];
 
   for (const [cat, data] of Object.entries(ors.categories)) {
-    if (data.score >= 70) {
+    if (data.measured && data.score !== null && data.score >= 70) {
       strengths.push({
         category: cat,
         descriptionSk: `${data.name}: Nadpriemerná úroveň (${Math.round(data.score)}/100)`,
@@ -376,7 +398,7 @@ function generateStrengths(
     });
   }
 
-  if (dii.score100 >= 75) {
+  if (dii.measured && dii.score100 !== null && dii.score100 >= 75) {
     strengths.push({
       category: 'DII',
       descriptionSk: 'Vysoká digitálna intenzita — aktívne využívanie digitálnych nástrojov',

@@ -166,7 +166,8 @@ function computeResult(assessment: Assessment, questions: Question[]): ResultSna
   const tdri = calculateTDRI(answers, questions, riskFlags);
   const aiReadiness = calculateAIReadiness(answers, questions);
 
-  const roiInputs = extractROIInputs(answers, questions, ors.categories['F']?.score ?? 0);
+  // null = F nemerané (nie 0!) — roiEngine potom governance disclaimer preskočí
+  const roiInputs = extractROIInputs(answers, questions, ors.categories['F']?.score ?? null);
   const businessImpact = calculateBusinessImpact(answers, questions, roiInputs);
 
   const benchmarks = calculateBenchmarks(

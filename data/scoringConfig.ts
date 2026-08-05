@@ -1,7 +1,7 @@
 import type { ScoringConfig, ScenarioValues } from '@/types';
 
 export const scoringConfig: ScoringConfig = {
-  version: '1.4-MVP',
+  version: '1.5',
   diiMethodologyVersion: 'DII v3 (Eurostat isoc_e_dii, prieskum 2025)',
   categoryWeights: {
     A: 0.20,

@@ -118,38 +118,66 @@ export interface Assessment {
 
 // --- Score Types ---
 
+/**
+ * Stav jedného z 12 oficiálnych DII v3/2025 indikátorov — audit trail
+ * per-indikátorovej agregácie (mapovanie v data/diiIndicators.json).
+ */
 export interface DIIIndicator {
-  id: string;
-  name: string;
-  score: number;
-  binary: boolean;
-  sourceAnswers: string[];
+  code: string; // 'DII1' … 'DII12'
+  nameSk: string;
+  status: 'met' | 'not_met' | 'unmeasured';
+  /** Kritériové otázky s platnou odpoveďou, z ktorých status vychádza. */
+  sourceQuestions: string[];
 }
 
+/**
+ * DII skóre s per-indikátorovou agregáciou. score12 je EXTRAPOLÁCIA
+ * (splnené / merané × 12) — nemerané indikátory skóre nefabrikujú,
+ * pokrytie priznáva measuredIndicators + confidence. measured=false
+ * (žiadny meraný indikátor) ⇒ score/level polia sú null.
+ */
 export interface DIIScore {
-  score100: number;
-  score12: number;
-  pureBinary: number;
-  level: 'very_low' | 'low' | 'high' | 'very_high';
-  levelLabelSk: string;
+  /** Jemná metrika: priemer skóre platných odpovedí namapovaných otázok. */
+  score100: number | null;
+  /** Extrapolovaný odhad na Eurostat škále 0–12. */
+  score12: number | null;
+  measured: boolean;
+  measuredIndicators: number; // 0–12
+  metIndicators: number; // 0–12, podmnožina meraných
+  confidence: 'high' | 'medium' | 'low';
+  level: 'very_low' | 'low' | 'high' | 'very_high' | null;
+  levelLabelSk: string | null;
+  /** Vždy 12 riadkov — po jednom pre každý v3/2025 indikátor. */
   indicators: DIIIndicator[];
 }
 
+/**
+ * Skóre ODRM kategórie. measured=false (žiadna platná odpoveď) ⇒
+ * score/contribution sú null a kategória NEVSTUPUJE do váženého ORS —
+ * nezmerané nie je nula (vzor AIReadinessScore).
+ */
 export interface CategoryScore {
   name: string;
-  score: number;
+  score: number | null;
+  measured: boolean;
   weight: number;
-  contribution: number;
+  contribution: number | null;
   answeredQuestions: number;
   totalQuestions: number;
   confidence: 'high' | 'medium' | 'low';
 }
 
+/**
+ * ORS s renormalizáciou cez merané kategórie: skóre = vážený priemer
+ * len cez kategórie s measured=true (súčet váh meraných v menovateli).
+ * Žiadna meraná kategória ⇒ score/scorePenalized/maturity sú null.
+ */
 export interface ORSScore {
-  score: number;
-  scorePenalized: number;
-  maturityLevel: number;
-  maturityLabelSk: string;
+  score: number | null;
+  scorePenalized: number | null;
+  measuredCategories: number; // 0–6
+  maturityLevel: number | null;
+  maturityLabelSk: string | null;
   categories: Record<string, CategoryScore>;
   penaltyApplied: boolean;
   penaltyReason: string | null;
@@ -257,8 +285,10 @@ export interface BusinessImpact {
 }
 
 export interface BenchmarkComparison {
+  /** Chýba (undefined), keď percentil nie je vyčísliteľný — UI ho nevykreslí. */
   percentile?: number;
-  gap: number;
+  /** null = porovnanie nedostupné (nemerané skóre alebo chýbajúce referenčné dáta). */
+  gap: number | null;
   labelSk: string;
   disclaimer?: string;
 }
@@ -335,23 +365,33 @@ export interface ResultSnapshot {
  */
 export interface PeerSnapshot {
   hash: string;                  // 12-char hex hash, URL-safe id
+  /**
+   * Verzia schémy snapshotu. Absentuje = legacy v1 (pred per-indikátorovým
+   * DII a N/A kategóriami): diiScore12 bol hrubý prepočet priemeru, N/A
+   * kategórie boli ticho uložené ako 0 — UI ich zobrazuje s poznámkou
+   * o staršej metodike. v2 = extrapolované DII + nullable kategórie.
+   */
+  schemaVersion?: 2;
   sector: string;                // sector key (e.g. "manufacturing")
   sizeBand: 'micro' | 'small' | 'medium' | 'large';
   country: 'SK';
-  diiScore100: number;           // 0–100
-  diiScore12: number;            // 0–12 (DII raw mapping)
-  orsScore: number;              // 0–100
+  diiScore100: number | null;    // 0–100; null = DII nemerané (len v2)
+  diiScore12: number | null;     // 0–12; v2 = extrapolovaný odhad, v1 = raw prepočet
+  /** Počet meraných DII indikátorov (0–12) — nesie „priznanie“ odhadu (len v2). */
+  diiMeasured?: number;
+  orsScore: number | null;       // 0–100; v2 = renormalizovaný cez merané kategórie
   tdriScore: number;             // 0–100 (higher = worse)
   businessImpactEur: number;     // mid scenario, EUR/year
   completedAt: string;           // ISO date
   // Per-category breakdown (procesy, systémy, dáta, infra, security, governance)
+  // null = kategória nemeraná (len v2; v1 ukladalo N/A ako 0 bez rozlíšenia)
   orsCategories: {
-    procesy: number;
-    systemy: number;
-    data: number;
-    infra: number;
-    security: number;
-    governance: number;
+    procesy: number | null;
+    systemy: number | null;
+    data: number | null;
+    infra: number | null;
+    security: number | null;
+    governance: number | null;
   };
 }
 

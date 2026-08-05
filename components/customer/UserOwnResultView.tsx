@@ -38,7 +38,13 @@ export default function UserOwnResultView({ hash }: Props) {
     if (stored && stored.payload && typeof stored.payload === 'object') {
       // We saved a PeerSnapshot in payload. Validate the shape minimally.
       const p = stored.payload as PeerSnapshot;
-      if (p.hash === hash && typeof p.diiScore100 === 'number') {
+      // diiScore100 môže byť vo v2 legitímne null (nemerané DII) — kotvou
+      // tvaru je tdriScore, ktorý je number v každej verzii schémy.
+      if (
+        p.hash === hash &&
+        typeof p.tdriScore === 'number' &&
+        (typeof p.diiScore100 === 'number' || p.diiScore100 === null)
+      ) {
         // localStorage nie je dostupný pri SSR — čítanie musí prebehnúť po mounte,
         // aby prvý klientský render zodpovedal serverovému (žiadny hydration mismatch).
         // Ide o jediný, terminálny setState bez ďalších nadväzujúcich efektov.
@@ -138,9 +144,25 @@ export default function UserOwnResultView({ hash }: Props) {
         </div>
       </div>
 
+      {snapshot.schemaVersion !== 2 && (
+        <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3 sm:p-4 text-sm text-amber-800 leading-relaxed animate-fade-in-up">
+          {t('customer.legacyNote')}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 animate-fade-in-up">
-        <ScoreCard label="DII Score" value={`${snapshot.diiScore100}`} unit="/100" subtitle={`${snapshot.diiScore12}/12 (DII raw)`} />
-        <ScoreCard label="Operational Readiness" value={`${snapshot.orsScore}`} unit="/100" subtitle="ODRM model" />
+        <ScoreCard
+          label="DII Score"
+          value={snapshot.diiScore100 !== null ? `${snapshot.diiScore100}` : '–'}
+          unit={snapshot.diiScore100 !== null ? '/100' : ''}
+          subtitle={diiSubtitle(snapshot, t)}
+        />
+        <ScoreCard
+          label="Operational Readiness"
+          value={snapshot.orsScore !== null ? `${snapshot.orsScore}` : '–'}
+          unit={snapshot.orsScore !== null ? '/100' : ''}
+          subtitle="ODRM model"
+        />
         <ScoreCard label="Risk Index (TDRI)" value={`${snapshot.tdriScore}`} unit="/100" subtitle={t('customer.higherWorse')} />
         <ScoreCard
           label="Business Impact"
@@ -161,6 +183,24 @@ export default function UserOwnResultView({ hash }: Props) {
       </div>
     </div>
   );
+}
+
+/**
+ * Podtitulok DII karty podľa verzie snapshotu — v2 priznáva extrapoláciu,
+ * legacy v1 nesie označenie starej metodiky (rovnaká logika ako /r/[hash]).
+ */
+function diiSubtitle(
+  snapshot: PeerSnapshot,
+  t: ReturnType<typeof useTranslations>
+): string {
+  if (snapshot.diiScore12 === null) return t('customer.diiUnmeasured');
+  if (snapshot.schemaVersion === 2) {
+    if (snapshot.diiMeasured !== undefined && snapshot.diiMeasured < 12) {
+      return `${snapshot.diiScore12}/12 · ${t('customer.diiEstimate', { measured: snapshot.diiMeasured })}`;
+    }
+    return `${snapshot.diiScore12}/12 (DII)`;
+  }
+  return `${snapshot.diiScore12}/12 (DII raw · ${t('customer.legacyV1')})`;
 }
 
 function ScoreCard({
