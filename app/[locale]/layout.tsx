@@ -356,17 +356,19 @@ export default async function LocaleLayout({
           <LocaleSuggestionBanner />
         <footer className="border-t border-black/5 bg-[#fbfbfd] mt-auto">
           <div className="site-container py-6">
-            {/* Reklamný banner — zatiaľ placeholder slot (bude nahradený reálnou
-                reklamou), preto tichý/neutrálny, bez animácie a bez farebného
-                gradientu, aby nekonkuroval zvyšku stránky. Vyčlenený do
-                klientského komponentu kvôli meraniu preklikov. Žije v päte, nie
-                nad ňou — inak visel v prázdnom páse medzi obsahom a pätou. */}
-            <AdBanner />
-            {/* Na telefónoch skrytý: mobilné prehliadače aj samotný systém už
-                majú vlastné zväčšovanie textu, takže vlastný ovládač je tam
-                zbytočný a len uberá miesto. Od sm (640 px) vyššie sa zobrazí. */}
-            <div className="hidden sm:flex justify-end mb-5">
-              <TextSizeControl />
+            {/* Reklamný banner a ovládač veľkosti textu zdieľajú jeden riadok:
+                banner vľavo na osi obsahu päty, ovládač vpravo. Samostatný
+                riadok pre banner by pätu predĺžil o celú jeho výšku (90 px)
+                bez toho, aby čokoľvek pribudlo. Banner žije v päte, nie nad
+                ňou — inak visel v prázdnom páse medzi obsahom a pätou. */}
+            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 mb-5">
+              <AdBanner />
+              {/* Na telefónoch skrytý: mobilné prehliadače aj samotný systém už
+                  majú vlastné zväčšovanie textu, takže vlastný ovládač je tam
+                  zbytočný a len uberá miesto. Od sm (640 px) vyššie sa zobrazí. */}
+              <div className="hidden sm:flex shrink-0">
+                <TextSizeControl />
+              </div>
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#86868b]">
               <span className="text-center sm:text-left">

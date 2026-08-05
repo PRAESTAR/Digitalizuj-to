@@ -709,7 +709,8 @@ body {
 .banner-cta {
   display: block;
   max-width: 728px;
-  margin: 0 auto;
+  /* Bez `margin: 0 auto` — banner lícuje ľavou hranou s obsahom päty
+     (rovnaká os ako text pod ním), nie je vycentrovaný v slote. */
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   overflow: hidden;

@@ -60,7 +60,9 @@ export default function AdBanner() {
   }, [label]);
 
   return (
-    <div ref={slotRef} className="pb-6">
+    // flex-1 min-w-0: banner delí riadok s ovládačom veľkosti textu a pri
+    // užšom okne sa radšej zúži, než by sa zalomil pod neho.
+    <div ref={slotRef} className="min-w-0 flex-1">
       <a
         href={TARGET_URL}
         className="banner-cta"
