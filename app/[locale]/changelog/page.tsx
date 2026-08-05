@@ -56,8 +56,8 @@ const breadcrumbSchema = {
 const changelog = [
   {
     version: '1.0',
-    date: '2026-08-03',
-    status: 'Otvorená verzia — priebežne dopĺňaná až do uzavretia v1',
+    date: '2026-08-05',
+    status: 'Aktuálna verzia',
     sections: [
       {
         title: 'Metodika a model',

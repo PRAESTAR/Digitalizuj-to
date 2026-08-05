@@ -6,10 +6,7 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ---
 
-## [1.0.0] — vo vývoji
-
-> **Otvorená verzia.** Tento záznam sa priebežne dopĺňa až do uzavretia
-> verzie 1. Posledná aktualizácia: 2026-08-05.
+## [1.0.0] — 2026-08-05
 
 ### Ukladanie a zdieľanie výsledkov (5. 8. 2026)
 

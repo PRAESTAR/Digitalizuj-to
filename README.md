@@ -4,7 +4,7 @@
 
 Metodicky obhajitelna platforma na meranie urovne digitalizacie firiem, identifikaciu rizik a generovanie prioritizovanych odporucani. Postavena na EU benchmark ramci (DII) a vlastnom Operational Digital Readiness Modeli.
 
-> **Verzia:** 1.0.0 | **Stav:** v1 vo vývoji (otvorená verzia) | **Jazyk rozhrania:** Slovencina
+> **Verzia:** 1.0.0 | **Stav:** v produkcii (matpex.sk) | **Jazyk rozhrania:** Slovencina
 
 ---
 
