@@ -2,7 +2,34 @@
 
 > Dátum: 2026-07-24 (revízia; pôvodný audit 2026-07-23)
 > Zdroj: hĺbkový audit metodiky (6 oblastí: metodika, scoring, benchmark, ROI, odporúčania, otázková banka) + overenie aktuálnych dát (Eurostat isoc_e_dii 2025, State of the Digital Decade 2026, ŠÚ SR / Eurostat mzdové dáta 2025-2026).
-> Priorita: **P0** = podkopáva obhájiteľnosť/správnosť, riešiť najskôr · **P1** = významné metodické/funkčné medzery · **P2** = kvalita, dôveryhodnosť, roadmapa.
+> Priorita: **P00** = najvyššia, rieši sa teraz · **P0** = podkopáva obhájiteľnosť/správnosť · **P1** = významné metodické/funkčné medzery · **P2** = kvalita, dôveryhodnosť, roadmapa.
+
+---
+
+## 🔥 P00 — Administračný panel (zadané 2026-08-05, najvyššia priorita)
+
+Cieľ: prihlásená administrácia priamo na webe, kde vidno vyklikané testy aj
+návštevnosť — bez chodenia do Google Analytics.
+
+**Rozsah podľa zadania**
+- [ ] **Prehľad výsledkov** — tabuľka dokončených testov, jeden riadok = jeden test: dátum, typ kvízu (indikatívny/komplexný), sektor a veľkosť firmy, skóre (DII, ORS, TDRI, business impact), odkaz na `/r/<hash>` a QR kód
+- [ ] **Prihlásenie menom a heslom** — samostatné, zatiaľ nenaviazané na žiadny externý systém (bez SSO, bez registrácie)
+- [ ] **Rozšírenie databázy** — tabuľka používateľov a audit logy
+- [ ] **GA4 dashboard** — návštevnosť priamo v administrácii (property `G-VY93FHZ43M`)
+
+**Čo treba vyriešiť skôr, než sa to dá postaviť**
+
+- [ ] **Výsledky sa dnes nikam neukladajú — bez toho nie je čo zobraziť.** Výsledok žije len v pamäti prehliadača a v `localStorage` návštevníka; na server neodíde nič (jediné volania sú Turnstile a `geo.php`). `/r/<hash>` stránky existujú len pre 50 syntetických ukážkových profilov. Treba ingest endpoint (PHP, ako `verify-turnstile.php`), ktorý po dokončení kvízu uloží `PeerSnapshot` do DB — až potom má administrácia dáta.
+- [ ] **Zmena v ochrane súkromia — vyžaduje rozhodnutie a úpravu textov.** Web dnes na viacerých miestach sľubuje, že plný výsledok zostáva len v prehliadači používateľa. Ukladanie na server tento sľub mení: treba rozhodnúť, čo presne sa ukladá (agregáty áno, odpovede po otázkach?), doplniť právny základ a upraviť texty o súkromí aj cookie/GDPR sekciu. **Bez tohto kroku sa výsledky ukladať nesmú.**
+- [ ] **Súvisiaci blocker: `/r/<hash>` v produkcii vracia 404** (viď P0 nižšie) — odkazy na hash z administrácie by dnes nefungovali.
+
+**Technické poznámky k implementácii**
+
+- [ ] Hosting nemá Node runtime (statický export + Apache/PHP), takže administrácia bude **PHP** vedľa `hosting/admin/publish.php`, nie Next.js routa. Prihlasovacie údaje a konfig patria **nad docroot** do `/matpex.sk/app-config/` — rovnaký vzor, aký už používa `db.php`.
+- [ ] Heslá ukladať cez `password_hash()`/`password_verify()`, session cookie `HttpOnly` + `Secure` + `SameSite=Strict`; prihlasovanie chrániť proti hádaniu hesla (rate limit / oneskorenie). Existujúci `publish.php` sa autentizuje len tokenom cez `hash_equals` — pre viacpoužívateľskú administráciu to nestačí.
+- [ ] Nové tabuľky: `users` (login, hash hesla, rola, stav), `audit_log` (kto, kedy, čo, IP, user agent), `assessment_results` (hash, čas, typ kvízu, sektor, veľkosť, skóre, verzia modelu). Audit log má zachytávať prihlásenia aj prístup k výsledkom.
+- [ ] **GA4 dashboard potrebuje Data API v1, nie meracie ID.** Treba servisný účet Google Cloud s prístupom k property, číselné *property ID* (nie `G-…`) a serverové volanie z PHP — kľúč servisného účtu nesmie skončiť v statickom JS. Odpovede cachovať (kvóty API).
+- [ ] Administráciu vylúčiť z indexovania (`noindex`, zákaz v `robots.txt`) a zvážiť obmedzenie prístupu na úrovni `.htaccess`.
 
 ---
 
@@ -64,6 +91,7 @@
 
 ## 🔴 P0 — podkopáva obhájiteľnosť, riešiť najskôr
 
+- [ ] **Permanentné odkazy `/r/<hash>` vracajú v produkcii 404** — QR kód aj zdieľací odkaz, ktoré sa vygenerujú po dokončení kvízu, nefungujú. `generateStaticParams` exportuje stránky len pre 50 ukážkových hashov z `PEER_DATA`; pre hash vygenerovaný používateľovi žiadny `.html` súbor neexistuje, pravidlo v `public/.htaccess` (`RewriteCond %{REQUEST_FILENAME}.html -f`) zlyhá a Apache vráti `404.html`. Klientská vetva `if (!peer) return <UserOwnResultView hash={hash} />` sa pri plnom načítaní stránky nikdy nespustí, takže `UserOwnResultView` je v produkcii mŕtvy kód. Riešenie: `.htaccess` fallback pre `/{locale}/r/*` na jednu exportovanú generickú stránku, ktorá si hash prečíta z `window.location`, alebo klientská routa. Potvrdené revíziou 2026-08-05; blokuje aj odkazy na hash v pripravovanej administrácii (P00). *(app/[locale]/r/[hash]/page.tsx, public/.htaccess)*
 - [x] ~~**Per-indikátorová DII agregácia**~~ — **RESOLVED (2026-08-04, v1.5):** mapovanie žije code-first v `data/diiIndicators.json` (nie v banke — DB rekategorizácia je samostatná operácia): 12 indikátorov v3/2025 s kritériami `{minScore | anyOfValues}` a povinným `rationale` per prah. Indikátor = meraný/splnený/nesplnený; `score12 = round(splnené/merané × 12)` (extrapolácia s priznaným pokrytím: komplexný 10/12, indikatívny 8/12); striktný v3 režim — `dii` otázky mimo v3 (ind_10, cx_A02, cx_D06, cx_F04, cx_DII02b, cx_DII04) sú explicitne vylúčené s dôvodom. `pureBinary` odstránený (žiadny konzument), `indicators[]` je teraz 12-riadkový audit trail. Validátor check #8 vynucuje úplnosť aj vyhodnotiteľnosť mapovania; testy v `engines/scoringEngine.test.ts`. *(data/diiIndicators.json, engines/scoringEngine.ts, SCORING_SPEC §2)*
 - [x] ~~**`include` branching je no-op — adaptivita reálne nefunguje**~~ — **RESOLVED (2026-07-24, v1.4-MVP):** všetkých 5 postihnutých `include` pravidiel (ind_08→ind_09_server_age, cx_B01→cx_B06_ecommerce, cx_B05→cx_B05b_outsource, cx_D02→cx_D03_server+cx_D04_virtualization, cx_D02→cx_D05_cloud) prepísaných na ekvivalentné `skip` pravidlá s invertovanou podmienkou — `action: "include"` sa už v otázkovej banke nikde nepoužíva (potvrdené grepom cez `data/questionBank.json` aj `config/model/questionBank.json`). `cx_D02` navyše teraz korektne obsluhuje aj hodnotu `'saas_only'`. Dôsledok: `complex_quiz` má teraz reálne adaptívny počet otázok (43–49 namiesto takmer fixných ~48 pre každého predtým), zohľadnené v `complex_quiz.description` a v `QUESTION_BANK_GUIDE.md` §5.2 (nová autorská poznámka: `include` zostáva no-op, nový podmienený obsah sa tvorí cez invertované `skip` páry). *(data/questionBank.json, config/model/questionBank.json)*
 - [x] ~~**Prázdna/preskočená kategória = 0 s plnou váhou namiesto N/A**~~ — **RESOLVED (2026-08-04, v1.5):** `CategoryScore` má `measured: boolean` + `score/contribution: number | null`; ORS je renormalizovaný vážený priemer len cez merané kategórie (žiadny fantómový strop); nemerané DII/ORS = null skóre s explicitnými UI vetvami („Nemerané“, radar skrytý pri < 3 meraných, benchmark „Nedostupné“ s gap null). `recommendationEngine` nespúšťa pravidlá nad nemeranými kategóriami, `roiEngine` preskakuje governance disclaimer pri nemeranej F. PeerSnapshot má `schemaVersion: 2` (null namiesto koercie na 0, `diiMeasured` pre priznanie odhadu); legacy v1 snapshoty sa zobrazujú s poznámkou o staršej metodike. *(engines/scoringEngine.ts, types/index.ts, lib/snapshotMapper.ts, komponenty results/customer)*
