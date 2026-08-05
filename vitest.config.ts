@@ -12,5 +12,8 @@ export default defineConfig({
   },
   test: {
     include: ['**/*.test.ts'],
+    // .claude/ môže obsahovať zabudnuté worktree kópie repa — ich testy by sa
+    // inak počítali (a padali) dvakrát.
+    exclude: ['**/node_modules/**', '.claude/**'],
   },
 });

@@ -13,6 +13,9 @@
  *  5. bodovanie nesedí s deklarovanou škálou (`scale`)
  *  6. neštandardná škála bez `scale_rationale` (nedokumentovaná odchýlka)
  *  7. data/questionBank.json a config/model/questionBank.json sa rozišli
+ *  8. DII mapovanie (data/diiIndicators.json) nesedí s bankou — striktný v3
+ *     režim: každá 'dii' otázka musí byť namapovaná na indikátor ALEBO
+ *     explicitne vylúčená s dôvodom; kritériá musia byť vyhodnotiteľné
  *
  * Spustenie:  node scripts/validate-model.mjs
  * Návratový kód 1 = nájdené chyby (vhodné do CI).
@@ -23,6 +26,7 @@ import { readFileSync } from 'node:fs';
 const bank = JSON.parse(readFileSync('data/questionBank.json', 'utf8'));
 const mirror = readFileSync('config/model/questionBank.json', 'utf8');
 const scoringSrc = readFileSync('data/scoringConfig.ts', 'utf8');
+const diiMap = JSON.parse(readFileSync('data/diiIndicators.json', 'utf8'));
 
 const errors = [];
 const warn = [];
@@ -103,6 +107,71 @@ for (const q of all) {
 // --- 7: zrkadlo -------------------------------------------------------------
 if (JSON.stringify(bank) !== JSON.stringify(JSON.parse(mirror))) {
   errors.push('data/questionBank.json a config/model/questionBank.json sa OBSAHOVO rozchádzajú');
+}
+
+// --- 8: DII mapovanie (striktný v3) ------------------------------------------
+const byId = new Map(all.map((q) => [q.id, q]));
+const mappedIds = new Set(diiMap.indicators.flatMap((ind) => ind.criteria.map((c) => c.questionId)));
+const excludedIds = new Set(diiMap.excludedDiiQuestions.map((e) => e.questionId));
+
+if (diiMap.indicators.length !== 12) {
+  errors.push(`diiIndicators: očakávaných 12 indikátorov, nájdených ${diiMap.indicators.length}`);
+}
+for (let i = 0; i < diiMap.indicators.length; i++) {
+  const ind = diiMap.indicators[i];
+  if (ind.code !== `DII${i + 1}`) {
+    errors.push(`diiIndicators[${i}]: kód "${ind.code}" nesedí s poradím (očakávané DII${i + 1})`);
+  }
+  if (ind.criteria.length === 0 && !ind.uncoveredReason) {
+    errors.push(`${ind.code}: nepokrytý indikátor musí mať "uncoveredReason"`);
+  }
+  for (const c of ind.criteria) {
+    const q = byId.get(c.questionId);
+    if (!q) { errors.push(`${ind.code}: kritériová otázka "${c.questionId}" v banke neexistuje`); continue; }
+    if (!(q.maps_to_score ?? []).includes('dii')) {
+      errors.push(`${ind.code}: otázka ${c.questionId} nemá 'dii' tag, ale je kritériom indikátora`);
+    }
+    if (!c.rationale) {
+      errors.push(`${ind.code}/${c.questionId}: kritérium bez "rationale" — prah musí byť odôvodnený`);
+    }
+    const scores = (q.options ?? []).map((o) => o.score);
+    const values = (q.options ?? []).map((o) => o.value ?? o.id);
+    if (c.metWhen && typeof c.metWhen.minScore === 'number') {
+      if (!scores.some((s) => s >= c.metWhen.minScore)) {
+        errors.push(`${ind.code}/${c.questionId}: minScore ${c.metWhen.minScore} nedosahuje žiadna možnosť — kritérium nesplniteľné`);
+      }
+      if (!scores.some((s) => s < c.metWhen.minScore)) {
+        errors.push(`${ind.code}/${c.questionId}: minScore ${c.metWhen.minScore} spĺňa každá možnosť — kritérium degenerované (vždy splnené)`);
+      }
+    } else if (c.metWhen && Array.isArray(c.metWhen.anyOfValues)) {
+      for (const v of c.metWhen.anyOfValues) {
+        if (!values.includes(v)) {
+          errors.push(`${ind.code}/${c.questionId}: hodnota "${v}" v anyOfValues neexistuje medzi možnosťami otázky`);
+        }
+      }
+    } else {
+      errors.push(`${ind.code}/${c.questionId}: metWhen musí byť {minScore} alebo {anyOfValues}`);
+    }
+  }
+}
+for (const e of diiMap.excludedDiiQuestions) {
+  const q = byId.get(e.questionId);
+  if (!q) errors.push(`diiIndicators/excluded: otázka "${e.questionId}" v banke neexistuje`);
+  else if (!(q.maps_to_score ?? []).includes('dii')) {
+    errors.push(`diiIndicators/excluded: ${e.questionId} nemá 'dii' tag — vylúčenie je bezpredmetné`);
+  }
+  if (!e.reason) errors.push(`diiIndicators/excluded: ${e.questionId} bez dôvodu vylúčenia`);
+  if (mappedIds.has(e.questionId)) {
+    errors.push(`diiIndicators: ${e.questionId} je súčasne vylúčená AJ kritériom indikátora`);
+  }
+}
+// Úplnosť striktného v3 režimu: každá 'dii' otázka je namapovaná alebo vylúčená.
+// Deduplikované cez Set — otázky zdieľané oboma kvízmi (v `all` dvakrát) by
+// inak vyrobili duplicitné chyby.
+for (const id of new Set(all.filter((q) => (q.maps_to_score ?? []).includes('dii')).map((q) => q.id))) {
+  if (!mappedIds.has(id) && !excludedIds.has(id)) {
+    errors.push(`${id}: má 'dii' tag, ale nie je ani kritériom indikátora, ani vo vylúčenom zozname (striktný v3 vyžaduje explicitné rozhodnutie)`);
+  }
 }
 
 // --- výstup -----------------------------------------------------------------
