@@ -701,15 +701,22 @@ body {
 /* Reklamný banner — zatiaľ placeholder slot (bez skutočnej reklamy), preto
    tichý/neutrálny a bez animácie namiesto pôvodného pestrého pohyblivého
    gradientu, ktorý bežal nekonečne na každej stránke. */
+/* Reklamný slot. Kým bol placeholder, skrýval text cez text-indent: -5000px
+   a držal pevnú výšku 90 px. Odkedy nesie skutočnú kreatívu, oboje by
+   škodilo: text-indent posúva aj inline <img> mimo obrazovku a pevná výška
+   pri zúžení slotu (mobil) kreatívu deformuje. Výšku teraz určuje pomer
+   strán obrázka, podklad ostáva ako miesto pre kreatívu počas načítania. */
 .banner-cta {
   display: block;
   max-width: 728px;
-  height: 90px;
-  line-height: 90px;
   margin: 0 auto;
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  text-indent: -5000px;
   background: #f5f5f7;
+}
+.banner-cta img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
