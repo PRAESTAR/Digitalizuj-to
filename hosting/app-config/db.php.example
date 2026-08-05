@@ -17,4 +17,8 @@ return [
   'db_pass' => 'DOPLN',
   // vygeneruj napr.: openssl rand -hex 24
   'publish_token' => 'DOPLN',
+  // Soľ na hashovanie IP v api/result-save.php — IP sa ukladá len hashovaná,
+  // slúži výlučne na počítanie zápisov za hodinu. Zmena soli vynuluje
+  // doterajšie počítadlá. Vygeneruj: openssl rand -hex 32
+  'ip_salt' => 'DOPLN',
 ];

@@ -34,7 +34,7 @@
     "q3": "What is the DII (Digital Intensity Index)?",
     "a3": "The DII is the official indicator of enterprise digital intensity collected by Eurostat across the EU. It scores the adoption of 12 digital technologies and enables comparison against the EU benchmark.",
     "q4": "Are my answers sent anywhere?",
-    "a4": "No. Your answers and the entire score calculation run solely in your browser — no answers, results or identifying information are sent to any server. The site measures anonymous traffic only (Google Analytics), and only after you consent; the content of your answers never enters that measurement.",
+    "a4": "Yes — once you finish the assessment. The score calculation itself runs in your browser, but the finished result including your answers is stored on our server so you can open it later and on another device via the permanent link or QR code. The result is not stored under a name or e-mail — it is reachable only through a random 64-character code that cannot be guessed. Anyone who receives the link sees the summary scores, not your individual answers. Traffic is measured via Google Analytics only after your consent, and the content of your answers never enters that measurement.",
     "q5": "How long does the assessment take?",
     "a5": "The indicative quiz takes 5–7 minutes (15 questions). The comprehensive assessment takes 15–20 minutes (43–49 questions with adaptive branching).",
     "q6": "What is the mandatory e-invoicing requirement from 1 January 2027?",
@@ -119,7 +119,7 @@
     "skip": "Don't know / Skip",
     "tooltipLabel": "Explanation of the question",
     "multiSelectHint": "Select all that apply",
-    "localNotice": "Your answers are processed locally in your browser — they are never sent to a server or into analytics.",
+    "localNotice": "The calculation runs in your browser. When you finish, the result is stored on the server under a random code so you can come back to it — with no name, e-mail or other identifying detail.",
     "emptyTitle": "No active assessment",
     "emptyText": "Choose an assessment type on the home page."
   },
@@ -159,7 +159,7 @@
     "qrAlt": "QR code for result {hash}",
     "generating": "Generating QR…",
     "privacyTitle": "Privacy",
-    "privacyText": "This result is stored only locally in this browser. If you share the QR code or link, the other party sees only an anonymised snapshot that can no longer identify your company."
+    "privacyText": "The result is stored both in your browser and on our server under this random code, which is how you can open it on another device. Anyone who receives the QR code or link sees only an anonymised summary of the scores, not your individual answers, and cannot identify your company from it."
   },
   "footer": {
     "tagline": "Adaptive DAP model · DII-Compatible + ODRM",
@@ -291,8 +291,8 @@
   },
   "customer": {
     "notFoundTitle": "The result is not available on this device",
-    "notFoundBody": "We could not find the hash <mono>{hash}</mono> in the anonymised sample or in this browser’s local storage.",
-    "notFoundHint": "Results of your own assessment are stored only locally on the device where you completed the quiz. Open the link in the same browser, or run a new assessment.",
+    "notFoundBody": "We could not find the hash <mono>{hash}</mono> among the stored results or in the anonymised sample.",
+    "notFoundHint": "The result was found neither on the server nor in this browser. Check that the link is complete — older results created before server storage was introduced exist only in the browser where you completed the quiz.",
     "startNew": "Start a new assessment",
     "browseSamples": "Browse sample results",
     "yourResult": "Your result",

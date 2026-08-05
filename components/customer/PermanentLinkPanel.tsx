@@ -1,14 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { ResultSnapshot, Respondent } from '@/types';
+import { useLocale } from 'next-intl';
+import type { ResultSnapshot, Respondent, Answer, AssessmentType } from '@/types';
 import { generateResultId, saveResultToStorage } from '@/lib/resultHash';
+import { saveResultToServer } from '@/lib/resultStore';
 import { toPeerSnapshot } from '@/lib/snapshotMapper';
 import QRCodeCard from './QRCodeCard';
 
 interface Props {
   result: ResultSnapshot;
   respondent: Respondent;
+  answers: Answer[];
+  quizType: AssessmentType;
   completedAt?: string;
 }
 
@@ -21,7 +25,14 @@ const SITE_URL =
  * Generovanie beží až po mounte (useEffect), aby hash — ktorý je náhodný —
  * nespôsobil hydration mismatch medzi serverovým a klientským renderom.
  */
-export default function PermanentLinkPanel({ result, respondent, completedAt }: Props) {
+export default function PermanentLinkPanel({
+  result,
+  respondent,
+  answers,
+  quizType,
+  completedAt,
+}: Props) {
+  const locale = useLocale();
   const [hash, setHash] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,9 +42,26 @@ export default function PermanentLinkPanel({ result, respondent, completedAt }: 
     (async () => {
       const { hash: h, uuid } = await generateResultId();
       if (cancelled) return;
+
+      // Najprv lokálne: je to okamžité a výsledok tak existuje aj vtedy, keď
+      // je server nedostupný. Odkaz sa zobrazí hneď, nečaká sa na sieť.
       const snapshot = toPeerSnapshot(h, result, respondent, completedAt);
       saveResultToStorage(h, snapshot, uuid);
       setHash(h);
+
+      // Potom na server — až vďaka tomu odkaz a QR kód fungujú aj na inom
+      // zariadení a výsledok sa dá zobraziť neskôr. Zlyhanie sa prehltne,
+      // používateľ oň lokálne nepríde.
+      void saveResultToServer({
+        hash: h,
+        uuid,
+        result,
+        respondent,
+        answers,
+        quizType,
+        locale,
+        completedAt,
+      });
     })();
     return () => {
       cancelled = true;

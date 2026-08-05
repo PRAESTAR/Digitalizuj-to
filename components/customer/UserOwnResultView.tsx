@@ -10,6 +10,7 @@ import {
   SIZE_BAND_LABELS_SK,
 } from '@/data/peerData';
 import { loadResultFromStorage, isValidHash } from '@/lib/resultHash';
+import { loadResultFromServer } from '@/lib/resultStore';
 import type { PeerSnapshot } from '@/types';
 import PeerComparisonPanel from './PeerComparisonPanel';
 import QRCodeCard from './QRCodeCard';
@@ -45,7 +46,11 @@ export default function UserOwnResultView({ hash }: Props) {
   const [state, setState] = useState<ViewState>({ kind: 'loading' });
 
   useEffect(() => {
+    let cancelled = false;
     const effective = hashFromLocation(hash);
+
+    // 1. localStorage — okamžité, funguje aj offline a pri starších odkazoch,
+    //    ktoré vznikli v čase, keď sa na server neukladalo nič.
     const stored = loadResultFromStorage(effective);
     if (stored && stored.payload && typeof stored.payload === 'object') {
       // We saved a PeerSnapshot in payload. Validate the shape minimally.
@@ -65,7 +70,22 @@ export default function UserOwnResultView({ hash }: Props) {
         return;
       }
     }
-    setState({ kind: 'missing', hash: effective });
+
+    // 2. Server — toto je cesta, ktorou odkaz a QR kód fungujú na inom
+    //    zariadení, než na akom sa kvíz vypĺňal.
+    (async () => {
+      const remote = await loadResultFromServer(effective);
+      if (cancelled) return;
+      setState(
+        remote
+          ? { kind: 'found', snapshot: remote, hash: effective }
+          : { kind: 'missing', hash: effective }
+      );
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [hash]);
 
   if (state.kind === 'loading') {

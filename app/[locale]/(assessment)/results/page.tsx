@@ -160,6 +160,8 @@ export default function ResultsPage() {
         <PermanentLinkPanel
           result={result}
           respondent={assessment.respondent}
+          answers={assessment.answers}
+          quizType={assessment.type}
           completedAt={assessment.completedAt}
         />
 

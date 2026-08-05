@@ -157,15 +157,20 @@ flowchart TD
     M --> O
     N --> O
     O --> P["Výsledkový dashboard — ScoreCards, RadarChart, ExecutiveSummary, RiskPanel, BusinessImpactPanel, BenchmarkComparison"]
-    P --> Q{"Voliteľné: zdieľať výsledok"}
-    Q -->|"áno"| R["resultHash + toPeerSnapshot() uloží anonymizovaný snapshot do localStorage"]
-    R --> S["Trvalý odkaz /r/hash + QR kód"]
+    P --> R["generateResultId() — UUIDv7 + SHA-256 hash"]
+    R --> R1["localStorage: anonymizovaný snapshot"]
+    R --> R2["api/result-save.php → MariaDB: plný výsledok + odpovede"]
+    R1 --> S["Trvalý odkaz /r/hash + QR kód"]
+    R2 --> S
 ```
 
 **Poznámky k toku:**
 - Celý cyklus beží v jednom `useReducer` v `AssessmentContext.tsx` — žiadne API volania, žiadna latencia.
 - Všetkých 6 engine výstupov (DII, ORS, TDRI, AI Readiness, Business Impact, Benchmark) sa počíta z rovnakej odpovedí sady nezávisle od seba — `recommendationEngine` ich až následne skladá do jedného odporúčacieho balíka.
-- Zdieľaný odkaz (`/r/[hash]`) obsahuje len anonymizovaný agregát (skóre, kategórie) — nie jednotlivé odpovede; plný výsledok zostáva len v `localStorage` pôvodného prehliadača.
+- Po dokončení sa výsledok ukladá **dvakrát**: hneď do `localStorage` (okamžité, funguje aj pri nedostupnom serveri) a zároveň cez `api/result-save.php` do MariaDB v plnom znení vrátane odpovedí. Zlyhanie zápisu na server sa prehltne — používateľ o výsledok lokálne nepríde.
+- Zdieľaný odkaz (`/r/[hash]`) vydáva len anonymizovaný agregát (skóre, kategórie) — **nie jednotlivé odpovede**. Tie sú v databáze pre administráciu, cez verejný endpoint sa nedajú získať.
+- Stránka `/r/[hash]` hľadá výsledok najprv v `localStorage`, potom cez `api/result.php` na serveri. Vďaka druhej vrstve funguje odkaz aj QR kód na inom zariadení, než na ktorom sa kvíz vypĺňal.
+- Statický export vie vyrobiť `.html` len pre vopred známe hashe, preto existuje generická stránka `/{locale}/r/view.html` a `.htaccess` na ňu interne prepisuje neznáme hashe (hash zostáva v adrese a číta sa z nej).
 
 ---
 
@@ -247,8 +252,9 @@ phpMyAdmin (editácia) → /admin/publish.php?token=…
 Garancie: kompilát z DB je hĺbkovo zhodný s pôvodným JSON (akceptačný test
 `npm run db:compile`), PHP a Node kompilátory dávajú bajtovo identický
 artefakt (SHA-256 porovnanie) a publish odmietne publikovať model, ktorý
-neprejde integritnými kontrolami (overené negatívnym testom). Odpovede
-používateľov sa do DB neukladajú nikdy. Skripty: `npm run db:import`
+neprejde integritnými kontrolami (overené negatívnym testom). Výsledky
+diagnostiky žijú v samostatnej tabuľke `assessment_results` (od 5. 8. 2026,
+viď `db/migrations/`) a s obsahom modelu sa nemiešajú. Skripty: `npm run db:import`
 (JSON → DB), `db:compile` (DB → JSON + check), `model:pull`.
 
 ---
