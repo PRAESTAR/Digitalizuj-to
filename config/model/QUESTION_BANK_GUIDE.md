@@ -92,13 +92,15 @@ Poradie otázok v poli/module **je funkčné** — `questionEngine.getNextQuesti
 
 Neexistujúce polia (nepridávať — kód ich nikde nečíta): `assessment_type`, `module`, `text`, `type`, `maps_to_dii`, `maps_to_roi_variable`, `branching` (objekt).
 
+**Mapovanie na 12 DII indikátorov NEŽIJE v banke** — je v `data/diiIndicators.json` (kritériá s prahmi a odôvodnením per indikátor v3/2025). Každá otázka s `"dii"` v `maps_to_score` tam musí byť buď kritériom indikátora, alebo v `excludedDiiQuestions` s dôvodom — build validátor to vynucuje (check #8). Pri pridávaní/vyraďovaní `dii` otázky vždy aktualizujte aj toto mapovanie.
+
 ---
 
 ## 3. Kam otázka patrí — `category` a umiestnenie v súbore
 
 Umiestnenie otázky v súbore (do ktorého poľa/modulu ju vložíte) určuje, v ktorom kvíze sa zobrazí — **nie** samostatné pole. Otázka pre indikatívny kvíz ide do `indicative_quiz.questions`; otázka pre komplexný kvíz ide do príslušného `complex_quiz.modules[].questions`.
 
-`category` pole na otázke je nezávislé od toho, do akého modulu ju vložíte — reálne sa používa len na filtrovanie pri výpočte ORS kategóriových skóre (`scoringEngine.calculateORS` filtruje `questions.filter(q => q.category === cat)`).
+`category` pole na otázke je nezávislé od toho, do akého modulu ju vložíte, a od scoring v1.5 je **čisto organizačné** — do ORS kategórií smerujú otázky výhradne cez `ors_A`…`ors_F` hodnoty v `maps_to_score` (`scoringEngine.calculateORS` filtruje `q.maps_to_score.includes('ors_' + cat)`). Otázka bez `ors_*` tagu (napr. čisto risk-flag `cx_B02`) do žiadnej kategórie neprispieva.
 
 ---
 
@@ -108,12 +110,18 @@ Umiestnenie otázky v súbore (do ktorého poľa/modulu ju vložíte) určuje, v
 
 Skóre je priamo hodnota vybranej `option.score` (0–100). Žiadna ďalšia normalizácia.
 
-**Typické rozloženia:**
+**Povinné pole `scale`:** každá single-choice otázka musí deklarovať škálu — build validátor (`scripts/validate-model.mjs`, check #5/#6) inak zlyhá:
 
-5-stupňová maturity škála: `0 / 25 / 50 / 75 / 100`
-4-stupňová: `0 / 33 / 66 / 100`
-3-stupňová: `0 / 50 / 100`
-Binárna: `0 / 100`
+- `linear-N` — presne N možností s rovnomerným bodovaním `round(i × 100 / (N−1))`; validátor bodovanie kontroluje proti deklarácii.
+- `categorical` / `descending` / `custom` — odchýlky od lineárnej škály; **vyžadujú `scale_rationale`** (zdôvodnenie odchýlky).
+- `meta` — neskórovaná otázka (firmografia, ROI vstupy).
+
+**Typické lineárne rozloženia:**
+
+5-stupňová maturity škála (`linear-5`): `0 / 25 / 50 / 75 / 100`
+4-stupňová (`linear-4`): `0 / 33 / 67 / 100`
+3-stupňová (`linear-3`): `0 / 50 / 100`
+Binárna (`linear-2`): `0 / 100`
 
 ### 4.2 Multi select (normálny režim)
 
@@ -205,7 +213,7 @@ Pravidlo sa vyhodnotí **hneď po zodpovedaní tejto otázky** a `target` (strin
 | Hodnota | Význam |
 |---------|--------|
 | `"ors_A"` … `"ors_F"` | Prispieva do príslušnej ODRM kategórie (váhovaný priemer podľa `weight`). |
-| `"dii"` | Prispieva do DII-Compatible Score. Otázky s `"dii"` sa v `scoringEngine.calculateDII` spriemerujú — **nie je tu per-indikátorové rozlíšenie DII1–DII12** (pozri `SCORING_SPEC.md` §2 pre presnú aproximáciu a jej obmedzenia). |
+| `"dii"` | Prispieva do DII-Compatible Score **per-indikátorovo**: otázka musí mať kritérium (`minScore` alebo `anyOfValues`) v `data/diiIndicators.json` pri niektorom z indikátorov DII1–DII12, alebo byť v `excludedDiiQuestions` s dôvodom — inak build spadne (validátor check #8). Samotné `option.score` hodnoty hýbu len jemnou metrikou `score100`; o `score12` rozhodujú kritériá (pozri `SCORING_SPEC.md` §2). |
 | `"ai_readiness"` | Prispieva do AI & Automatizácia Readiness Indexu (prierezový, nezávislý od ORS kategórií — architektúra rovnaká ako TDRI). |
 | `"benchmark_sector"` / `"benchmark_size"` | Meta otázka, ktorej hodnota sa uloží priamo do `respondent.sector` / `respondent.employeeCountBand` (číta `AssessmentContext.tsx`, nie scoring engine). |
 
@@ -305,4 +313,5 @@ Príklady: `cx_A01` (prvá otázka modulu A), `cx_A06_ai_automation`, `cx_DII02b
 - **Tooltip:** Používajte pri technických pojmoch (MFA, RPO/RTO, cloud sofistikácia...).
 - **Konzistencia:** Formálne oslovenie ("vy"), rovnaký štýl formulácie naprieč otázkami.
 - **Počet opcií:** 3–5 je ideálne; nad 6 pôsobí neprehľadne.
-- **Pred odovzdaním:** vždy prejdite kvíz naživo (`npm run dev`) — statický JSON validátor nezachytí sémantické chyby (zlá `condition`, chýbajúci `target`).
+- **Pred odovzdaním:** spustite `npm run validate:model` (beží aj automaticky pri `npm run build`) — kontroluje branching ciele a poradie, rizikové faktory, škály aj DII mapovanie. Naživo (`npm run dev`) potom overte sémantiku podmienok — parser nerozpoznanú `condition` syntax ticho vyhodnotí ako false.
+- **Zdroj pravdy obsahu je MariaDB** (pozri README §„Obsah modelu v databáze"): `data/questionBank.json` je nasadzovací artefakt kompilovaný z DB (`npm run model:pull`); ručná editácia JSON je výnimka, ktorú treba spätne preniesť do DB, inak ju najbližší publish prepíše.

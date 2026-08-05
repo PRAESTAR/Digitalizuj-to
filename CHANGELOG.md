@@ -9,7 +9,7 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 ## [1.0.0] — vo vývoji
 
 > **Otvorená verzia.** Tento záznam sa priebežne dopĺňa až do uzavretia
-> verzie 1. Posledná aktualizácia: 2026-08-03.
+> verzie 1. Posledná aktualizácia: 2026-08-04.
 > Podrobná história jednotlivých krokov žije v git logu; sem patrí
 > konsolidovaný obraz toho, čo verzia 1 prináša.
 
@@ -19,6 +19,17 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
   Eurostat DII, dataset `isoc_e_dii` verzia 3, prieskum 2025) + Operational
   Digital Readiness Model so 6 váženými oblasťami A–F (20/20/15/15/20/10 %).
   Benchmark SK 41,6/32,0/20,4/6,0 % vs EÚ-27 27,9/34,5/27,5/10,1 %.
+- **Per-indikátorová DII agregácia (scoring v1.5)** — mapovanie otázok na
+  12 indikátorov v3/2025 s odôvodnenými prahmi (`data/diiIndicators.json`),
+  striktné vylúčenie otázok mimo v3, extrapolovaný `score12` s priznaným
+  pokrytím (komplexný kvíz 10/12, indikatívny 8/12) a 12-riadkový audit
+  trail indikátorov vo výsledku.
+- **Nezmerané ≠ nula (scoring v1.5)** — nemeraná ODRM kategória má `null`
+  skóre a do ORS nevstupuje (renormalizácia váh cez merané kategórie —
+  koniec fantómového stropu pri preskočených kategóriách); odporúčania a
+  ROI disclaimer sa nespúšťajú nad nemeranými dátami; peer snapshoty v2
+  (`schemaVersion: 2`) ukladajú N/A ako `null` a staršie v1 snapshoty sa
+  zobrazujú s poznámkou o staršej metodike.
 - **Otázková banka v1.5** — 65 otázok s adaptívnym branchingom (15 alebo
   43–49 podľa vetvy), kontext 2026: NIS2 a zákon č. 366/2024 Z. z., povinná
   B2B e-fakturácia od 1. 1. 2027 (Peppol, EN 16931), AI Act. Normalizácia
@@ -30,8 +41,9 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
   scenár s ramp-up 9/6/3 mesiacov na 24-mesačnom horizonte. Hodinová cena
   práce 30,8 €/h (Eurostat `lc_lci_lev` 2025, NACE J), dotazník sa na mzdy
   nepýta.
-- **Validátor modelu v builde** — 7 tried integritných kontrol; pri prvom
-  behu odhalil odpojený rizikový faktor RF08.
+- **Validátor modelu v builde** — 8 tried integritných kontrol (vrátane
+  úplnosti a vyhodnotiteľnosti DII mapovania); pri prvom behu odhalil
+  odpojený rizikový faktor RF08.
 
 ### Výsledky a zdieľanie
 

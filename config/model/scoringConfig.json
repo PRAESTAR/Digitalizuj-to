@@ -1,7 +1,7 @@
 {
   "_comment": "Konfigurácia scoringového modelu digitalizuj.to — editovateľná verzia",
-  "_version": "1.4-MVP",
-  "_last_updated": "2026-07-24",
+  "_version": "1.5",
+  "_last_updated": "2026-08-04",
   "_diiMethodologyVersion": "DII v3 (Eurostat isoc_e_dii, prieskum 2025)",
 
   "categoryWeights": {

@@ -1,9 +1,9 @@
 # digitalizuj.to — Scoring Specification
 
-> Verzia: 2.0 (prepísané podľa reálnej implementácie pre release 1.0.0; nahrádza 1.0-MVP + poznámku k 1.2-MVP)
-> Dátum: 2026-07-24
+> Verzia: 2.1 (scoring v1.5 — per-indikátorové DII, nemerané ≠ 0, ORS smerovanie podľa maps_to_score)
+> Dátum: 2026-08-04 (predchádzajúca revízia 2.0: 2026-07-24)
 >
-> **Prečo revízia:** Verzia 1.0-MVP opisovala per-indikátorovú DII agregáciu a ďalšie mechanizmy, ktoré `engines/scoringEngine.ts` neimplementuje. Tento dokument opisuje presne to, čo kód počíta, vrátane známych aproximácií — tie sú explicitne označené, nie skryté.
+> **Prečo revízia:** Verzia 2.0 dokumentovala vtedajšie aproximácie (plochý priemer DII, nezmerané = 0). Scoring v1.5 obe odstránil: DII je per-indikátorová agregácia cez `data/diiIndicators.json` a nemeraný stav je všade explicitné N/A (`null` + `measured`). Dokument opisuje presne to, čo kód počíta — zostávajúce vedomé nepresnosti sú explicitne označené, nie skryté.
 
 ---
 
@@ -27,47 +27,59 @@ Implementácia: `engines/scoringEngine.ts` → `calculateDII(answers, questions)
 
 ### 2.1 Vstup
 
-Všetky odpovede na otázky, kde `question.maps_to_score` obsahuje `"dii"`, s vylúčením `isUnknown`/`wasSkipped`.
+Mapovacia tabuľka `data/diiIndicators.json` (typovaný wrapper `data/diiIndicators.ts`): 12 oficiálnych indikátorov DII v3/2025 (`DII1`–`DII12`, názvy podľa `METHODOLOGY.md` §2.1), každý s kritériami `{questionId, metWhen, rationale}`. Kritérium je `{minScore}` (single_choice prah) alebo `{anyOfValues}` (multi_select výber). **Striktný v3 režim:** otázky s `"dii"` tagom, ktoré nezodpovedajú žiadnej v3/2025 premennej, sú v `excludedDiiQuestions` s dôvodom a do DII **nevstupujú** (ďalej sýtia svoje ORS kategórie; `cx_DII02b`/`cx_DII04` s kategóriou `dii` nesýtia žiadne skóre — známy stav, rekategorizácia je DB operácia). Úplnosť vynucuje `scripts/validate-model.mjs` (check #8): každá `dii` otázka musí byť namapovaná ALEBO explicitne vylúčená.
 
-### 2.2 Výpočet — skutočný (plochý priemer, nie per-indikátor)
+### 2.2 Výpočet — per-indikátorová agregácia s extrapoláciou
 
 ```
-diiAnswers = answers.filter(a => question(a).maps_to_score.includes('dii') && !a.isUnknown && !a.wasSkipped)
+Pre každý z 12 indikátorov:
+  platné kritériá = kritériá, ktorých otázka je v aktívnom kvíze a má platnú
+                    odpoveď (nie isUnknown, nie wasSkipped)
+  meraný  = aspoň 1 platné kritérium
+  splnený = ľubovoľné platné kritérium sedí (minScore: answer.score ≥ prah;
+            anyOfValues: prienik s hodnotami odpovede)
 
-Ak diiAnswers.length === 0:
-  → { score100: 0, score12: 0, pureBinary: 0, level: 'very_low', indicators: [] }
-  (POZOR: toto je fabrikované najhoršie skóre pre nezmeraný stav, nie explicitné N/A — známa aproximácia, viď §2.4)
+measuredIndicators = počet meraných; metIndicators = počet splnených
 
-score100 = priemer(a.score pre a in diiAnswers)      // JEDNODUCHÝ priemer cez VŠETKY odpovedané "dii" otázky
-score12  = round(score100 / 100 × 12)
-pureBinary = min(12, počet(a.score >= 50 pre a in diiAnswers))   // JEDNOTNÝ prah 50 pre všetky otázky
+Ak measuredIndicators === 0:
+  → { measured: false, score100: null, score12: null, level: null, … }
+  (nezmerané NIE JE nula — žiadne percentily, benchmark vracia „Nedostupné")
+
+score12  = round(metIndicators / measuredIndicators × 12)     // EXTRAPOLÁCIA
+score100 = priemer(a.score pre platné odpovede NAMAPOVANÝCH otázok)  // jemná metrika
+confidence: measuredIndicators ≥ 10 → 'high' | ≥ 6 → 'medium' | ≥ 1 → 'low'
 
 level: score12 ≤ 3 → 'very_low' | ≤ 6 → 'low' | ≤ 9 → 'high' | inak → 'very_high'
 ```
 
-**Aproximácia oproti oficiálnemu Eurostat DII:**
-- Eurostat DII je súčet **12 binárnych indikátorov**, každý s vlastným prahom (napr. AI a big data majú prah "áno" pri nižšej sofistikovanosti než pripojenie/cloud). Táto implementácia namiesto toho **spriemeruje všetky otázky označené `"dii"`** bez ohľadu na to, koľko otázok meria ktorý indikátor — otázka pokrytá 2 otázkami má väčšiu váhu než otázka pokrytá 1 otázkou.
-- `pureBinary` používa **jednotný prah 50** pre všetky otázky namiesto indikátor-špecifických prahov, ktoré Eurostat metodika reálne používa pre niektoré premenné (viď `METHODOLOGY.md` §2.1 pre oficiálny zoznam 12 premenných DII v3/2025).
-- Dôsledok: `score12`/`pureBinary` sú **DII-kompatibilné, nie DII-identické** — pri benchmark porovnaní (`BENCHMARK_SPEC.md`) sa preto zobrazuje explicitný disclaimer.
+**Pokrytie a vedomé nepresnosti:**
+- Komplexný kvíz pokrýva **10/12**, indikatívny **8/12** indikátorov; `DII1` (podiel zamestnancov s internetom) a `DII11` (B2C podiel web predajov) sú nepokryté (`uncoveredReason` v mapovaní).
+- Extrapolácia `splnené/merané × 12` sa **priznáva v UI** („odhad z N/12 meraných indikátorov") vždy, keď `measuredIndicators < 12`.
+- Dva proxy riadky indikatívneho kvízu: `DII4` cez `ind_12 ≥ 50` (aktívny web negarantuje soc. siete pri stupňoch 75/100) a `DII10` cez `ind_12 ≥ 75` (e-shop negarantuje ≥ 1 % obratu) — `rationale` v mapovaní ich označuje ako PROXY.
+- Sémantika skipu (v1): otázka preskočená vetvením = indikátor nemeraný. Firma bez e-shopu má `cx_B06_ecommerce` preskočený, hoci `DII10` je fakticky nesplnený — extrapolácia mierne nadhodnotí; `skipImplies: 'not_met'` je plánovaná druhá iterácia.
+- `pureBinary` bol odstránený (žiadny konzument; nahrádza ho `metIndicators`).
+- `score12` je extrapolovaný odhad, nie binárny Eurostat count — benchmark disclaimer ostáva (`BENCHMARK_SPEC.md`).
 
 ### 2.3 Explainability (skutočný tvar `DIIScore`)
 
 ```ts
 interface DIIIndicator {
-  id: string;        // ID otázky (NIE "DII1".."DII12" — nie je per-indikátorové mapovanie)
-  name: string;       // question.dimension
-  score: number;
-  binary: boolean;    // score >= 50
-  sourceAnswers: string[];
+  code: string;       // 'DII1' … 'DII12'
+  nameSk: string;     // presne podľa METHODOLOGY §2.1
+  status: 'met' | 'not_met' | 'unmeasured';
+  sourceQuestions: string[];   // kritériové otázky s platnou odpoveďou
 }
 
 interface DIIScore {
-  score100: number;
-  score12: number;
-  pureBinary: number;
-  level: 'very_low' | 'low' | 'high' | 'very_high';
-  levelLabelSk: string;
-  indicators: DIIIndicator[];   // jeden záznam na KAŽDÚ "dii" odpoveď, nie na 12 indikátorov
+  score100: number | null;     // null = nemerané
+  score12: number | null;      // extrapolovaný odhad 0–12
+  measured: boolean;
+  measuredIndicators: number;  // 0–12
+  metIndicators: number;
+  confidence: 'high' | 'medium' | 'low';
+  level: 'very_low' | 'low' | 'high' | 'very_high' | null;
+  levelLabelSk: string | null;
+  indicators: DIIIndicator[];  // VŽDY 12 riadkov — hotový audit trail
 }
 ```
 
@@ -82,10 +94,16 @@ Implementácia: `calculateORS(answers, questions)`.
 Pre každú z kategórií `A`–`F`:
 
 ```
-catQuestions = questions.filter(q => q.category === cat)
+catQuestions = questions.filter(q => q.maps_to_score.includes('ors_' + cat))
 catAnswers   = answers na catQuestions, vylúčené isUnknown/wasSkipped
+```
 
-catScore = Σ(answer.score × question.weight) / Σ(question.weight)   // 0 ak catAnswers je prázdne
+**Smerovanie podľa `maps_to_score`, nie podľa `category` (zmena v1.5):** `category` je organizačné pole modulu. Pôvodný filter `q.category === cat` (a) púšťal do skóre otázky bez `ors_*` tagu — `cx_B02` je čisto risk-flag otázka so 6/7 nulovými možnosťami a váhou 0.8, `cx_B06_ecommerce` sýti len DII; obe systematicky deflovali kategóriu B — a (b) ignoroval deklarované sekundárne príspevky duálne tagovaných otázok (`ind_04`/`cx_A03` → aj `ors_B`, `ind_09_server_age`/`cx_D03_server`/`ind_14`/`cx_F06` → aj `ors_E`, `cx_B05`/`cx_DII04` → `ors_F`). Otázka s viacerými `ors_*` tagmi prispieva plnou váhou do každej tagovanej kategórie — item mapa v `METHODOLOGY.md` §11 prekryvy dokumentuje per otázka.
+
+```
+
+measured = catAnswers.length > 0
+catScore = measured ? Σ(answer.score × question.weight) / Σ(question.weight) : null
 
 unknownRatio = 1 − catAnswers.length / catQuestions.length   // 1 ak catQuestions je prázdne
 confidence:
@@ -94,12 +112,16 @@ confidence:
   inak                                                                 → 'high'
 ```
 
-**Známa medzera:** Prázdna/plne preskočená kategória dostane `catScore = 0` (nie N/A) a jej plná váha sa aj tak započíta do súčtu ORS — reálny dopad: firma s celou kategóriou F preskočenou vetvením má strop ORS 90/100, nie 100/100. `CategoryScore.score` je v type systéme `number` (nie `number | null`), takže "nezmerané" a "namerané 0" sú momentálne nerozlíšiteľné vo výstupe.
+**Nemerané ≠ 0:** kategória bez jedinej platnej odpovede má `measured: false`, `score: null`, `contribution: null` a do celkového ORS **nevstupuje** (viď §3.2). Pozn.: `unknownAnswerExclusionThreshold` napriek názvu nič "neexcluduje" — len znižuje confidence; skutočné vyradenie robí `measured`.
 
-### 3.2 Celkové ORS
+### 3.2 Celkové ORS — renormalizácia cez merané kategórie
 
 ```
-orsScore = Σ (round(catScore × 10)/10 × categoryWeights[cat])   // každá kontribúcia sa zaokrúhli PRED súčtom
+merané = kategórie s measured === true
+orsScore = Σ(catScore × weight, cez merané) / Σ(weight, cez merané)
+
+Ak merané = ∅ (všetko Neviem/preskočené):
+  → score/scorePenalized/maturityLevel/maturityLabelSk = null; measuredCategories = 0
 
 Default váhy (scoringConfig.categoryWeights):
   A (Procesy):                20 %
@@ -110,7 +132,9 @@ Default váhy (scoringConfig.categoryWeights):
   F (Governance/Ľudia):       10 %
 ```
 
-Predbežné zaokrúhlenie po kategóriách (nie na konci) môže posunúť výsledné ORS až o ~0,3 boda oproti presnému váhovanému súčtu — zriedka relevantné, výnimka sú hraničné hodnoty pri prahoch maturity levelu alebo bezpečnostnej penalizácie.
+**Zmena oproti pôvodnej implementácii:** predtým nemeraná kategória prispievala `0 × váha` a implicitný menovateľ zostával 1.0 — nemeraná D (0.15) znamenala strop ORS 85 (fantómový ťah nuly). Renormalizácia znamená, že skóre vypovedá o tom, čo sa meralo; pokrytie komunikuje `measuredCategories` + per-kategória `confidence` v UI. Vedomý dôsledok: riedke assessmenty majú ORS vyššie než v starej metodike a dlhodobé odporúčania s bránou > 60/70 sa môžu novo odomknúť.
+
+Zaokrúhľuje sa výsledný podiel (nie kontribúcie pred súčtom ako predtým); `contribution` v kategórii je informatívne pole `round(catScore × weight)`.
 
 ### 3.3 Maturity Level
 
@@ -127,7 +151,7 @@ Hranice sú **prísne `>`** (napr. presne 20.0 = level 0, 20.1 = level 1). Level
 ### 3.4 Bezpečnostná penalizácia (kategória E)
 
 ```
-Ak categories['E'].answeredQuestions > 0  A ZÁROVEŇ  categories['E'].score < 30:
+Ak categories['E'].measured  A ZÁROVEŇ  categories['E'].score < 30:
   factor = 0.7 + 0.3 × (E.score / 30)
   scorePenalized = orsScore × factor       // max penalizácia −30 % pri E = 0
 
@@ -143,15 +167,19 @@ Inak:
 {
   "score": 54.2,
   "scorePenalized": 54.2,
+  "measuredCategories": 5,
   "maturityLevel": 2,
   "maturityLabelSk": "Rozvíjajúci sa",
   "categories": {
-    "A": { "name": "...", "score": 45, "weight": 0.20, "contribution": 9.0, "answeredQuestions": 4, "totalQuestions": 5, "confidence": "high" }
+    "A": { "name": "...", "score": 45, "measured": true, "weight": 0.20, "contribution": 9.0, "answeredQuestions": 4, "totalQuestions": 5, "confidence": "high" },
+    "D": { "name": "...", "score": null, "measured": false, "weight": 0.15, "contribution": null, "answeredQuestions": 0, "totalQuestions": 3, "confidence": "low" }
   },
   "penaltyApplied": false,
   "penaltyReason": null
 }
 ```
+
+Nemerané kategórie sa v UI zobrazujú ako „–" (nie 0): radar ich vynecháva (pri < 3 meraných sa radar skryje úplne), legenda ich značí neutrálne, `recommendationEngine` pre ne nespúšťa žiadne pravidlá a `roiEngine` preskakuje governance disclaimer pri nemeranej F.
 
 ---
 
@@ -172,7 +200,7 @@ level: score ≤ 25 → 'ziadna' | ≤ 55 → 'experimentalna' | ≤ 80 → 'pok
 confidence: answeredCount >= totalTaggedCount → 'high' | answeredCount >= 2 → 'medium' | inak → 'low'
 ```
 
-Na rozdiel od DII/ORS **vracia `score: null` (nie 0) pri nezmeranom stave** — toto je referenčná implementácia správneho N/A správania, ktorú §2.2 a §3.1 zatiaľ nemajú (sledované v `IMPROVEMENT_CHECKLIST.md` P0).
+Vracia `score: null` (nie 0) pri nezmeranom stave — pôvodne referenčná implementácia správneho N/A správania; od scoring v1.5 majú DII (§2.2) aj ORS (§3.1–3.2) rovnakú sémantiku.
 
 Zdrojové otázky (aktuálne): `ind_15_ai`, `cx_DII03`, `cx_A06_ai_automation`, `cx_F07_ai_governance`.
 
@@ -256,7 +284,7 @@ Typy `numeric_input`, `numeric_bands`, `conditional_matrix` spomínané v pôvod
 
 - `isUnknown` aj `wasSkipped` odpovede sa **vylučujú z menovateľa** vo všetkých engine výpočtoch (DII, ORS, AI Readiness); TDRI ich vylučuje z čiastočnej (odvodenej) cesty.
 - Vysoký podiel "Neviem" v kategórii znižuje `confidence` (§3.1), ale skóre sa vždy vypočíta z toho, čo je k dispozícii — žiadny "blokujúci" stav.
-- Plne preskočená/nezodpovedaná kategória/bucket vracia `0` (ORS/DII) alebo `null` (AI Readiness) — nekonzistencia je známa a sledovaná (§2.2, §3.1).
+- Plne preskočená/nezodpovedaná kategória/bucket vracia `null` + `measured: false` jednotne naprieč DII, ORS aj AI Readiness (§2.2, §3.1–3.2) — nezmerané sa nikde nefabrikuje na 0.
 
 ---
 
@@ -272,7 +300,7 @@ Parametre v `data/scoringConfig.ts` (zdroj pravdy) / `config/model/scoringConfig
 
 ```ts
 {
-  version: '1.4-MVP',
+  version: '1.5',
   diiMethodologyVersion: 'DII v3 (Eurostat isoc_e_dii, prieskum 2025)',
   categoryWeights: { A: 0.20, B: 0.20, C: 0.15, D: 0.15, E: 0.20, F: 0.10 },
   maturityThresholds: [20, 40, 60, 80],

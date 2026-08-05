@@ -284,16 +284,19 @@ Detailný popis je v `SCORING_SPEC.md`. Tu je prehľad:
 
 ### 5.1 DII-Compatible Score (0–100)
 
-- Mapuje 12 DII premenných (v3/2025) na otázky.
-- Každý indikátor sa hodnotí 0–100 (nie binárne); indikátory majú **rovnaké váhy** (zhodne s Eurostatom, kde každá premenná = 1 bod).
-- Výsledné skóre = priemer indikátorov; prepočet na 0–12: `dii_12 = round(score_100 / 100 * 12)`.
-- ⚠️ *MVP aproximácia:* implementácia zatiaľ priemeruje odpovede označené `dii` bez per-indikátorovej agregácie (jedna premenná pokrytá viacerými otázkami má vyššiu váhu) — per-indikátorové mapovanie `DII1–DII12` je v checkliste vylepšení. Prepočet `dii_12` je granulárna aproximácia, nie binárny Eurostat count; do benchmark porovnaní preto vstupuje s disclaimerom (viď 9.4).
+- Mapuje 12 DII premenných (v3/2025) na otázky — **per-indikátorovo** cez `data/diiIndicators.json` (kritériá s odôvodnenými prahmi, audit trail v `DIIScore.indicators`).
+- Každý indikátor je meraný (aspoň 1 platná kritériová odpoveď) a splnený/nesplnený podľa kritérií; `dii_12 = round(splnené / merané × 12)` je **extrapolácia** so zverejneným pokrytím (komplexný kvíz 10/12, indikatívny 8/12; nepokryté: DII1, DII11).
+- Nemerané DII (nula meraných indikátorov) je explicitné N/A, nie skóre 0; jemná metrika `score_100` je priemer platných odpovedí namapovaných otázok.
+- Otázky s `dii` tagom mimo v3 zoznamu (security, e-fakturácia, remote access, skills, ICT špecialisti, invoicing) sú **striktne vylúčené** z DII s dôvodom v mapovaní — v súlade s poznámkou o rotácii verzií vyššie.
+- ⚠️ `dii_12` je extrapolovaný odhad, nie binárny Eurostat count z plného dotazníka — do benchmark porovnaní vstupuje s disclaimerom (viď 9.4) a UI priznáva „odhad z N/12 meraných indikátorov".
 
 ### 5.1b Spracovanie odpovede „Neviem" a preskočených otázok
 
 - Odpovede „Neviem" a otázky preskočené vetvením sa **vylučujú z menovateľa** kategórie (neskórujú sa ako 0).
+- Kategória bez jedinej platnej odpovede je **nemeraná (N/A)**: `score = null` a jej váha sa do ORS nezapočítava — celkové ORS je vážený priemer **len meraných kategórií** (renormalizácia menovateľa váh). Nemerané teda nie je nula a neexistuje fantómový strop skóre.
 - Vysoký podiel nezodpovedaných otázok znižuje confidence rating kategórie (prah 25 % → medium, 50 % → low).
 - Bezpečnostná penalizácia ORS sa aplikuje **len ak je kategória E reálne meraná** (aspoň 1 zodpovedaná otázka).
+- Rovnaká sémantika platí pre DII (indikátor bez platnej kritériovej odpovede = nemeraný) aj pre odporúčania (`recommendationEngine` nespúšťa pravidlá nad nemeranými kategóriami).
 - Risk index (TDRI) ignoruje „Neviem"/preskočené odpovede v odvodzovaní čiastočných rizík — neznalosť sa neinterpretuje ako potvrdené riziko, znižuje však confidence.
 
 ### 5.2 Operational Readiness Score (0–100)
@@ -501,7 +504,7 @@ Používame **statické benchmark hodnoty** odvodené z verejných Eurostat dát
 
 ### Aproximácie
 - ⚠️ Váhy kategórií sú expertný odhad, nie empiricky validované (chýba sensitivity analýza — viď checklist)
-- ⚠️ DII mapovanie je aproximácia originálneho Eurostat modelu; MVP navyše priemeruje otázky bez per-indikátorovej agregácie (DII1–DII12)
+- ⚠️ DII mapovanie je aproximácia originálneho Eurostat modelu; per-indikátorová agregácia (DII1–DII12, `data/diiIndicators.json`) extrapoluje z meraných indikátorov — pokrytie je čiastočné (10/12 komplexný, 8/12 indikatívny) a dva indikatívne riadky sú priznané proxy
 - ⚠️ Benchmark hodnoty sú statické (Eurostat isoc_e_dii 2025 + expertné odhady), verzované, s ročnou aktualizačnou politikou
 - ⚠️ ROI model používa zjednodušené predpoklady (bez investičných nákladov a adopčnej krivky; výstup = ročný run-rate po plnej implementácii); hodinová cena práce je vždy fixný priemer IT sektora SR, nie self-reported hodnota (viď 6.3)
 - ⚠️ Niektoré otázky mapujú súčasne DII aj ODRM vrstvu — prekryv vrstiev zatiaľ nie je zdokumentovaný per otázka (riziko korelácie vrstiev „by construction")
@@ -512,3 +515,79 @@ Používame **statické benchmark hodnoty** odvodené z verejných Eurostat dát
 - ❓ Dynamické benchmarky z vlastných dát
 - ❓ Verifikačné mechanizmy pre self-reported dáta
 - ❓ Detailnejší ROI model pre špecifické procesy
+
+---
+
+## 11. Item mapa — prekryv vrstiev per otázka
+
+Politika prekryvu: **priznaný prekryv** — jedna otázka smie sýtiť DII aj ODRM vrstvu súčasne, ale prekryv je zdokumentovaný nižšie per otázka (odpoveď na aproximáciu „riziko korelácie vrstiev by construction" z §10). DII stĺpec vychádza z `data/diiIndicators.json`; „vylúčená (mimo v3)" = otázka má `dii` tag, ale nezodpovedá žiadnej v3/2025 premennej (striktný v3 režim, dôvod v mapovaní). Otázky `cx_DII02b` a `cx_DII04` majú kategóriu `dii`, takže po vyradení nesýtia žiadne skóre — známy stav, rekategorizácia je DB operácia.
+
+Tabuľka je generovaná zo zdrojov pravdy (questionBank + diiIndicators) — pri zmene modelu ju treba pregenerovať.
+
+| Otázka | Kvíz | Kategória | Vrstvy (maps_to_score) | DII indikátory |
+|---|---|---|---|---|
+| `ind_01` | indikatívny | meta | benchmark_sector | — |
+| `ind_02` | indikatívny | meta | benchmark_size | — |
+| `ind_03` | indikatívny | A | ors_A | — |
+| `ind_04` | indikatívny | A | ors_A, ors_B | — |
+| `ind_05` | indikatívny | B | ors_B, dii | DII7, DII8, DII9 |
+| `ind_06_integration` | indikatívny | B | ors_B | — |
+| `ind_07` | indikatívny | C | ors_C, dii | DII9 |
+| `ind_08` | indikatívny | D | ors_D, dii | DII5 |
+| `ind_09_server_age` | indikatívny | D | ors_D, ors_E | — |
+| `ind_10` | indikatívny | E | ors_E, dii | vylúčená (mimo v3) |
+| `ind_11` | indikatívny | E | ors_E | — |
+| `ind_12` | indikatívny | dii | dii | DII3, DII4, DII10 |
+| `ind_13` | indikatívny | F | ors_F | — |
+| `ind_14` | indikatívny | F | ors_F, ors_E | — |
+| `ind_15_ai` | indikatívny | dii | dii, ai_readiness | DII12 |
+| `cx_01` | komplexný | meta | benchmark_sector | — |
+| `cx_02` | komplexný | meta | benchmark_size | — |
+| `cx_03` | komplexný | meta | — | — |
+| `cx_A01` | komplexný | A | ors_A | — |
+| `cx_A02` | komplexný | A | ors_A, dii | vylúčená (mimo v3) |
+| `cx_A03` | komplexný | A | ors_A, ors_B | — |
+| `cx_A04` | komplexný | A | ors_A | — |
+| `cx_A05` | komplexný | A | ors_A | — |
+| `cx_A06_ai_automation` | komplexný | A | ors_A, ai_readiness | — |
+| `cx_B01` | komplexný | B | ors_B, dii | DII7, DII8, DII9 |
+| `cx_B02` | komplexný | B | — | — |
+| `cx_B03` | komplexný | B | ors_B | — |
+| `cx_B04` | komplexný | B | ors_B | — |
+| `cx_B05` | komplexný | B | ors_B, ors_F | — |
+| `cx_B05b_outsource` | komplexný | B | ors_B | — |
+| `cx_B06_ecommerce` | komplexný | B | dii | DII10 |
+| `cx_C01` | komplexný | C | ors_C, dii | DII9 |
+| `cx_C02` | komplexný | C | ors_C | — |
+| `cx_C03` | komplexný | C | ors_C | — |
+| `cx_D01` | komplexný | D | ors_D, dii | DII2 |
+| `cx_D02` | komplexný | D | ors_D, dii | DII5 |
+| `cx_D03_server` | komplexný | D | ors_D, ors_E | — |
+| `cx_D04_virtualization` | komplexný | D | ors_D | — |
+| `cx_D05_cloud` | komplexný | D | ors_D | — |
+| `cx_D06` | komplexný | D | ors_D, dii | vylúčená (mimo v3) |
+| `cx_D07` | komplexný | D | ors_D | — |
+| `cx_D08_app_lifecycle` | komplexný | D | ors_D | — |
+| `cx_E01` | komplexný | E | ors_E | — |
+| `cx_E02` | komplexný | E | ors_E | — |
+| `cx_E03` | komplexný | E | ors_E | — |
+| `cx_E04` | komplexný | E | ors_E | — |
+| `cx_E05` | komplexný | E | ors_E | — |
+| `cx_E06` | komplexný | E | ors_E | — |
+| `cx_E07` | komplexný | E | ors_E | — |
+| `cx_E08_nis2` | komplexný | E | ors_E | — |
+| `cx_F01` | komplexný | F | ors_F | — |
+| `cx_F02` | komplexný | F | ors_F | — |
+| `cx_F03` | komplexný | F | ors_F | — |
+| `cx_F04` | komplexný | F | ors_F, dii | vylúčená (mimo v3) |
+| `cx_F05` | komplexný | F | ors_F | — |
+| `cx_F06` | komplexný | F | ors_F, ors_E | — |
+| `cx_F07_ai_governance` | komplexný | F | ors_F, ai_readiness | — |
+| `cx_ROI02` | komplexný | meta | — | — |
+| `cx_ROI03` | komplexný | meta | — | — |
+| `cx_DII01` | komplexný | dii | dii | DII3 |
+| `cx_DII02` | komplexný | dii | dii | DII4 |
+| `cx_DII02b` | komplexný | dii | dii | vylúčená (mimo v3) |
+| `cx_DII03` | komplexný | dii | dii, ai_readiness | DII12 |
+| `cx_DII03b` | komplexný | dii | dii | DII5, DII6 |
+| `cx_DII04` | komplexný | dii | dii, ors_F | vylúčená (mimo v3) |
