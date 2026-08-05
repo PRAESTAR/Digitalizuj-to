@@ -142,7 +142,7 @@ export default function PeersPage() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 pt-16 pb-6 sm:pt-8 sm:pb-8 space-y-6 sm:space-y-8">
+    <div className="site-container pt-16 pb-6 sm:pt-8 sm:pb-8 space-y-6 sm:space-y-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetSchema) }}

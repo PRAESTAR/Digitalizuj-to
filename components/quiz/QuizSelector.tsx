@@ -49,7 +49,7 @@ export default function QuizSelector() {
   );
 
   return (
-    <div className="grid gap-4 sm:gap-6 md:grid-cols-2 md:gap-8 max-w-4xl mx-auto">
+    <div className="grid gap-4 sm:gap-6 md:grid-cols-2 md:gap-8">
       {/* Indicative */}
       <button
         onClick={() => handleSelect('indicative')}

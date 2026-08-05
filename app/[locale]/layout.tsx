@@ -342,7 +342,7 @@ export default async function LocaleLayout({
               pointer-events-none na obale, aby priehľadná plocha cez celú
               šírku neblokovala kliky do obsahu pod ňou. */}
           <div className="pointer-events-none absolute inset-x-0 top-0 z-30">
-            <div className="max-w-6xl mx-auto px-3 sm:px-4 pt-2 flex justify-end">
+            <div className="site-container pt-2 flex justify-end">
               <div className="pointer-events-auto">
                 <LanguageSwitcher />
               </div>
@@ -360,7 +360,7 @@ export default async function LocaleLayout({
             klientského komponentu kvôli meraniu preklikov. */}
         <AdBanner />
         <footer className="border-t border-black/5 bg-[#fbfbfd] mt-auto">
-          <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="site-container py-6">
             {/* Na telefónoch skrytý: mobilné prehliadače aj samotný systém už
                 majú vlastné zväčšovanie textu, takže vlastný ovládač je tam
                 zbytočný a len uberá miesto. Od sm (640 px) vyššie sa zobrazí. */}

@@ -26,7 +26,7 @@ export default function ResultGate({ children }: { children: ReactNode }) {
   if (verified) return <>{children}</>;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 pt-16 pb-6 sm:pt-8 sm:pb-8">
+    <div className="site-container pt-16 pb-6 sm:pt-8 sm:pb-8">
       {/* Zástupný obsah, aby stránka pod modálom nebola prázdna plocha. */}
       <div aria-hidden="true" className="space-y-4 opacity-40">
         <div className="h-12 w-2/3 rounded-2xl bg-black/5" />

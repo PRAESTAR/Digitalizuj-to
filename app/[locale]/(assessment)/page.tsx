@@ -78,7 +78,7 @@ export default async function Home({
       />
       {/* Hero */}
       <section className="hero-timeline relative overflow-hidden text-[#1d1d1f]">
-        <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-20 md:pt-28 md:pb-24">
+        <div className="site-container relative pt-20 pb-20 md:pt-28 md:pb-24">
           <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-14 lg:gap-10 items-center">
             {/* Copy column */}
             <div className="animate-fade-in-up">
@@ -138,7 +138,7 @@ export default async function Home({
       </section>
 
       {/* Quiz selector */}
-      <section id="quizzes" className="max-w-6xl mx-auto px-4 py-20">
+      <section id="quizzes" className="site-container py-20">
         <div className="text-center mb-12 animate-fade-in-up">
           <h2 className="text-3xl font-bold text-[#1d1d1f] mb-3">
             {t('quizSelector.heading')}
@@ -156,7 +156,7 @@ export default async function Home({
           takže vizuálne je to zhodné — ale nepriehľadná výplň by prekryla
           stopu kurzora, ktorá leží na -z-10. */}
       <section id="what-you-get" className="py-20">
-        <div className="max-w-5xl mx-auto px-4">
+        <div className="site-container">
           <div className="text-center mb-14">
             <h2 className="text-3xl font-bold text-[#1d1d1f] mb-3">
               {t('whatYouGet.heading')}
@@ -204,7 +204,7 @@ export default async function Home({
       {/* FAQ — viditeľná sekcia, z ktorej sa stavia aj FAQPage JSON-LD.
           <details>/<summary>: sémantické, indexovateľné (obsah v collapsed
           <details> Google normálne indexuje), bez JavaScriptu. */}
-      <section id="faq" className="max-w-3xl mx-auto px-4 py-16">
+      <section id="faq" className="site-container py-16">
         <h2 className="text-3xl font-bold text-[#1d1d1f] mb-8 text-center">
           {t('faq.heading')}
         </h2>
@@ -232,7 +232,7 @@ export default async function Home({
       </section>
 
       {/* Methodology note */}
-      <section className="max-w-3xl mx-auto px-4 py-16">
+      <section className="site-container py-16">
         <div className="relative p-8 rounded-3xl bg-white border border-black/5 shadow-sm overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-[#0068d6]/20" />
           <h3 className="font-bold text-[#1d1d1f] mb-3 text-lg">

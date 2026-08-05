@@ -58,7 +58,7 @@ export default function UserOwnResultView({ hash }: Props) {
 
   if (state.kind === 'loading') {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-12 sm:py-16 text-center">
+      <div className="site-container py-12 sm:py-16 text-center">
         <div className="inline-flex items-center gap-2 text-[#6e6e73] text-sm">
           <span className="w-2 h-2 rounded-full bg-[#86868b] animate-pulse" />
           {t('common.loading')}
@@ -69,7 +69,7 @@ export default function UserOwnResultView({ hash }: Props) {
 
   if (state.kind === 'missing') {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12 sm:py-16 text-center">
+      <div className="site-container py-12 sm:py-16 text-center">
         <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-6 rounded-3xl bg-amber-500/10 text-amber-700 flex items-center justify-center">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -117,7 +117,7 @@ export default function UserOwnResultView({ hash }: Props) {
   });
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8 space-y-6 sm:space-y-8">
+    <div className="site-container py-6 sm:py-8 space-y-6 sm:space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in-up">
         <div className="flex items-start sm:items-center gap-3 sm:gap-4">
           <div

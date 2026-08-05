@@ -105,7 +105,7 @@ export default async function ResultByHashPage({
 
   return (
     <ResultGate>
-    <div className="max-w-5xl mx-auto px-4 pt-16 pb-6 sm:pt-8 sm:pb-8 space-y-6 sm:space-y-8">
+    <div className="site-container pt-16 pb-6 sm:pt-8 sm:pb-8 space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in-up">
         <div className="flex items-start sm:items-center gap-3 sm:gap-4">

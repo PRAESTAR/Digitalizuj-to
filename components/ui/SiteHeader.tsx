@@ -8,7 +8,7 @@ import Link from 'next/link';
 export default function SiteHeader() {
   return (
     <header className="bg-[#fbfbfd]/80 backdrop-blur-xl sticky top-0 z-50 border-b border-black/5 shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
-      <div className="max-w-6xl mx-auto px-4 h-12 flex items-center justify-between">
+      <div className="site-container h-12 flex items-center justify-between">
         <Link
           href="/"
           className="text-[15px] font-semibold tracking-tight group flex items-center gap-2 text-[#1d1d1f]"

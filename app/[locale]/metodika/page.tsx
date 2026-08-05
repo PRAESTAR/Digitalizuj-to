@@ -100,7 +100,7 @@ export default async function MethodologyPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <div className="max-w-3xl mx-auto px-4 pt-16 pb-12 sm:pt-12">
+      <div className="site-container pt-16 pb-12 sm:pt-12">
         <header className="mb-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-[#1d1d1f] mb-4 tracking-tight">
             Metodika merania digitálnej zrelosti — DII a ODRM

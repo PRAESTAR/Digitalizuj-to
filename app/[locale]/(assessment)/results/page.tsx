@@ -27,7 +27,7 @@ export default function ResultsPage() {
 
   if (!assessment || !assessment.result) {
     return (
-      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-16 text-center animate-fade-in-up">
+      <div className="site-container py-16 text-center animate-fade-in-up">
         <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-[#1d1d1f]/8 text-[#1d1d1f] flex items-center justify-center text-2xl">
           ?
         </div>
@@ -52,9 +52,8 @@ export default function ResultsPage() {
     ? t('results.indicativeLabel')
     : t('results.complexLabel');
 
-  // px-3 na mobile: pri 320 px je kazdy pixel sirky vzacny, od sm: uz je priestor na px-4
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-4 pt-16 pb-8 sm:pt-8 bg-[#fbfbfd] min-h-screen">
+    <div className="site-container pt-16 pb-8 sm:pt-8 bg-[#fbfbfd] min-h-screen">
       {/* Header — na mobile sa skladá pod seba; v jednom riadku sa ikona (48 px),
           h1 a tlačidlo "{t('results.newAssessment')}" na 320 px nezmestia a pretekali von. */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 animate-fade-in-up">
