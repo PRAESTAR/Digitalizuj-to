@@ -20,7 +20,9 @@ export default function AdBanner() {
   const label = t('adBanner');
 
   return (
-    <div className="px-4 py-6">
+    /* Bez vlastného px-* — vodorovné odsadenie dáva .site-container päty,
+       inak by sa padding zdvojil a banner by sa rozišiel s hranou valca. */
+    <div className="pb-6">
       <a
         href="#"
         className="banner-cta"

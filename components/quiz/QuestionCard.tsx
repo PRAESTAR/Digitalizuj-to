@@ -53,7 +53,7 @@ export default function QuestionCard({ question, onSubmit }: QuestionCardProps) 
     : !selected || selected === '';
 
   return (
-    <div className="max-w-2xl mx-auto animate-fade-in-up">
+    <div className="animate-fade-in-up">
       {/* Padding rastie až s displejom — pri 320 px a zväčšenom texte ukrajovalo
           pevných p-8 (2rem) z oboch strán viac miesta, než koľko zostalo na text. */}
       <div className="bg-white rounded-3xl shadow-sm border border-black/5 p-4 sm:p-6 lg:p-8 relative overflow-hidden">

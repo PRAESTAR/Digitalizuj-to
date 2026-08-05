@@ -27,7 +27,7 @@ export default function QuizPage() {
   // Redirect if no active assessment
   if (!assessment) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center animate-fade-in-up">
+      <div className="site-container py-16 text-center animate-fade-in-up">
         <div className="w-16 h-16 mx-auto mb-6 rounded-3xl bg-[#1d1d1f]/8 text-[#1d1d1f] flex items-center justify-center text-2xl">
           ?
         </div>
@@ -65,7 +65,7 @@ export default function QuizPage() {
     : t('quizSelector.complex.title');
 
   return (
-    <div className="max-w-3xl mx-auto px-4 pt-16 pb-6 sm:pt-8 sm:pb-8">
+    <div className="site-container pt-16 pb-6 sm:pt-8 sm:pb-8">
       {/* Quiz header */}
       <div className="mb-6 animate-fade-in-up flex items-center gap-3">
         {/* shrink-0 — bez neho sa ikona pri dlhom názve a zväčšenom texte

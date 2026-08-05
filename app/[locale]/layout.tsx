@@ -354,13 +354,14 @@ export default async function LocaleLayout({
           {/* Geo ponuka jazyka — vykreslí sa len návštevníkovi bez uloženej
               voľby, ktorého krajina mapuje na inú mutáciu než aktuálnu. */}
           <LocaleSuggestionBanner />
-        {/* Reklamný banner — zatiaľ placeholder slot (bude nahradený reálnou
-            reklamou), preto tichý/neutrálny, bez animácie a bez farebného
-            gradientu, aby nekonkuroval zvyšku stránky. Vyčlenený do
-            klientského komponentu kvôli meraniu preklikov. */}
-        <AdBanner />
         <footer className="border-t border-black/5 bg-[#fbfbfd] mt-auto">
           <div className="site-container py-6">
+            {/* Reklamný banner — zatiaľ placeholder slot (bude nahradený reálnou
+                reklamou), preto tichý/neutrálny, bez animácie a bez farebného
+                gradientu, aby nekonkuroval zvyšku stránky. Vyčlenený do
+                klientského komponentu kvôli meraniu preklikov. Žije v päte, nie
+                nad ňou — inak visel v prázdnom páse medzi obsahom a pätou. */}
+            <AdBanner />
             {/* Na telefónoch skrytý: mobilné prehliadače aj samotný systém už
                 majú vlastné zväčšovanie textu, takže vlastný ovládač je tam
                 zbytočný a len uberá miesto. Od sm (640 px) vyššie sa zobrazí. */}
