@@ -30,13 +30,15 @@ export const config = {
   /**
    * Proxy beží len na stránkach — nie na statických assetoch, API,
    * ani na súboroch, ktoré musia zostať na koreni domény bez jazykového
-   * prefixu (robots.txt, sitemap.xml, manifest, ikona, favicon, llms.txt).
+   * prefixu (robots.txt, sitemap.xml, manifest, llms.txt).
    * Keby sa im pridal prefix, crawlery by ich nenašli.
    *
-   * `icon` je tu kvôli app/icon.tsx — URL /icon nemá príponu, takže ju
-   * všeobecná výnimka `.*\..*` nechytí. OG obrázok sa presunul pod
-   * [locale] (/sk/opengraph-image), ten prefix má mať; koreňová výnimka
-   * zostáva pre prípadné staré odkazy.
+   * `icon` a `favicon.ico` vo výnimkách zostávajú, hoci ikony boli
+   * odstránené (5. 8. 2026): prehliadače si `/favicon.ico` pýtajú samy od
+   * seba a bez výnimky by ten request middleware presmeroval na /sk/favicon.ico
+   * namiesto čistej 404. Pri návrate ikony sa nemusí meniť nič.
+   * OG obrázok sa presunul pod [locale] (/sk/opengraph-image), ten prefix má
+   * mať; koreňová výnimka zostáva pre prípadné staré odkazy.
    */
   matcher: [
     '/((?!api|_next|_vercel|robots\\.txt|sitemap\\.xml|manifest\\.webmanifest|opengraph-image|icon|favicon\\.ico|llms\\.txt|.*\\..*).*)',

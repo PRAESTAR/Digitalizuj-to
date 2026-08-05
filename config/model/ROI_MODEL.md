@@ -38,7 +38,9 @@ Odhaduje potenciálny business dopad digitalizácie na základe:
 
 | Premenná | Zdroj | Fallback |
 |----------|-------|----------|
-| `employee_count` | Otázka | Povinná — bez nej žiadny ROI výpočet |
+| `employee_count` | Otázka (`ind_02`/`cx_02`) | Žiadny — pri chýbajúcom údaji sa počíta s pásmom 10–49, ale priznane (viď 2.3) |
+| `invoicing_volume` | Otázka `cx_ROI03` | Benchmark frekvencia podľa veľkosti firmy |
+| `admin_headcount` | Otázka `cx_ROI02` | Bez stropu kapacity (viď 2.3) |
 | `hourly_cost` | **Vždy fixný — priemer SR** | Nepýtame sa (citlivý údaj); pozri 2.2 |
 | `process_frequency` | Per-proces otázka | Benchmark podľa veľkosti a sektora |
 | `process_time_per_unit` | Per-proces otázka | Benchmark |
@@ -124,7 +126,13 @@ Kde:
 
 ### 3.2 Odvodzovanie manuálneho podielu z maturity levelu
 
-Ak firma neodpovie priamo:
+Proces, ktorý firma sama označila za prevažne ručný (`cx_A05`), dostáva
+manuálny podiel **aspoň 0,85**. Je to priama evidencia a prebíja odhad z
+celofiremnej maturity. Ide o **dolnú hranicu**, nie o prepis: pri maturity
+levele 0 je globálny podiel 0,90 a plochých 0,85 by najmenej zrelým firmám
+úsporu znížilo.
+
+Pre ostatné procesy sa podiel odvodzuje z maturity levelu:
 
 | Maturity Level (Kategória A) | Predpokladaný manuálny podiel |
 |-------------------------------|-------------------------------|
@@ -313,15 +321,19 @@ Digitalizačné projekty typicky dosiahnu 30–80 % identifikovaného potenciál
 
 ### 5.3 Governance adjustment
 
+Engine vracia `displayPolicy` a UI ju rešpektuje — do 5. 8. 2026 sa
+k optimistickému scenáru len pridával disclaimer, ktorý číslo nijako nekrotil.
+
 ```
-Ak category_score[F] >= 75:
-  zobraz všetky tri scenáre, highlight reálny
-Ak category_score[F] >= 50:
-  zobraz všetky tri scenáre, highlight konzervatívny
-Ak category_score[F] < 50:
-  zobraz len konzervatívny s disclaimerom:
-  "Nízka organizačná pripravenosť znižuje pravdepodobnosť realizácie plného potenciálu."
+F >= 75 (gate 'high')         → všetky tri scenáre, headline = reálny
+F >= 50 (gate 'standard')     → všetky tri scenáre, headline = reálny
+F <  50 (gate 'restricted')   → optimistický sa NEZOBRAZÍ, headline = konzervatívny
+F == null (gate 'unmeasured') → optimistický sa NEZOBRAZÍ, headline = konzervatívny
+veľkosť firmy neuvedená       → vynúti 'restricted' bez ohľadu na F
 ```
+
+Nemeraná governance sa zámerne netvári ani ako nízka, ani ako vysoká —
+nezmerané nie je zistenie. Prahy sú v `governanceScenarioGates`.
 
 ---
 
@@ -366,3 +378,80 @@ Ak category_score[F] < 50:
 **Prečo IT sektor namiesto celého hospodárstva:** procesy, ktoré platforma pomáha automatizovať (fakturácia, integrácie, reporting, bezpečnosť), typicky navrhuje, zavádza alebo zastrešuje IT/technický tím firmy — a nástroj cielime na rozhodovanie o digitalizačných investíciách, kde je relevantná cena IT kapacity, nie priemerná mzda naprieč celou firmou.
 
 **Politika aktualizácie:** ročne po aprílovej publikácii Eurostat `lc_lci_lev`. Eurostat hodinová cena práce už zahŕňa odvody zamestnávateľa — nepoužívať dvojité násobenie multiplikátorom.
+
+---
+
+## 8. Zapojenie zbieraných vstupov (5. 8. 2026)
+
+Do tohto dátumu sa `cx_ROI02` a `cx_ROI03` zbierali, ale výpočet ich nikdy
+nečítal — celý modul ROI otázok zaťažoval respondenta bez akéhokoľvek vplyvu
+na výsledok a dve firmy s desaťnásobne odlišným objemom faktúr dostali
+identické číslo.
+
+### 8.1 Objem fakturácie (`cx_ROI03`) → frekvencia procesu
+
+Self-reported objem **prebíja** benchmarkovú frekvenciu procesu `invoicing`.
+Stredy pásiem (`invoicingVolumeFromBand`):
+
+| Odpoveď | Pásmo | Použitá frekvencia (mes.) |
+|---|---|---|
+| `low` | do 50 | 25 |
+| `medium` | 50–200 | 125 |
+| `high` | 200–500 | 350 |
+| `very_high` | nad 500 | 700 |
+
+Horné pásmo je otvorené, takže 700 je **konzervatívna kotva, nie extrapolácia**.
+Otázka sa pýta na faktúry vydané aj prijaté a benchmark modeluje čas na jednu
+**spracovanú** faktúru, takže sa čísla používajú priamo, bez delenia.
+
+### 8.2 Počet administratívcov (`cx_ROI02`) → strop kapacity
+
+Headcount **nie je objem**, je to kapacita — preto sa z neho nerobí frekvencia,
+ale strop. Benchmarkové objemy procesov nemôžu spotrebovať viac hodín, než
+koľko ich administratíva vôbec má:
+
+```
+adminCapacityHours = FTE × workingHoursPerFteYear (1700) × adminAgendaShareOfFte (0,60)
+grossManualHours   = Σ (freqYearly × timePerCaseH × manualShare)   // PRED automatableShare
+capFactor = adminCapacityHours < grossManualHours ? adminCapacityHours / grossManualHours : 1
+```
+
+Strop **len znižuje, nikdy nezvyšuje**: benchmarková frekvencia je dôkaz o
+objeme, headcount len horná hranica. `grossManualHours` sa počíta pred
+`automatableShare`, inak by sa kapacita porovnávala s už zúženou podmnožinou
+hodín. Pri zásahu stropu pribudne disclaimer.
+
+| Odpoveď | Predpokladané FTE |
+|---|---|
+| `1_3` | 2 |
+| `4_10` | 7 |
+| `11_30` | 20 |
+| `30_plus` | 40 |
+
+`workingHoursPerFteYear` (1700 = 52 × 40 h mínus dovolenka, sviatky, PN) a
+`adminAgendaShareOfFte` (0,60) sú **nezdrojované parametre modelu**. Druhý je
+citlivejší: pri 0,4 by sa strop spúšťal takmer vždy, pri 0,8 takmer nikdy.
+
+### 8.3 Chýbajúca veľkosť firmy
+
+Veľkosť sa už ticho nedosádza na `small`. Keď chýba, model počíta ďalej, ale
+priznane: disclaimer navrch zoznamu, prefix `predpokladaná veľkosť firmy` v
+každom riadku audit trailu, `confidence` zastropovaná na 0,3 a vynútený
+`restricted` režim scenárov. Rovnako sa už nedosádzajú pásma `cx_ROI02`/`cx_ROI03`
+— „Neviem" nie je odpoveď.
+
+### 8.4 Mapovanie procesov na benchmarky
+
+Tri hodnoty `cx_A05` sa volajú inak než ich benchmark, takže sa predtým
+odfiltrovali — respondent ich označil za ručné a z ROI ticho vypadli, nahradené
+tromi defaultmi. Väzbu teraz nesie `processKeyFromAnswerValue`:
+
+| Hodnota odpovede | Benchmark |
+|---|---|
+| `warehouse` | `inventory_management` |
+| `service` | `field_service` |
+| `purchasing` | `purchasing` |
+
+Frekvencie, časy, automatizovateľnosť a chybovosť týchto troch sú z §2.2;
+hodnoty pre mikrofirmy a `reworkMinutesPerError`/`exceptionRate` sú expertný
+odhad odvodený pomerom, ktorý držia ostatné záznamy (micro ≈ 0,4 × small).

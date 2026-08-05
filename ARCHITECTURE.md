@@ -19,7 +19,13 @@
 | Dáta | JSON/TS-based (in-memory) | Pre MVP nie je potrebná databáza |
 | Export | Client-side PDF (html2canvas/jsPDF) | Jednoduchý export |
 
-**Rozhodnutie:** Pre MVP je databáza overkill. Otázky, scoring a benchmarky sú v JSON/TS súboroch. Stav sa drží v pamäti (React state) a voliteľne v `localStorage` (trvalé odkazy). Pre produkciu sa pridá Supabase/PostgreSQL.
+**Rozhodnutie (MVP):** databáza je overkill — otázky, scoring a benchmarky sú v JSON/TS súboroch, stav v pamäti (React state) a voliteľne v `localStorage`.
+
+**Stav k 5. 8. 2026 — MariaDB je v hre, ale inak, než sa plánovalo.** Supabase/PostgreSQL nepribudlo; hosting je Apache/PHP bez Node runtime, takže sa použila MariaDB, ktorú hosting ponúka, a prístup k nej idú cez PHP endpointy (`hosting/api`, `hosting/admin`):
+
+- **Obsah modelu** (otázky, možnosti, vetvenie) žije v MariaDB a `data/questionBank.json` je z nej kompilovaný nasadzovací artefakt — nie naopak.
+- **Výsledky diagnostiky** sa od 5. 8. 2026 ukladajú do tabuľky `assessment_results` v plnom znení vrátane odpovedí; `localStorage` zostáva ako prvá, okamžitá vrstva. Dovtedy výsledok neopustil prehliadač, takže permanentný odkaz fungoval len na jednom zariadení.
+- **Scoring a benchmark dáta** zostávajú v repe (`data/*.json` + typované wrappery), lebo sú súčasťou verzovaného modelu, nie používateľských dát.
 
 ---
 
@@ -383,9 +389,12 @@ digitalizuj/
     │   ├── benchmarkEngine.ts
     │   └── recommendationEngine.ts
     ├── data/
-    │   ├── questionBank.ts     # Typed import of JSON
-    │   ├── scoringConfig.ts    # Weights, thresholds
-    │   └── benchmarkData.ts    # Benchmark datasets
+    │   ├── questionBank.json   # Kompilát z MariaDB (nasadzovací artefakt)
+    │   ├── scoringConfig.ts    # Váhy, prahy, multiplikátory, procesné benchmarky
+    │   ├── diiIndicators.json  # Mapovanie otázok na 12 DII indikátorov v3/2025
+    │   ├── riskRecommendations.ts # Šablóny odporúčaní per rizikový faktor
+    │   ├── benchmarkData.json  # Zdroj pravdy benchmarkov
+    │   └── benchmarkData.ts    # Typovaný wrapper nad JSON
     ├── context/
     │   └── AssessmentContext.tsx
     └── types/

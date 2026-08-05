@@ -220,32 +220,64 @@ Samostatný penalizačný index (0–100, vyššie = horšie), nezávislý od OR
 
 ### 5.3 Výpočet penalty per faktor
 
+Penalta stojí na **dvoch nezávislých veličinách**: závažnosti rizika (už je
+zapečená v `maxPenalty` — kritické faktory 15, stredné 4–6) a sile dôkazu
+(potvrdené firmou vs. odvodené zo skóre).
+
 ```
-Ak riskFlags obsahuje factor.id (aktivované cez flag_risk branching):
-  penalty = maxPenalty × severityMultiplier
-  severityMultiplier: critical → 1.0 | high → 0.8 | medium → 0.6
+evidenceStrength:
+  riskFlags obsahuje factor.id (aktivované cez flag_risk)  → 'confirmed'
+  inak, z odpovedí na otázky s maps_to_risk obsahujúcim factor.id:
+    relevantAnswers = tieto odpovede, vylúčené isUnknown/wasSkipped A vylúčené
+                      otázky, kde VŠETKY možnosti majú score 0 (informačné)
+    avgScore = priemer(relevantAnswers.score), alebo 100 ak žiadne nezostali
+    avgScore < 30 → 'inferred_strong' | < 60 → 'inferred_moderate' | inak 'none'
 
-Inak, ak existujú odpovede na otázky s maps_to_risk obsahujúcim factor.id:
-  relevantAnswers = tieto odpovede, vylúčené isUnknown/wasSkipped A vylúčené otázky,
-                    kde VŠETKY možnosti majú score 0 (čisto informačné otázky)
-  avgScore = priemer(relevantAnswers.score), alebo 100 ak žiadne nezostali
+rawPenalty = maxPenalty × riskConfidenceMultipliers[evidenceStrength]
+             confirmed 1.0 | inferred_strong 0.7 | inferred_moderate 0.35 | none 0
 
-  avgScore < 30  → penalty = maxPenalty × 0.8
-  avgScore < 60  → penalty = maxPenalty × 0.3
-  inak           → penalty = 0
+penalty    = rawPenalty / tdriMaxPenaltySum × 100      // normalizácia
 ```
 
-**Poznámka k verzii 1.0.0:** čiastočná cesta teraz vylučuje "Neviem"/preskočené odpovede a otázky bez bodovateľných možností (predtým napr. informačná otázka `cx_B02` — "ktorý systém je najkritickejší", všetky možnosti `score: 0` — aktivovala RF06 na 80 % penalizácie pre **každého** respondenta komplexného kvízu bez ohľadu na odpoveď).
+> **Oprava 5. 8. 2026 — inverzia penált.** Závažnosť sa počítala dvakrát: raz
+> v `maxPenalty` a ešte raz cez samostatný severity multiplikátor (1.0/0.8/0.6).
+> Vznikla tým inverzia — potvrdené stredné riziko dostalo 0,6 × maxPenalty, kým
+> to isté riziko **iba odvodené** z nízkeho skóre dostalo 0,8 ×. Priznanie
+> problému teda skórovalo lepšie než dohad a zlepšenie odpovede vedelo index
+> rizika **zvýšiť**. Teraz sa násobí len sila dôkazu; poradie
+> `confirmed > inferred_strong > inferred_moderate` platí pre každú závažnosť
+> a stráži ho property test nad všetkými 14 faktormi.
+
+**Poznámka k verzii 1.0.0:** čiastočná cesta vylučuje "Neviem"/preskočené odpovede a otázky bez bodovateľných možností (predtým napr. informačná otázka `cx_B02` — "ktorý systém je najkritickejší", všetky možnosti `score: 0` — aktivovala RF06 na 80 % penalizácie pre **každého** respondenta komplexného kvízu bez ohľadu na odpoveď).
 
 ### 5.4 Súčet a pásma
 
 ```
-totalPenalty = min(100, Σ penalty[rf])
+totalPenalty = min(100, Σ penalty[rf])      // min() je len poistka
 
 score: 0–15 → 'low' ("Dobre riadené") | 16–35 → 'medium' | 36–60 → 'high' | 61–100 → 'critical'
 ```
 
-**Známa medzera:** so severity multiplikátormi je reálne dosiahnuteľné maximum súčtu ≈ 93.4 (50×1.0 kritických + 31×0.8 vysokých + 31×0.6 stredných), nie 100 — `min(100, …)` je teda technicky nedosiahnuteľný strop a pásmo `critical` (61–100) je v praxi zúžené na 61–93.4.
+Prahy sa čítajú z `scoringConfig.riskThresholds` (typ je trojica, aby
+destrukturácia nemohla dať `undefined`); pásmo počíta exportovaná
+`getRiskLevel`, ktorú používa aj `recommendationEngine` — dovtedy si prahy
+prepisovali natvrdo tri miesta.
+
+**Normalizácia (5. 8. 2026):** menovateľom je `tdriMaxPenaltySum`, teda súčet
+všetkých `maxPenalty` (dnes 112). Počíta sa **z definícií**, nikdy sa nepíše
+ako literál — pri pridaní pätnásteho faktora by sa inak strop ticho posunul a
+pásma by prestali sedieť. Normalizuje sa aj penalta **per faktor**, inak by
+gate pre odporúčania žil na inej škále než samotné skóre.
+
+> Predtým bolo maximum ≈ 93,4, nie 100, takže pásmo `critical` (61–100) bolo
+> fakticky 61–93 a `min(100, …)` bol nedosiahnuteľný strop. Dokumentácia si
+> navyše protirečila — tu bolo 93,4, v checkliste 86,2 (čo bol strop firmy,
+> ktorej sa netýka NIS2 a má vyriešenú e-fakturáciu, nie všeobecné maximum).
+
+**Porovnateľnosť kvízov:** indikatívny kvíz nemá zdrojové otázky pre časť
+faktorov, takže jeho TDRI vychádza systematicky nižšie než z komplexného.
+Menovateľ je zámerne spoločný — vlastný menovateľ pre indikatívny by zlepšil
+čitateľnosť, ale rozbil porovnateľnosť s uloženými a peer výsledkami.
 
 `topRisks` = top 5 aktívnych faktorov podľa `penalty` zostupne.
 

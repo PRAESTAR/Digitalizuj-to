@@ -9,7 +9,71 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 ## [1.0.0] — vo vývoji
 
 > **Otvorená verzia.** Tento záznam sa priebežne dopĺňa až do uzavretia
-> verzie 1. Posledná aktualizácia: 2026-08-04.
+> verzie 1. Posledná aktualizácia: 2026-08-05.
+
+### Ukladanie a zdieľanie výsledkov (5. 8. 2026)
+
+- **Výsledky sa ukladajú na server.** Do tohto dátumu výsledok neopustil
+  prehliadač, takže permanentný odkaz aj QR kód fungovali len na tom jednom
+  zariadení a administrácia nemala čo zobraziť. Nová tabuľka
+  `assessment_results` v MariaDB drží **plné znenie** vrátane odpovedí po
+  otázkach; `localStorage` zostáva ako prvá, okamžitá vrstva. Zápis ide cez
+  `api/result-save.php` (strop 512 kB, kontrola tvaru hashu aj UUID, 20 zápisov
+  z IP za hodinu, idempotencia), čítanie cez `api/result.php`, ktorý **zámerne
+  vracia len anonymizovaný súhrn** — odpovede sú pre administráciu, nie pre
+  každého, komu sa odkaz prepošle.
+- **Zmena sľubu o súkromí.** Web na štyroch miestach tvrdil, že sa nič
+  neodosiela na server (vrátane FAQ, ktorá šla aj do štruktúrovaných dát pre
+  Google). Texty sú prepísané v sk/en/cs. Právny základ, retenčná lehota a
+  stránka o ochrane osobných údajov zatiaľ **chýbajú** — automatické mazanie
+  nie je nastavené.
+- **Permanentné odkazy prestali vracať 404.** Statický export vie vyrobiť
+  stránku len pre vopred známe hashe, takže vlastný výsledok návštevníka
+  končil na chybovej stránke skôr, než sa stihol spustiť komponent, ktorý ho
+  číta. Export teraz vyrába generickú stránku `/{jazyk}/r/view.html` a
+  `.htaccess` na ňu neznáme hashe interne prepisuje.
+- **Nový formát identifikátora** — 64 hex znakov, SHA-256 z UUIDv7 a náhodnej
+  soli. UUIDv7 sa ukladá vedľa hashu ako chronologický zoraďovací kľúč; do URL
+  ide len hash, z ktorého sa čas ani poradie odvodiť nedá. Staršie formáty
+  zostávajú platné.
+
+### Presnosť modelu — P1 opravy (5. 8. 2026)
+
+- **Inverzia penált v TDRI.** Závažnosť sa počítala dvakrát, takže potvrdené
+  stredné riziko skórovalo **nižšie** než to isté riziko iba odvodené z
+  nízkeho skóre — priznanie problému sa oplatilo menej než dohad a zlepšenie
+  odpovede vedelo index rizika zvýšiť. Teraz sa násobí len sila dôkazu.
+- **Škála TDRI má dosiahnuteľných 100** (predtým ~93, takže pásmo „kritické
+  61–100" bolo fakticky 61–93). Menovateľ sa počíta z definícií, nie z literálu.
+- **Percentil DII už nemá posun o tretinu pásma.** Firma presne na mediáne
+  videla na jednej karte „odchýlka 0,0" vedľa percentilu 55; teraz je percentil
+  inverziou mediánu a platí, že medián = 50. percentil.
+- **Porovnanie podľa veľkosti firmy** (`diiVsSize`, `orsVsSize`) a voči
+  domácemu trhu (`orsVsCountry`). Veľkosť sa dovtedy zbierala, odovzdávala do
+  enginu a tam zahadzovala — päťčlenná firma sa porovnávala s rovnakým
+  mediánom ako dvestočlenná.
+- **ROI reaguje na zbierané vstupy.** Objem fakturácie prebíja benchmarkovú
+  frekvenciu, počet administratívcov funguje ako strop kapacity. Dve firmy s
+  desaťnásobne odlišným objemom faktúr dostávali dovtedy identické číslo.
+- **Sklad, servis a nákup sa konečne počítajú** — ich hodnoty sa volali inak
+  než benchmarky, takže sa odfiltrovali a nahradili defaultmi.
+- **Optimistický scenár sa skrýva** pri nízkej alebo nezmeranej organizačnej
+  pripravenosti (a pri neuvedenej veľkosti firmy). Predtým sa k nemu len
+  pridával disclaimer, ktorý číslo nijako nekrotil.
+- **Benchmark dáta majú jeden zdroj pravdy** a build ich stráži. Drift bol
+  reálny: editovateľná kópia nemala celý blok ČR, hoci runtime s ním počítal.
+- **Priznaný pôvod referenčných hodnôt** — karty sú rozdelené na merané
+  Eurostat dáta a expertné odhady; sektorové a veľkostné mediány dovtedy
+  vyzerali rovnako dôveryhodne ako meraná distribúcia.
+
+### Ostatné
+
+- **Reklamný slot** nesie skutočnú kreatívu s meraním zobrazení aj kliknutí
+  (dovtedy sa merali len kliknutia, takže sa nedal počítať CTR).
+- **Jednotná šírka obsahu** naprieč celým webom vrátane kvízu a pätičky.
+- **Ikony odstránené** (5. 8. 2026) — favicon aj generovaná PNG ikona, kým
+  nevznikne nová vizuálna identita. Dôsledok: PWA je dovtedy neinštalovateľná.
+- **Meranie prepnuté** na GA4 property `G-VY93FHZ43M`.
 > Podrobná história jednotlivých krokov žije v git logu; sem patrí
 > konsolidovaný obraz toho, čo verzia 1 prináša.
 

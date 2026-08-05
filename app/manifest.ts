@@ -26,28 +26,12 @@ export default function manifest(): MetadataRoute.Manifest {
     dir: 'ltr',
     orientation: 'portrait-primary',
     categories: ['business', 'productivity', 'education', 'utilities'],
-    icons: [
-      {
-        src: '/favicon.ico',
-        sizes: 'any',
-        type: 'image/x-icon',
-      },
-      // Generovaná PNG ikona (app/icon.tsx). Samotný favicon.ico nespĺňal
-      // minimá pre inštalovateľnú PWA (Chrome vyžaduje aspoň jednu PNG
-      // ikonu >= 144 px s deklarovanou veľkosťou).
-      {
-        src: '/icon',
-        sizes: '512x512',
-        type: 'image/png',
-        purpose: 'any',
-      },
-      {
-        src: '/icon',
-        sizes: '512x512',
-        type: 'image/png',
-        purpose: 'maskable',
-      },
-    ],
+    // Ikony sú zámerne vynechané — favicon aj generovaná PNG ikona boli
+    // odstránené (5. 8. 2026), kým nevznikne nová vizuálna identita.
+    // DÔSLEDOK: bez aspoň jednej PNG ikony >= 144 px Chrome appku neponúkne
+    // na inštaláciu, takže PWA je dovtedy neinštalovateľná. Zvyšok manifestu
+    // (názov, farby, skratky) zostáva, aby sa po dodaní ikony len doplnil
+    // `icons` blok.
     shortcuts: [
       {
         name: 'Začať diagnostiku',
