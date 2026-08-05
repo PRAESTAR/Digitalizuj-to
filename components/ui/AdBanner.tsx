@@ -16,11 +16,11 @@ import { trackEvent } from '@/lib/analytics';
  */
 
 /**
- * Cieľ kliknutia. TODO: doplniť afiliate URL od Websupportu — dovtedy klik
- * nikam nevedie. Nesmie sa hádať: zlý afiliate identifikátor by odviedol
- * províziu inam.
+ * Cieľ kliknutia — afiliate odkaz Websupportu. Parameter `ref` nesie
+ * identifikátor partnera, na ktorý sa viaže provízia; pri výmene kreatívy
+ * ho netreba meniť, pri zmene partnerského účtu áno.
  */
-const TARGET_URL = '#';
+const TARGET_URL = 'https://www.websupport.sk/?ref=NDgvHlg5';
 
 const CREATIVE_DIR = '/reklama/websupport-ad-banners-sk';
 const PROMOTION_ID = 'websupport_freeweb_sk';
@@ -67,8 +67,14 @@ export default function AdBanner() {
         href={TARGET_URL}
         className="banner-cta"
         aria-label={label}
+        // Nová karta zámerne: banner je v päte na každej stránke vrátane
+        // kvízu a rozpracované odpovede žijú len v pamäti — odchod z karty
+        // uprostred vypĺňania by ich zahodil.
+        target="_blank"
         // sponsored = platený/afiliate odkaz; Google ho pre reklamné odkazy
-        // vyžaduje, inak ide o nepriznaný platený odkaz.
+        // vyžaduje, inak ide o nepriznaný platený odkaz. noopener je pri
+        // target="_blank" bezpečnostné minimum. noreferrer zámerne NIE JE —
+        // referrer sa niekedy používa na overenie zdroja provízie.
         rel="sponsored noopener"
         onClick={() =>
           trackEvent('select_promotion', {
