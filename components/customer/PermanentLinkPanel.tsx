@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
-import type { ResultSnapshot, Respondent, Answer, AssessmentType } from '@/types';
+import type { ResultSnapshot, Respondent, AssessmentType } from '@/types';
 import { generateResultId, saveResultToStorage } from '@/lib/resultHash';
 import { saveResultToServer } from '@/lib/resultStore';
 import { toPeerSnapshot } from '@/lib/snapshotMapper';
@@ -11,7 +11,6 @@ import QRCodeCard from './QRCodeCard';
 interface Props {
   result: ResultSnapshot;
   respondent: Respondent;
-  answers: Answer[];
   quizType: AssessmentType;
   completedAt?: string;
 }
@@ -28,7 +27,6 @@ const SITE_URL =
 export default function PermanentLinkPanel({
   result,
   respondent,
-  answers,
   quizType,
   completedAt,
 }: Props) {
@@ -51,13 +49,13 @@ export default function PermanentLinkPanel({
 
       // Potom na server — až vďaka tomu odkaz a QR kód fungujú aj na inom
       // zariadení a výsledok sa dá zobraziť neskôr. Zlyhanie sa prehltne,
-      // používateľ oň lokálne nepríde.
+      // používateľ oň lokálne nepríde. Odosielajú sa len agregáty, nie
+      // odpovede po otázkach (viď lib/resultStore.ts).
       void saveResultToServer({
         hash: h,
         uuid,
         result,
         respondent,
-        answers,
         quizType,
         locale,
         completedAt,

@@ -5,8 +5,11 @@
 -- a v localStorage návštevníka. Dôsledok bol, že permanentný odkaz aj QR kód
 -- fungovali výlučne na tom istom zariadení a administrácia nemala čo zobraziť.
 --
--- POZOR — zmena povahy dát: tabuľka obsahuje kompletný výsledok VRÁTANE
--- odpovedí po otázkach. Je to zmena oproti pôvodnému sľubu „nič sa neodosiela
+-- POZOR — zmena povahy dát: tabuľka obsahuje vypočítaný výsledok.
+-- Stĺpec `answers_json` zostáva ZÁMERNE PRÁZDNY: odpovede po otázkach sa
+-- od 5. 8. 2026 neukladajú (boli tu pre zrušenú administráciu, takže by sa
+-- najcitlivejšia časť dát uchovávala bez účelu). Stĺpec sa nechal v schéme,
+-- aby sa dal zápis obnoviť bez migrácie, ak preň vznikne účel a právny základ. Je to zmena oproti pôvodnému sľubu „nič sa neodosiela
 -- na server", takže texty na webe (FAQ, poznámka v kvíze, panel zdieľania)
 -- boli v rovnakom kroku upravené. Právny základ a retenčná lehota sú vecou
 -- prevádzkovateľa — technicky nie je nastavené automatické mazanie.

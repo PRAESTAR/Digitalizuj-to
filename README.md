@@ -167,8 +167,8 @@ flowchart TD
 **Poznámky k toku:**
 - Celý cyklus beží v jednom `useReducer` v `AssessmentContext.tsx` — žiadne API volania, žiadna latencia.
 - Všetkých 6 engine výstupov (DII, ORS, TDRI, AI Readiness, Business Impact, Benchmark) sa počíta z rovnakej odpovedí sady nezávisle od seba — `recommendationEngine` ich až následne skladá do jedného odporúčacieho balíka.
-- Po dokončení sa výsledok ukladá **dvakrát**: hneď do `localStorage` (okamžité, funguje aj pri nedostupnom serveri) a zároveň cez `api/result-save.php` do MariaDB v plnom znení vrátane odpovedí. Zlyhanie zápisu na server sa prehltne — používateľ o výsledok lokálne nepríde.
-- Zdieľaný odkaz (`/r/[hash]`) vydáva len anonymizovaný agregát (skóre, kategórie) — **nie jednotlivé odpovede**. Tie sú v databáze pre administráciu, cez verejný endpoint sa nedajú získať.
+- Po dokončení sa výsledok ukladá **dvakrát**: hneď do `localStorage` (okamžité, funguje aj pri nedostupnom serveri) a zároveň cez `api/result-save.php` do MariaDB — ukladajú sa len agregáty (skóre, firmografia, odporúčania), odpovede po otázkach nie. Zlyhanie zápisu na server sa prehltne — používateľ o výsledok lokálne nepríde.
+- Zdieľaný odkaz (`/r/[hash]`) vydáva len anonymizovaný agregát (skóre, kategórie) — **nie jednotlivé odpovede** — tie neopustia prehliadač vôbec.
 - Stránka `/r/[hash]` hľadá výsledok najprv v `localStorage`, potom cez `api/result.php` na serveri. Vďaka druhej vrstve funguje odkaz aj QR kód na inom zariadení, než na ktorom sa kvíz vypĺňal.
 - Statický export vie vyrobiť `.html` len pre vopred známe hashe, preto existuje generická stránka `/{locale}/r/view.html` a `.htaccess` na ňu interne prepisuje neznáme hashe (hash zostáva v adrese a číta sa z nej).
 

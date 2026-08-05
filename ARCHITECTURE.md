@@ -24,7 +24,7 @@
 **Stav k 5. 8. 2026 — MariaDB je v hre, ale inak, než sa plánovalo.** Supabase/PostgreSQL nepribudlo; hosting je Apache/PHP bez Node runtime, takže sa použila MariaDB, ktorú hosting ponúka, a prístup k nej idú cez PHP endpointy (`hosting/api`, `hosting/admin`):
 
 - **Obsah modelu** (otázky, možnosti, vetvenie) žije v MariaDB a `data/questionBank.json` je z nej kompilovaný nasadzovací artefakt — nie naopak.
-- **Výsledky diagnostiky** sa od 5. 8. 2026 ukladajú do tabuľky `assessment_results` v plnom znení vrátane odpovedí; `localStorage` zostáva ako prvá, okamžitá vrstva. Dovtedy výsledok neopustil prehliadač, takže permanentný odkaz fungoval len na jednom zariadení.
+- **Výsledky diagnostiky** sa od 5. 8. 2026 ukladajú do tabuľky `assessment_results` ako agregáty (odpovede po otázkach nie); `localStorage` zostáva ako prvá, okamžitá vrstva. Dovtedy výsledok neopustil prehliadač, takže permanentný odkaz fungoval len na jednom zariadení.
 - **Scoring a benchmark dáta** zostávajú v repe (`data/*.json` + typované wrappery), lebo sú súčasťou verzovaného modelu, nie používateľských dát.
 
 ---

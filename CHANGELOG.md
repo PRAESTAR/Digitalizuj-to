@@ -12,18 +12,21 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 - **Výsledky sa ukladajú na server.** Do tohto dátumu výsledok neopustil
   prehliadač, takže permanentný odkaz aj QR kód fungovali len na tom jednom
-  zariadení a administrácia nemala čo zobraziť. Nová tabuľka
-  `assessment_results` v MariaDB drží **plné znenie** vrátane odpovedí po
-  otázkach; `localStorage` zostáva ako prvá, okamžitá vrstva. Zápis ide cez
+  zariadení. Nová tabuľka `assessment_results` v MariaDB drží **len agregáty**
+  — vypočítané skóre, firmografiu a odvodené odporúčania. **Odpovede po
+  jednotlivých otázkach sa neukladajú:** boli určené pre administráciu, tá bola
+  zrušená, takže by sa najcitlivejšia časť dát uchovávala bez účelu.
+  `localStorage` zostáva ako prvá, okamžitá vrstva. Zápis ide cez
   `api/result-save.php` (strop 512 kB, kontrola tvaru hashu aj UUID, 20 zápisov
   z IP za hodinu, idempotencia), čítanie cez `api/result.php`, ktorý **zámerne
   vracia len anonymizovaný súhrn** — odpovede sú pre administráciu, nie pre
   každého, komu sa odkaz prepošle.
 - **Zmena sľubu o súkromí.** Web na štyroch miestach tvrdil, že sa nič
   neodosiela na server (vrátane FAQ, ktorá šla aj do štruktúrovaných dát pre
-  Google). Texty sú prepísané v sk/en/cs. Právny základ, retenčná lehota a
-  stránka o ochrane osobných údajov zatiaľ **chýbajú** — automatické mazanie
-  nie je nastavené.
+  Google). Texty sú prepísané v sk/en/cs tak, aby zodpovedali skutočnosti:
+  odpovede zostávajú v prehliadači, na server ide len výsledné skóre pod
+  náhodným kódom. Retenčná lehota a spôsob výmazu zatiaľ **chýbajú** —
+  automatické mazanie nie je nastavené.
 - **Permanentné odkazy prestali vracať 404.** Statický export vie vyrobiť
   stránku len pre vopred známe hashe, takže vlastný výsledok návštevníka
   končil na chybovej stránke skôr, než sa stihol spustiť komponent, ktorý ho

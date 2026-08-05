@@ -3,8 +3,15 @@
  * Uloženie výsledku diagnostiky.
  *
  * Volá sa z prehliadača hneď po tom, ako sa vygeneruje permanentný hash.
- * Uloží PLNÉ znenie výsledku vrátane odpovedí po otázkach, takže sa dá
- * zobraziť neskôr — aj na inom zariadení a aj v administrácii.
+ * Uloží AGREGÁTY výsledku (vypočítané skóre, firmografiu, odvodené
+ * odporúčania), takže sa dá zobraziť neskôr aj na inom zariadení.
+ *
+ * ODPOVEDE PO OTÁZKACH SA NEUKLADAJÚ (rozhodnutie 5. 8. 2026). Boli tu pre
+ * pripravovanú administráciu; tá bola zrušená, takže by sa najcitlivejšia
+ * časť dát uchovávala bez účelu. Klient ich už neposiela a tento endpoint
+ * ich zahadzuje aj vtedy, keď v tele prídu — stĺpec `answers_json` zostáva
+ * v schéme prázdny, aby sa dal zápis obnoviť bez migrácie, ak sa
+ * administrácia vráti (vtedy ale treba vyriešiť aj právny základ).
  *
  * Nasadenie: docroot/api/result-save.php
  * Konfigurácia žije NAD docrootom (../../app-config/db.php →
@@ -152,7 +159,8 @@ try {
     num_field($scores, 'businessImpactEur'),
     str_field($body, 'modelVersion', 64),
     json_encode($body['result'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-    isset($body['answers']) ? json_encode($body['answers'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null,
+    // Zámerne vždy NULL — odpovede po otázkach sa neukladajú (viď hlavička).
+    null,
     isset($body['respondent']) ? json_encode($body['respondent'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null,
     $ipHash,
     $userAgent,

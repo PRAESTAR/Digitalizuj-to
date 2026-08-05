@@ -1,12 +1,24 @@
-import type { PeerSnapshot, ResultSnapshot, Respondent, Answer, AssessmentType } from '@/types';
+import type { PeerSnapshot, ResultSnapshot, Respondent, AssessmentType } from '@/types';
 
 /**
  * Serverové úložisko výsledkov.
  *
  * Do 5. 8. 2026 výsledok nikam neodchádzal — žil len v `localStorage`, takže
  * permanentný odkaz aj QR kód fungovali výlučne na tom istom zariadení.
- * Odteraz sa plné znenie ukladá do MariaDB cez PHP endpointy (hosting/api),
- * čím sa dá výsledok zobraziť aj neskôr a inde.
+ * Odteraz sa ukladá do MariaDB cez PHP endpointy (hosting/api), čím sa dá
+ * výsledok zobraziť aj neskôr a inde.
+ *
+ * ROZSAH UKLADANÝCH DÁT (rozhodnutie 5. 8. 2026): ukladajú sa VÝLUČNE
+ * agregáty — vypočítané skóre, firmografia a odvodené odporúčania. Odpovede
+ * po jednotlivých otázkach sa NEODOSIELAJÚ. Boli tu pre pripravovanú
+ * administráciu; tá bola zrušená, takže by sa najcitlivejšia časť dát (čo
+ * firma povedala o svojich zálohách, bezpečnosti a systémoch) uchovávala bez
+ * akéhokoľvek účelu. Agregáty naopak priamo pohánajú permanentný odkaz, teda
+ * funkciu, ktorú si používateľ vypýtal.
+ *
+ * Ak sa administrácia vráti, treba doplniť `answers` späť do payloadu, zapnúť
+ * zápis v `result-save.php` — a vyriešiť právny základ, lebo vtedy už nejde
+ * o dáta nutné na fungovanie služby.
  *
  * localStorage zostáva ako prvá vrstva: je okamžitý a funguje aj vtedy, keď
  * zápis na server zlyhá. Server je druhá vrstva a jediná, ktorá prežije
@@ -21,7 +33,6 @@ interface SaveInput {
   uuid: string;
   result: ResultSnapshot;
   respondent: Respondent;
-  answers: Answer[];
   quizType: AssessmentType;
   locale: string;
   completedAt?: string;
@@ -59,7 +70,6 @@ export async function saveResultToServer(input: SaveInput): Promise<boolean> {
           businessImpactEur: input.result.businessImpact.financialImpact.eurPerYear.mid,
         },
         result: input.result,
-        answers: input.answers,
         respondent: input.respondent,
       }),
       // Zápis nemá nič spoločné s prihlásením — nech neposiela cookies.
