@@ -18,8 +18,19 @@ const SITE_URL = 'https://matpex.sk';
 
 type Params = Promise<{ locale: string; hash: string }>;
 
+/**
+ * Sentinel, pre ktorý export vyrobí jednu generickú stránku výsledku
+ * (`/{locale}/r/view.html`). Statický export vie vygenerovať súbor len pre
+ * vopred známe hashe — pre hash konkrétneho návštevníka žiadny neexistuje
+ * a Apache by vrátil 404. `.htaccess` preto každý neznámy `/{locale}/r/*`
+ * interne prepíše sem a skutočný hash si stránka prečíta z adresy
+ * (viď UserOwnResultView). Nemôže kolidovať s reálnym hashom — tie majú
+ * 64, 16 alebo 12 znakov.
+ */
+export const FALLBACK_HASH = 'view';
+
 export async function generateStaticParams() {
-  return PEER_DATA.map((p) => ({ hash: p.hash }));
+  return [...PEER_DATA.map((p) => ({ hash: p.hash })), { hash: FALLBACK_HASH }];
 }
 
 export async function generateMetadata({
@@ -28,6 +39,16 @@ export async function generateMetadata({
   params: Params;
 }): Promise<Metadata> {
   const { hash } = await params;
+
+  // Generická stránka pre vlastné výsledky — konkrétny hash server nepozná,
+  // takže sa nedá povedať nič konkrétnejšie než že ide o výsledok.
+  if (hash === FALLBACK_HASH) {
+    return {
+      title: 'Váš výsledok diagnostiky',
+      alternates: {},
+      robots: { index: false, follow: false },
+    };
+  }
 
   if (!isValidHash(hash)) {
     return {
@@ -78,6 +99,13 @@ export default async function ResultByHashPage({
   const { locale, hash } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
+
+  // Sem Apache prepisuje každý hash, pre ktorý neexistuje exportovaná
+  // stránka — teda výsledky konkrétnych návštevníkov. Skutočný hash si
+  // komponent prečíta z adresy a výsledok načíta z localStorage.
+  if (hash === FALLBACK_HASH) {
+    return <UserOwnResultView hash={hash} />;
+  }
 
   if (!isValidHash(hash)) {
     notFound();

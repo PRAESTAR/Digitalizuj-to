@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { ResultSnapshot, Respondent } from '@/types';
-import { generateHash, saveResultToStorage } from '@/lib/resultHash';
+import { generateResultId, saveResultToStorage } from '@/lib/resultHash';
 import { toPeerSnapshot } from '@/lib/snapshotMapper';
 import QRCodeCard from './QRCodeCard';
 
@@ -25,10 +25,19 @@ export default function PermanentLinkPanel({ result, respondent, completedAt }: 
   const [hash, setHash] = useState<string | null>(null);
 
   useEffect(() => {
-    const h = generateHash();
-    const snapshot = toPeerSnapshot(h, result, respondent, completedAt);
-    saveResultToStorage(h, snapshot);
-    setHash(h);
+    // SHA-256 sa počíta asynchrónne; `cancelled` bráni zápisu stavu, keby sa
+    // komponent odmountoval skôr, než digest dobehne.
+    let cancelled = false;
+    (async () => {
+      const { hash: h, uuid } = await generateResultId();
+      if (cancelled) return;
+      const snapshot = toPeerSnapshot(h, result, respondent, completedAt);
+      saveResultToStorage(h, snapshot, uuid);
+      setHash(h);
+    })();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- generovať znova len ak sa zmení samotný výsledok
   }, [result.assessmentId]);
 

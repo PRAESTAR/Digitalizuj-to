@@ -9,7 +9,7 @@ import {
   SECTOR_LABELS_SK,
   SIZE_BAND_LABELS_SK,
 } from '@/data/peerData';
-import { loadResultFromStorage } from '@/lib/resultHash';
+import { loadResultFromStorage, isValidHash } from '@/lib/resultHash';
 import type { PeerSnapshot } from '@/types';
 import PeerComparisonPanel from './PeerComparisonPanel';
 import QRCodeCard from './QRCodeCard';
@@ -25,8 +25,19 @@ interface Props {
 
 type ViewState =
   | { kind: 'loading' }
-  | { kind: 'found'; snapshot: PeerSnapshot }
-  | { kind: 'missing' };
+  | { kind: 'found'; snapshot: PeerSnapshot; hash: string }
+  | { kind: 'missing'; hash: string };
+
+/**
+ * Skutočný hash z adresy. Na produkcii (statický export) sem Apache prepisuje
+ * všetky neznáme `/{locale}/r/*`, takže prop `hash` je sentinel `view` a jediné
+ * miesto, kde hash naozaj je, je URL.
+ */
+function hashFromLocation(fallback: string): string {
+  if (typeof window === 'undefined') return fallback;
+  const last = window.location.pathname.split('/').filter(Boolean).pop() ?? '';
+  return isValidHash(last) ? last : fallback;
+}
 
 export default function UserOwnResultView({ hash }: Props) {
   const t = useTranslations();
@@ -34,14 +45,15 @@ export default function UserOwnResultView({ hash }: Props) {
   const [state, setState] = useState<ViewState>({ kind: 'loading' });
 
   useEffect(() => {
-    const stored = loadResultFromStorage(hash);
+    const effective = hashFromLocation(hash);
+    const stored = loadResultFromStorage(effective);
     if (stored && stored.payload && typeof stored.payload === 'object') {
       // We saved a PeerSnapshot in payload. Validate the shape minimally.
       const p = stored.payload as PeerSnapshot;
       // diiScore100 môže byť vo v2 legitímne null (nemerané DII) — kotvou
       // tvaru je tdriScore, ktorý je number v každej verzii schémy.
       if (
-        p.hash === hash &&
+        p.hash === effective &&
         typeof p.tdriScore === 'number' &&
         (typeof p.diiScore100 === 'number' || p.diiScore100 === null)
       ) {
@@ -49,11 +61,11 @@ export default function UserOwnResultView({ hash }: Props) {
         // aby prvý klientský render zodpovedal serverovému (žiadny hydration mismatch).
         // Ide o jediný, terminálny setState bez ďalších nadväzujúcich efektov.
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setState({ kind: 'found', snapshot: p });
+        setState({ kind: 'found', snapshot: p, hash: effective });
         return;
       }
     }
-    setState({ kind: 'missing' });
+    setState({ kind: 'missing', hash: effective });
   }, [hash]);
 
   if (state.kind === 'loading') {
@@ -81,7 +93,7 @@ export default function UserOwnResultView({ hash }: Props) {
         <p className="text-[#6e6e73] mb-2 leading-relaxed">
           {/* 16-znakový hash je jeden nezalomiteľný reťazec — bez break-all
               pretečie odsek pri 320 px hneď, ako sa zväčší text. */}
-          {t.rich('customer.notFoundBody', { hash, mono: (c) => <span className="font-mono text-[#1d1d1f] break-all">{c}</span> })}
+          {t.rich('customer.notFoundBody', { hash: state.hash, mono: (c) => <span className="font-mono text-[#1d1d1f] break-all">{c}</span> })}
         </p>
         <p className="text-[#6e6e73] mb-8 text-sm leading-relaxed">
           {t('customer.notFoundHint')}
@@ -107,9 +119,10 @@ export default function UserOwnResultView({ hash }: Props) {
   }
 
   const snapshot = state.snapshot;
+  const resultHash = state.hash;
   const sectorLabel = SECTOR_LABELS_SK[snapshot.sector] ?? snapshot.sector;
   const sizeLabel = SIZE_BAND_LABELS_SK[snapshot.sizeBand];
-  const url = `${SITE_URL}/r/${hash}`;
+  const url = `${SITE_URL}/r/${resultHash}`;
   const dateLabel = new Date(snapshot.completedAt).toLocaleDateString(intlLocale(locale), {
     year: 'numeric',
     month: 'long',
@@ -138,7 +151,7 @@ export default function UserOwnResultView({ hash }: Props) {
               {sectorLabel} &middot; {sizeLabel}
             </h1>
             <p className="text-sm text-[#6e6e73] mt-1 break-words">
-              Hash: <span className="font-mono text-[#1d1d1f] break-all">{hash}</span> &middot; {dateLabel}
+              Hash: <span className="font-mono text-[#1d1d1f] break-all">{resultHash}</span> &middot; {dateLabel}
             </p>
           </div>
         </div>
@@ -173,7 +186,7 @@ export default function UserOwnResultView({ hash }: Props) {
       </div>
 
       <PeerComparisonPanel current={snapshot} />
-      <QRCodeCard url={url} hash={hash} />
+      <QRCodeCard url={url} hash={resultHash} />
 
       <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 sm:p-5 text-sm text-[#1d1d1f] leading-relaxed">
         <p className="font-bold text-emerald-700 mb-1">{t('share.privacyTitle')}</p>

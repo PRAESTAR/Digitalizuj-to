@@ -128,6 +128,16 @@ AddType application/manifest+json .webmanifest
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME}.html -f
   RewriteRule ^(.*)$ $1.html [L]
+  # c) /{jazyk}/r/<hash> bez exportovaného súboru → generická stránka výsledku.
+  #    Export vie vyrobiť .html len pre vopred známe hashe (50 ukážkových
+  #    profilov), takže vlastný výsledok návštevníka by inak skončil na 404 —
+  #    a s ním aj celý permanentný odkaz a QR kód. Prepis je interný (žiadne
+  #    presmerovanie), takže hash zostáva v adrese a stránka si ho z nej
+  #    prečíta. Musí byť AŽ ZA pravidlom b): ukážkové profily majú vlastný
+  #    súbor a to pravidlo ich chytí skôr.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME}.html !-f
+  RewriteRule ^(sk|cs|en)/r/[A-Za-z0-9]+/?$ /$1/r/view.html [L]
 </IfModule>
 
 ErrorDocument 404 /404.html
