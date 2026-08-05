@@ -25,6 +25,16 @@ const SCENARIOS: { key: keyof ScenarioValues; head: string; eur: string }[] = [
 export default function BusinessImpactPanel({ impact }: BusinessImpactPanelProps) {
   const t = useTranslations();
   const locale = useLocale() as Locale;
+
+  // Bez doloženej organizačnej pripravenosti (alebo bez známej veľkosti firmy)
+  // sa optimistický scenár nezobrazuje — engine to rozhodol v displayPolicy.
+  // Predtým sa k nemu len pridával disclaimer, ktorý číslo nijako nekrotil.
+  // Uložené výsledky spred zmeny politiku nemajú, vtedy sa ukáže všetko.
+  const visible = impact.displayPolicy?.visibleScenarios;
+  const showScenario = (key: keyof ScenarioValues): boolean =>
+    !visible || visible.includes(key);
+  const scenarios = SCENARIOS.filter(s => showScenario(s.key));
+
   return (
     // p-8 na mobile ukrojilo 64 px z 286 px — obsah mal len 222 px. Padding rastie až od sm.
     <div className="bg-white rounded-3xl border border-black/5 shadow-sm p-5 sm:p-6 lg:p-8 animate-fade-in-up relative overflow-hidden">
@@ -59,7 +69,7 @@ export default function BusinessImpactPanel({ impact }: BusinessImpactPanelProps
             4-stĺpcová tabuľka má 452 px a v ~250 px okne by z nej boli vidieť dva stĺpce,
             takže pod sm ju nahrádzame tromi kartami pod sebou (jedna karta = jeden scenár). */}
         <div className="sm:hidden mb-6 space-y-3">
-          {SCENARIOS.map(s => (
+          {scenarios.map(s => (
             <div key={s.key} className="rounded-2xl border border-black/5 overflow-hidden">
               <div className={`px-4 py-2.5 bg-black/[0.03] text-sm font-bold ${s.head}`}>
                 {t('impact.scenario.' + s.key)}
@@ -98,23 +108,29 @@ export default function BusinessImpactPanel({ impact }: BusinessImpactPanelProps
             <thead>
               <tr className="bg-black/[0.03]">
                 <th className="text-left py-3.5 px-4 text-[#6e6e73] font-bold">Metrika</th>
-                <th className="text-right py-3.5 px-4 text-emerald-600 font-bold">{t('impact.scenario.conservative')}</th>
-                <th className="text-right py-3.5 px-4 text-[#6e6e73] font-bold">{t('impact.scenario.mid')}</th>
-                <th className="text-right py-3.5 px-4 text-[#0068d6] font-bold">{t('impact.scenario.optimistic')}</th>
+                {scenarios.map(s => (
+                  <th key={s.key} className={`text-right py-3.5 px-4 font-bold ${s.head}`}>
+                    {t('impact.scenario.' + s.key)}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               <tr className="border-b border-black/5 hover:bg-black/[0.02] transition-colors">
                 <td className="py-3.5 px-4 text-[#1d1d1f] font-medium">{t('impact.savedHours')}</td>
-                <td className="py-3.5 px-4 text-right font-mono font-medium">{impact.timeSavings.hoursPerYear.conservative}</td>
-                <td className="py-3.5 px-4 text-right font-mono font-medium">{impact.timeSavings.hoursPerYear.mid}</td>
-                <td className="py-3.5 px-4 text-right font-mono font-medium">{impact.timeSavings.hoursPerYear.optimistic}</td>
+                {scenarios.map(s => (
+                  <td key={s.key} className="py-3.5 px-4 text-right font-mono font-medium">
+                    {impact.timeSavings.hoursPerYear[s.key]}
+                  </td>
+                ))}
               </tr>
               <tr className="border-b border-black/5 hover:bg-black/[0.02] transition-colors">
                 <td className="py-3.5 px-4 text-[#1d1d1f] font-medium">{t('impact.savedMd')}</td>
-                <td className="py-3.5 px-4 text-right font-mono font-medium">{impact.timeSavings.mdPerYear.conservative}</td>
-                <td className="py-3.5 px-4 text-right font-mono font-medium">{impact.timeSavings.mdPerYear.mid}</td>
-                <td className="py-3.5 px-4 text-right font-mono font-medium">{impact.timeSavings.mdPerYear.optimistic}</td>
+                {scenarios.map(s => (
+                  <td key={s.key} className="py-3.5 px-4 text-right font-mono font-medium">
+                    {impact.timeSavings.mdPerYear[s.key]}
+                  </td>
+                ))}
               </tr>
               <tr className="border-b border-black/5 hover:bg-black/[0.02] transition-colors">
                 {/* display:flex na <td> ruší jeho účasť v table layoute a rozbíja zarovnanie stĺpcov */}
@@ -122,21 +138,19 @@ export default function BusinessImpactPanel({ impact }: BusinessImpactPanelProps
                   {t('impact.errorReduction')}
                   <span className="inline-flex items-center ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 font-bold align-middle">NEW</span>
                 </td>
-                <td className="py-3.5 px-4 text-right font-mono font-medium">{impact.errorCostReduction.reworkHoursSaved.conservative}</td>
-                <td className="py-3.5 px-4 text-right font-mono font-medium">{impact.errorCostReduction.reworkHoursSaved.mid}</td>
-                <td className="py-3.5 px-4 text-right font-mono font-medium">{impact.errorCostReduction.reworkHoursSaved.optimistic}</td>
+                {scenarios.map(s => (
+                  <td key={s.key} className="py-3.5 px-4 text-right font-mono font-medium">
+                    {impact.errorCostReduction.reworkHoursSaved[s.key]}
+                  </td>
+                ))}
               </tr>
               <tr className="bg-black/[0.03]">
                 <td className="py-3.5 px-4 text-[#1d1d1f] font-bold">{t('impact.annualImpact')}</td>
-                <td className="py-3.5 px-4 text-right font-mono font-bold text-emerald-700">
-                  {formatEur(impact.financialImpact.eurPerYear.conservative, locale)}
-                </td>
-                <td className="py-3.5 px-4 text-right font-mono font-bold text-[#1d1d1f]">
-                  {formatEur(impact.financialImpact.eurPerYear.mid, locale)}
-                </td>
-                <td className="py-3.5 px-4 text-right font-mono font-bold text-[#0068d6]">
-                  {formatEur(impact.financialImpact.eurPerYear.optimistic, locale)}
-                </td>
+                {scenarios.map(s => (
+                  <td key={s.key} className={`py-3.5 px-4 text-right font-mono font-bold ${s.eur}`}>
+                    {formatEur(impact.financialImpact.eurPerYear[s.key], locale)}
+                  </td>
+                ))}
               </tr>
             </tbody>
           </table>
