@@ -68,6 +68,31 @@ export const categoryNames: Record<string, string> = {
   F: 'Governance a ľudia',
 };
 
+/**
+ * Sila dôkazu o riziku — oddelená od jeho závažnosti.
+ *
+ * Závažnosť už je zapečená v `maxPenalty` (kritické faktory ho majú 15,
+ * stredné 4–6), takže ju netreba počítať druhýkrát. Predtým sa násobilo
+ * oboje naraz a vznikla inverzia: potvrdené stredné riziko dostalo 0,6×
+ * maxPenalty, kým to isté riziko iba ODVODENÉ z nízkeho skóre dostalo 0,8×.
+ * Priznanie problému teda skórovalo lepšie než dohad — a zlepšenie odpovede
+ * vedelo index rizika zvýšiť.
+ *
+ * Poradie confirmed > inferred_strong > inferred_moderate platí pre každú
+ * závažnosť; stráži to test.
+ */
+export const riskConfidenceMultipliers = {
+  /** Otázka priamo spustila flag_risk — firma problém potvrdila. */
+  confirmed: 1.0,
+  /** Nepotvrdené, ale skóre súvisiacich otázok je veľmi nízke. */
+  inferred_strong: 0.7,
+  /** Nepotvrdené, skóre je stredné. */
+  inferred_moderate: 0.35,
+} as const;
+
+/** Hranice priemerného skóre, od ktorých sa riziko odvodzuje. */
+export const riskInferenceThresholds: [number, number] = [30, 60];
+
 export const riskFactorDefinitions = [
   { id: 'RF01', name: 'Out-of-support core OS/DB', maxPenalty: 15, severity: 'critical' as const },
   { id: 'RF02', name: 'Chýbajúce zálohy core dát', maxPenalty: 15, severity: 'critical' as const },
@@ -84,6 +109,28 @@ export const riskFactorDefinitions = [
   { id: 'RF13', name: 'Nepripravenosť na povinnú e-fakturáciu (od 1.1.2027)', maxPenalty: 6, severity: 'medium' as const },
   { id: 'RF14', name: 'Nepripravenosť na NIS2 (ak sa firmu týka)', maxPenalty: 6, severity: 'medium' as const },
 ];
+
+/**
+ * Súčet všetkých maxPenalty — menovateľ normalizácie TDRI.
+ *
+ * POČÍTA sa z definícií, nikdy sa nepíše ako literál: pri pridaní pätnásteho
+ * faktora by inak strop ticho vyskočil a pásma by prestali sedieť.
+ *
+ * Bez normalizácie bolo TDRI 100 nedosiahnuteľné — reálne maximum bolo ~93
+ * (a v dokumentácii sa uvádzali dokonca dve rôzne čísla, 93,4 a 86,2), takže
+ * pásmo „kritické 61–100" bolo fakticky 61–93.
+ */
+export const tdriMaxPenaltySum = riskFactorDefinitions.reduce((s, d) => s + d.maxPenalty, 0);
+
+/**
+ * Dva stupne naliehavosti pre rizikové odporúčania.
+ *
+ * `immediate` mieri do roadmapy 0–3 mesiace, `medium` do 3–12 mesiacov.
+ * Prahy sú na normalizovanej škále (po delení tdriMaxPenaltySum). Stredné
+ * riziká sa dovtedy do odporúčaní nedostali vôbec: ich maximum bolo 4,0 pri
+ * jedinom gate 5, takže RF08/RF10/RF11/RF12 boli matematicky nedosiahnuteľné.
+ */
+export const riskRecommendationGates = { immediate: 5, medium: 2.5 } as const;
 
 // Hodinová cena práce pre ROI výpočet — už sa nepýtame firmu (citlivý údaj, zbytočná
 // záťaž respondenta); vždy používame priemer IT/telekomunikačného sektora SR, keďže
@@ -148,7 +195,95 @@ export const processBenchmarks: Record<string, {
     reworkMinutesPerError: 120,
     exceptionRate: 0.15,
   },
+  // Tri procesy, ktoré sa v cx_A05 dali označiť, ale benchmark pre ne
+  // neexistoval — respondent ich označil za ručné a z ROI ticho vypadli.
+  // Frekvencie, časy, automatizovateľnosť a chybovosť sú z ROI_MODEL §2.2;
+  // hodnoty pre mikrofirmy a rework/exception sú expertný odhad odvodený
+  // pomerom, ktorý držia ostatné záznamy (micro ≈ 0,4 × small).
+  inventory_management: {
+    frequencyPerMonth: { micro: 8, small: 20, medium: 100, large: 300 },
+    timePerUnitMinutes: 10,
+    automatableShare: 0.65,
+    errorRate: 0.04,
+    reworkMinutesPerError: 20,
+    exceptionRate: 0.09,
+  },
+  field_service: {
+    frequencyPerMonth: { micro: 16, small: 40, medium: 200, large: 600 },
+    timePerUnitMinutes: 12,
+    automatableShare: 0.35,
+    errorRate: 0.05,
+    reworkMinutesPerError: 25,
+    exceptionRate: 0.12,
+  },
+  purchasing: {
+    frequencyPerMonth: { micro: 6, small: 15, medium: 60, large: 180 },
+    timePerUnitMinutes: 25,
+    automatableShare: 0.55,
+    errorRate: 0.04,
+    reworkMinutesPerError: 30,
+    exceptionRate: 0.08,
+  },
 };
+
+/**
+ * Väzba hodnoty odpovede cx_A05 na kľúč v `processBenchmarks`.
+ *
+ * Bez nej sa väzba držala len zhodou názvov, takže tri hodnoty (sklad, servis,
+ * nákup) nemali benchmark a ticho z ROI vypadli — respondent ich označil za
+ * ručné a vo výsledku sa neprejavili.
+ */
+export const processKeyFromAnswerValue: Record<string, string> = {
+  invoicing: 'invoicing',
+  hr_onboarding: 'hr_onboarding',
+  reporting: 'reporting',
+  warehouse: 'inventory_management',
+  service: 'field_service',
+  purchasing: 'purchasing',
+};
+
+/**
+ * Stredy pásiem cx_ROI03 (faktúry vydané + prijaté za mesiac).
+ * Pásma sa čítajú ako [0,50], (50,200], (200,500], (500,∞); pri otvorenom
+ * hornom pásme je kotva konzervatívna, nie extrapolácia.
+ */
+export const invoicingVolumeFromBand: Record<string, number> = {
+  low: 25,
+  medium: 125,
+  high: 350,
+  very_high: 700,
+};
+
+/**
+ * Kapacita administratívy z cx_ROI02. Headcount NIE JE objem — je to strop:
+ * benchmarkové frekvencie procesov nemôžu spotrebovať viac hodín, než koľko
+ * ich admin tím vôbec má. Preto sa ním odhad len znižuje, nikdy nezvyšuje.
+ */
+export const adminFteFromBand: Record<string, number> = {
+  '1_3': 2,
+  '4_10': 7,
+  '11_30': 20,
+  '30_plus': 40,
+};
+/** 52 × 40 h mínus dovolenka, sviatky a PN. */
+export const workingHoursPerFteYear = 1700;
+/** Podiel času administratívneho pracovníka, ktorý padne na modelované procesy. */
+export const adminAgendaShareOfFte = 0.6;
+
+/**
+ * Proces, ktorý firma sama označila za prevažne ručný (cx_A05), je priama
+ * evidencia o podiele manuálnej práce a prebíja odhad z celofiremnej maturity.
+ * Je to DOLNÁ hranica, nie fixná hodnota — pri maturity 0 je globálny podiel
+ * 0,90 a plochých 0,85 by najmenej zrelým firmám úsporu znížilo.
+ */
+export const manualShareWhenSelfReportedManual = 0.85;
+
+/**
+ * Prahy governance (ORS kategória F) pre zobrazenie scenárov — ROI_MODEL §5.3.
+ * Bez doloženej organizačnej pripravenosti sa optimistický scenár nezobrazuje;
+ * doteraz sa k nemu len pridával disclaimer, ktorý číslo nijako nekrotil.
+ */
+export const governanceScenarioGates = { high: 75, standard: 50 };
 
 export const manualShareFromMaturity: Record<number, number> = {
   0: 0.90,

@@ -188,8 +188,16 @@ export interface RiskFactor {
   name: string;
   severity: 'critical' | 'high' | 'medium';
   maxPenalty: number;
+  /** Normalizovaná penalta na škále 0–100 (rovnaká škála ako TDRI skóre). */
   penalty: number;
   active: boolean;
+  /**
+   * Firma problém sama potvrdila (odpoveď spustila flag_risk) — na rozdiel od
+   * rizika iba odvodeného z nízkeho skóre súvisiacich otázok. Rozlíšenie je
+   * podstatné: potvrdené riziko musí vážiť viac než dohad.
+   */
+  confirmed: boolean;
+  evidenceStrength: 'confirmed' | 'inferred_strong' | 'inferred_moderate' | 'none';
   evidence: string;
   sourceAnswers: string[];
 }
@@ -254,7 +262,28 @@ export interface SavingsProjection {
   points: SavingsCurvePoint[];
 }
 
+export type ScenarioKey = 'conservative' | 'mid' | 'optimistic';
+
+/**
+ * Ktoré scenáre sa smú zobraziť a ktorý je headline číslo (ROI_MODEL §5.3).
+ * Bez doloženej organizačnej pripravenosti — alebo bez známej veľkosti firmy —
+ * sa optimistický scenár nevykresľuje; predtým sa k nemu len pridával
+ * disclaimer, ktorý číslo nijako nekrotil.
+ */
+export interface ScenarioDisplayPolicy {
+  gate: 'high' | 'standard' | 'restricted' | 'unmeasured';
+  recommendedScenario: ScenarioKey;
+  visibleScenarios: ScenarioKey[];
+  /** Skóre ORS kategórie F; null = nemerané. */
+  governanceScoreF: number | null;
+  reasonSk: string;
+}
+
 export interface BusinessImpact {
+  /** Voliteľné — uložené výsledky spred 2026-08-05 pole nemajú. */
+  displayPolicy?: ScenarioDisplayPolicy;
+  /** Priznané dosadené vstupy — dnes len veľkosť firmy. */
+  inputAssumptions?: { sizeBandAssumed: boolean; assumedSizeBand: string | null };
   timeSavings: {
     hoursPerYear: ScenarioValues;
     mdPerYear: ScenarioValues;
@@ -428,7 +457,8 @@ export interface ScoringConfig {
   diiMethodologyVersion: string;
   categoryWeights: Record<string, number>;
   maturityThresholds: number[];
-  riskThresholds: number[];
+  /** Presne tri prahy (low/medium/high) — `number[]` by dĺžku nezaručil a destrukturácia by ticho dala undefined. */
+  riskThresholds: [number, number, number];
   securityPenaltyThreshold: number;
   securityPenaltyMaxFactor: number;
   unknownAnswerExclusionThreshold: number;

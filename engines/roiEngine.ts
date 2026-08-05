@@ -1,21 +1,87 @@
-import type { Answer, BusinessImpact, CalculationAuditEntry, Question, ScenarioValues, SavingsProjection } from '@/types';
+import type { Answer, BusinessImpact, CalculationAuditEntry, Question, ScenarioValues, SavingsProjection, ScenarioDisplayPolicy } from '@/types';
 import {
   defaultHourlyCostEur,
   processBenchmarks,
   manualShareFromMaturity,
+  manualShareWhenSelfReportedManual,
+  processKeyFromAnswerValue,
+  invoicingVolumeFromBand,
+  adminFteFromBand,
+  workingHoursPerFteYear,
+  adminAgendaShareOfFte,
+  governanceScenarioGates,
   realizationRates,
   rampUpMonthsByScenario,
   savingsProjectionHorizonMonths,
 } from '@/data/scoringConfig';
 
 interface ROIInputs {
-  employeeCountBand: string;
+  /** null = veľkosť firmy nebola uvedená — engine ju priznane predpokladá. */
+  employeeCountBand: string | null;
   maturityLevel: number;
   manualProcesses: string[];
-  invoicingVolumeBand: string;
-  adminHeadcountBand: string;
+  /** null = objem fakturácie neuvedený (vrátane „Neviem"). */
+  invoicingVolumeBand: string | null;
+  /** null = počet administratívnych pracovníkov neuvedený. */
+  adminHeadcountBand: string | null;
   /** null = kategória F (governance) nemeraná — disclaimer sa nevyhodnocuje. */
   categoryScoreF: number | null;
+}
+
+/**
+ * Politika zobrazenia scenárov podľa meranej governance (ROI_MODEL §5.3).
+ * Bez doloženej organizačnej pripravenosti sa optimistický scenár nezobrazuje —
+ * doteraz sa k nemu len pridával disclaimer, ktorý číslo nijako nekrotil.
+ */
+function resolveScenarioPolicy(
+  f: number | null,
+  sizeBandAssumed: boolean
+): ScenarioDisplayPolicy {
+  if (sizeBandAssumed) {
+    return {
+      gate: 'restricted',
+      recommendedScenario: 'conservative',
+      visibleScenarios: ['conservative', 'mid'],
+      governanceScoreF: f,
+      reasonSk:
+        'Veľkosť firmy nebola uvedená, takže objemy procesov stoja na predpoklade — optimistický scenár by predstieral presnosť, ktorú vstupy nemajú.',
+    };
+  }
+  if (f === null) {
+    return {
+      gate: 'unmeasured',
+      recommendedScenario: 'conservative',
+      visibleScenarios: ['conservative', 'mid'],
+      governanceScoreF: null,
+      reasonSk:
+        'Governance (kategória F) nebola zmeraná — optimistický scenár sa nezobrazuje, pretože organizačnú pripravenosť nevieme doložiť.',
+    };
+  }
+  if (f >= governanceScenarioGates.high) {
+    return {
+      gate: 'high',
+      recommendedScenario: 'mid',
+      visibleScenarios: ['conservative', 'mid', 'optimistic'],
+      governanceScoreF: f,
+      reasonSk: `Vysoká organizačná pripravenosť (F ${Math.round(f)}/100) — firma má reálnu šancu dosiahnuť aj optimistický scenár.`,
+    };
+  }
+  if (f >= governanceScenarioGates.standard) {
+    return {
+      gate: 'standard',
+      recommendedScenario: 'mid',
+      visibleScenarios: ['conservative', 'mid', 'optimistic'],
+      governanceScoreF: f,
+      reasonSk: `Priemerná organizačná pripravenosť (F ${Math.round(f)}/100) — realistický scenár je primeraný odhad.`,
+    };
+  }
+  return {
+    gate: 'restricted',
+    recommendedScenario: 'conservative',
+    visibleScenarios: ['conservative', 'mid'],
+    governanceScoreF: f,
+    reasonSk: `Nízka organizačná pripravenosť (F ${Math.round(f)}/100) znižuje pravdepodobnosť realizácie plného potenciálu — optimistický scenár sa preto nezobrazuje.`,
+  };
 }
 
 export function calculateBusinessImpact(
@@ -25,8 +91,31 @@ export function calculateBusinessImpact(
 ): BusinessImpact {
   // Hodinová cena práce sa nepýta ako otázka — vždy priemer SR (viď data/scoringConfig.ts).
   const hourlyCost = defaultHourlyCostEur;
-  const manualShare = manualShareFromMaturity[inputs.maturityLevel] ?? 0.65;
-  const sizeBand = inputs.employeeCountBand || 'small';
+  const globalManualShare = manualShareFromMaturity[inputs.maturityLevel] ?? 0.65;
+
+  // Veľkosť firmy sa už ticho nedosádza — keď chýba, počíta sa ďalej, ale
+  // priznane: disclaimer, prefix v audite a zastropovaná dôveryhodnosť.
+  const sizeBandAssumed = inputs.employeeCountBand === null;
+  const sizeBand = inputs.employeeCountBand ?? 'small';
+
+  // Self-reported objem faktúr prebíja benchmarkovú frekvenciu — dve firmy
+  // s desaťnásobne odlišným objemom dostávali dovtedy identické ROI.
+  const selfReportedInvoiceVolume = inputs.invoicingVolumeBand
+    ? invoicingVolumeFromBand[inputs.invoicingVolumeBand] ?? null
+    : null;
+
+  // Proces označený za ručný je priama evidencia a prebíja odhad z maturity.
+  const selfReportedManual = new Set(
+    inputs.manualProcesses.map(v => processKeyFromAnswerValue[v] ?? v)
+  );
+  const manualShareFor = (proc: string): number =>
+    selfReportedManual.has(proc)
+      ? Math.max(manualShareWhenSelfReportedManual, globalManualShare)
+      : globalManualShare;
+  const frequencyFor = (proc: string, benchmark: (typeof processBenchmarks)[string]): number =>
+    proc === 'invoicing' && selfReportedInvoiceVolume !== null
+      ? selfReportedInvoiceVolume
+      : benchmark.frequencyPerMonth[sizeBand] || benchmark.frequencyPerMonth.small;
 
   const auditEntries: CalculationAuditEntry[] = [];
   let totalSavedHours = 0;
@@ -35,20 +124,26 @@ export function calculateBusinessImpact(
   let selfReportedCount = 0;
   let totalInputs = 0;
 
+  // Hrubé manuálne hodiny pred automatizovateľnosťou — porovnávajú sa
+  // s kapacitou administratívy (viď strop nižšie).
+  let grossManualHours = 0;
+
   // Calculate per-process savings (including error cost model)
-  const relevantProcesses = getRelevantProcesses(inputs.manualProcesses, answers);
+  const relevantProcesses = getRelevantProcesses(inputs.manualProcesses);
 
   for (const proc of relevantProcesses) {
     const benchmark = processBenchmarks[proc];
     if (!benchmark) continue;
 
-    const freqMonthly = benchmark.frequencyPerMonth[sizeBand] || benchmark.frequencyPerMonth.small;
+    const freqMonthly = frequencyFor(proc, benchmark);
     const freqYearly = freqMonthly * 12;
     const timePerCaseH = benchmark.timePerUnitMinutes / 60;
     const automatableShare = benchmark.automatableShare;
+    const manualShare = manualShareFor(proc);
 
     const savedHours = freqYearly * timePerCaseH * manualShare * automatableShare;
     totalSavedHours += savedHours;
+    grossManualHours += freqYearly * timePerCaseH * manualShare;
 
     // Error cost model: errors + rework time that automation prevents
     const errorsPerYear = freqYearly * benchmark.errorRate * manualShare;
@@ -57,10 +152,10 @@ export function calculateBusinessImpact(
     totalErrorCostHours += reworkHoursPerYear * automatableShare;
     totalErrorsPreventable += preventableErrors;
 
-    const isFromAnswer = inputs.manualProcesses.includes(proc);
     totalInputs++;
-    if (isFromAnswer) selfReportedCount++;
+    selfReportedCount++; // proces sem prišiel z odpovede, nie z defaultov
 
+    const volumeSelfReported = proc === 'invoicing' && selfReportedInvoiceVolume !== null;
     auditEntries.push({
       process: proc,
       frequencyYearly: freqYearly,
@@ -69,7 +164,11 @@ export function calculateBusinessImpact(
       automatableShare,
       savedHours: Math.round(savedHours),
       errorCostHours: Math.round(reworkHoursPerYear * automatableShare * 10) / 10,
-      dataSource: isFromAnswer ? 'mix (process: self-reported, volumes: benchmark)' : 'benchmark',
+      dataSource:
+        (sizeBandAssumed ? 'predpokladaná veľkosť firmy; ' : '') +
+        (volumeSelfReported
+          ? 'mix (proces aj objem: self-reported, čas a automatizovateľnosť: benchmark)'
+          : 'mix (proces: self-reported, objemy: benchmark)'),
     });
   }
 
@@ -80,17 +179,25 @@ export function calculateBusinessImpact(
       const benchmark = processBenchmarks[proc];
       if (!benchmark) continue;
 
-      const freqMonthly = benchmark.frequencyPerMonth[sizeBand] || benchmark.frequencyPerMonth.small;
+      const freqMonthly = frequencyFor(proc, benchmark);
       const freqYearly = freqMonthly * 12;
       const timePerCaseH = benchmark.timePerUnitMinutes / 60;
       const automatableShare = benchmark.automatableShare;
+      const manualShare = globalManualShare;
       const savedHours = freqYearly * timePerCaseH * manualShare * automatableShare;
       totalSavedHours += savedHours;
+      grossManualHours += freqYearly * timePerCaseH * manualShare;
 
       const errorsPerYear = freqYearly * benchmark.errorRate * manualShare;
       const reworkHoursPerYear = errorsPerYear * (benchmark.reworkMinutesPerError / 60);
       totalErrorCostHours += reworkHoursPerYear * automatableShare;
       totalErrorsPreventable += errorsPerYear * automatableShare;
+
+      // Aj default vetva je vstup — bez tohto bol menovateľ dôveryhodnosti
+      // nula a confidence uviazla na 0,3 aj pri vyplnenom objeme fakturácie.
+      totalInputs++;
+      const volumeSelfReported = proc === 'invoicing' && selfReportedInvoiceVolume !== null;
+      if (volumeSelfReported) selfReportedCount++;
 
       auditEntries.push({
         process: proc,
@@ -100,10 +207,36 @@ export function calculateBusinessImpact(
         automatableShare,
         savedHours: Math.round(savedHours),
         errorCostHours: Math.round(reworkHoursPerYear * automatableShare * 10) / 10,
-        dataSource: 'benchmark (žiadne self-reported dáta o procesoch)',
+        dataSource:
+          (sizeBandAssumed ? 'predpokladaná veľkosť firmy; ' : '') +
+          (volumeSelfReported
+            ? 'mix (objem faktúr: self-reported, zvyšok: benchmark)'
+            : 'benchmark (žiadne self-reported dáta o procesoch)'),
       });
     }
   }
+
+  // Strop kapacitou administratívy: benchmarkové objemy nemôžu spotrebovať
+  // viac hodín, než koľko ich admin tím vôbec má. Znižuje, nikdy nezvyšuje —
+  // benchmark frekvencie je dôkaz o objeme, headcount len horná hranica.
+  const adminCapacityHours = inputs.adminHeadcountBand
+    ? (adminFteFromBand[inputs.adminHeadcountBand] ?? null) !== null
+      ? adminFteFromBand[inputs.adminHeadcountBand] * workingHoursPerFteYear * adminAgendaShareOfFte
+      : null
+    : null;
+  const capFactor =
+    adminCapacityHours !== null && grossManualHours > adminCapacityHours
+      ? adminCapacityHours / grossManualHours
+      : 1;
+  if (capFactor < 1) {
+    totalSavedHours *= capFactor;
+    totalErrorCostHours *= capFactor;
+    totalErrorsPreventable *= capFactor;
+  }
+  // Headcount je vstup aj vtedy, keď strop nezasiahol — vyplnená odpoveď
+  // zvyšuje dôveryhodnosť rovnako ako ostatné self-reported údaje.
+  totalInputs++;
+  if (inputs.adminHeadcountBand !== null) selfReportedCount++;
 
   // Scenarios with realization rates (applied to both time savings and error cost reduction)
   const conservativeRate = realizationRates.conservative;
@@ -120,9 +253,12 @@ export function calculateBusinessImpact(
 
   // Confidence
   const dataCompleteness = totalInputs > 0 ? selfReportedCount / totalInputs : 0;
-  const confidence = Math.round(
+  const rawConfidence = Math.round(
     (dataCompleteness * 0.8 + (1 - dataCompleteness) * 0.3) * 100
   ) / 100;
+  // Bez známej veľkosti firmy stoja objemy na predpoklade — self-report
+  // o procesoch nesmie zvyšovať dôveru v číslo, ktorého základ je hádaný.
+  const confidence = sizeBandAssumed ? Math.min(rawConfidence, 0.3) : rawConfidence;
 
   let confidenceLabel: string;
   if (confidence >= 0.7) confidenceLabel = 'Vysoká — prevažne self-reported dáta';
@@ -137,11 +273,11 @@ export function calculateBusinessImpact(
   // Opportunity gap
   const gapPercentage = Math.max(0, Math.round((1 - inputs.maturityLevel / 4) * 100));
 
-  // Governance adjustment for displayed scenario
-  // Len MERANÁ nízka governance — nemerané F nie je zistenie o pripravenosti.
-  const governanceNote = inputs.categoryScoreF !== null && inputs.categoryScoreF < 50
-    ? 'Nízka organizačná pripravenosť znižuje pravdepodobnosť realizácie plného potenciálu.'
-    : '';
+  // Politika zobrazenia scenárov podľa meranej governance a známosti veľkosti.
+  const displayPolicy = resolveScenarioPolicy(inputs.categoryScoreF, sizeBandAssumed);
+  const governanceNote = displayPolicy.gate === 'standard' || displayPolicy.gate === 'high'
+    ? ''
+    : displayPolicy.reasonSk;
 
   const disclaimers = [
     'Odhad je založený na kombinácii self-reported dát a sektorových benchmarkov.',
@@ -152,6 +288,18 @@ export function calculateBusinessImpact(
     'Krivky kumulatívnej úspory predpokladajú lineárny nábeh k plnému ročnému run-rate (3/6/9 mesiacov podľa scenára) — zjednodušený ilustratívny model, nie empiricky kalibrovaná adopčná krivka.',
   ];
   if (governanceNote) disclaimers.push(governanceNote);
+  if (sizeBandAssumed) {
+    // Navrch zoznamu — bez známej veľkosti sa objemy procesov môžu líšiť
+    // aj niekoľkonásobne, takže je to najsilnejšia výhrada k celému číslu.
+    disclaimers.unshift(
+      'Veľkosť firmy nebola uvedená — objemy procesov sú počítané pre pásmo 10–49 zamestnancov. Odhad je preto len orientačný a pri inej veľkosti sa môže líšiť aj niekoľkonásobne.'
+    );
+  }
+  if (capFactor < 1) {
+    disclaimers.push(
+      `Odhad je zastropovaný kapacitou administratívy (${Math.round(adminCapacityHours!)} h/rok) — benchmarkové objemy procesov prevyšujú dostupný čas tímu.`
+    );
+  }
 
   // Total financial impact = time savings + error cost reduction
   const totalConservative = (hoursConservative + errorHoursConservative) * hourlyCost;
@@ -165,6 +313,11 @@ export function calculateBusinessImpact(
   });
 
   return {
+    displayPolicy,
+    inputAssumptions: {
+      sizeBandAssumed,
+      assumedSizeBand: sizeBandAssumed ? sizeBand : null,
+    },
     timeSavings: {
       hoursPerYear: {
         conservative: hoursConservative,
@@ -258,11 +411,15 @@ function buildSavingsProjection(eurPerYear: ScenarioValues): SavingsProjection {
   };
 }
 
-function getRelevantProcesses(manualProcesses: string[], _answers: Answer[]): string[] {
-  if (manualProcesses.length > 0) {
-    return manualProcesses.filter(p => processBenchmarks[p]);
-  }
-  return [];
+/**
+ * Hodnoty odpovede z cx_A05 na kľúče benchmarkov. Mapovanie je explicitné,
+ * lebo tri hodnoty (sklad, servis, nákup) sa volajú inak než ich benchmark —
+ * predtým sa spoliehalo na zhodu názvov a tie tri z výpočtu ticho vypadli.
+ */
+function getRelevantProcesses(manualProcesses: string[]): string[] {
+  return manualProcesses
+    .map(v => processKeyFromAnswerValue[v] ?? v)
+    .filter(key => processBenchmarks[key]);
 }
 
 function generateMitigations(answers: Answer[], questions: Question[]): string[] {
@@ -297,9 +454,15 @@ export function extractROIInputs(
   questions: Question[],
   categoryScoreF: number | null
 ): ROIInputs {
-  const getAnswerValue = (qId: string): string => {
+  /**
+   * Hodnota len z PLATNEJ odpovede. „Neviem" posiela prázdny reťazec s
+   * `isUnknown`, takže bez tejto kontroly by sa nerozoznalo „nevyplnené" od
+   * „vyplnené" a fallback by dosadil pásmo bez akéhokoľvek signálu.
+   */
+  const getMeasuredAnswerValue = (qId: string): string | null => {
     const ans = answers.find(a => a.questionId === qId);
-    return ans && typeof ans.value === 'string' ? ans.value : '';
+    if (!ans || ans.isUnknown || ans.wasSkipped) return null;
+    return typeof ans.value === 'string' && ans.value !== '' ? ans.value : null;
   };
 
   const getMultiSelectValues = (qId: string): string[] => {
@@ -323,12 +486,19 @@ export function extractROIInputs(
   // prázdny zoznam rieši calculateBusinessImpact benchmark defaultmi.
   const manualProcs = getMultiSelectValues('cx_A05');
 
+  // Veľkosť sa validuje proti známej množine — neznáma hodnota je to isté
+  // ako chýbajúca, inak by sa dostala do benchmarkového lookupu a ticho
+  // spadla na 'small'.
+  const KNOWN_SIZE_BANDS = ['micro', 'small', 'medium', 'large'];
+  const rawSize = getMeasuredAnswerValue('ind_02') ?? getMeasuredAnswerValue('cx_02');
+  const employeeCountBand = rawSize && KNOWN_SIZE_BANDS.includes(rawSize) ? rawSize : null;
+
   return {
-    employeeCountBand: getAnswerValue('ind_02') || getAnswerValue('cx_02') || 'small',
+    employeeCountBand,
     maturityLevel,
     manualProcesses: manualProcs.filter(p => p !== 'none'),
-    invoicingVolumeBand: getAnswerValue('cx_ROI03') || 'medium',
-    adminHeadcountBand: getAnswerValue('cx_ROI02') || '4_10',
+    invoicingVolumeBand: getMeasuredAnswerValue('cx_ROI03'),
+    adminHeadcountBand: getMeasuredAnswerValue('cx_ROI02'),
     categoryScoreF,
   };
 }
