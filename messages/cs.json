@@ -287,7 +287,14 @@
     "vsSector": "DII vs. váš sektor",
     "orsVsSector": "Provozní zralost vs. sektor",
     "source": "Benchmarková data: {source}. Verze: {version} ({date}).",
-    "vsCz": "DII vs. Česko"
+    "vsCz": "DII vs. Česko",
+    "vsSize": "DII vs. velikost firmy",
+    "orsVsCountry": "Provozní zralost vs. trh",
+    "orsVsSize": "Provozní zralost vs. velikost",
+    "groupMeasured": "Měřená data — Eurostat isoc_e_dii 2025",
+    "groupEstimated": "Expertní odhady — nejsou to data Eurostatu",
+    "estimatedNote": "Eurostat nepublikuje mediány podle sektorů ani velikostí. Následující srovnání stojí na našich expertních odhadech kalibrovaných na slovenskou distribuci — berte je jako orientační, ne jako měření.",
+    "microCaveat": "Eurostat nepokrývá firmy pod 10 zaměstnanců — hodnota pro mikrofirmy je čistý expertní odhad."
   },
   "customer": {
     "notFoundTitle": "Výsledek není na tomto zařízení dostupný",

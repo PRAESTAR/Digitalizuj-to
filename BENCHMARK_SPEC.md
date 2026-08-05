@@ -106,7 +106,7 @@ Schéma zodpovedá skutočnému tvaru dát v `data/benchmarkData.ts` a `config/m
 - Každý benchmark dataset má `version` (formát `<rok prieskumu>-DII-v<verzia>`).
 - Staré verzie sa archivujú, nové sa nasadzujú nezávisle od kódu.
 - Výsledky sú vždy viazané na benchmark verziu, voči ktorej boli porovnané.
-- ⚠️ Runtime číta `data/benchmarkData.ts`; `config/model/benchmarkData.json` je editovateľná kópia — po zmene ju treba preniesť do TS súboru (plánovaná build-time kontrola konzistencie je v checkliste).
+- Zdroj pravdy je `data/benchmarkData.json`; `data/benchmarkData.ts` je len typovaný wrapper nad ním a `config/model/benchmarkData.json` jeho presné zrkadlo. Zhodu kópie so zdrojom, súčet distribúcie, odvodenie mediánu (§3.3) aj to, že každý sektor a veľkosť voliteľná v kvíze má referenčný záznam, vynucuje `scripts/validate-model.mjs` (kontroly #9–#11) — build pri rozchode spadne. Predtým sa hodnoty držali zvlášť v TS a v JSON kópii a rozišli sa: kópii chýbal celý blok ČR.
 - **Politika aktualizácie:** ročne, do 3 mesiacov od decembrovej publikácie Eurostat prieskumu.
 
 ### 3.3 Odvodenie DII mediánu z distribúcie
@@ -130,18 +130,33 @@ EÚ 2025:  3.5 + (0.5 − 0.279) / 0.345 × 3 = 5.42 ≈ 5.4
 Vstup: dii_score_12 firmy, country (SK/EU27)
 Výstup: percentil a relatívna pozícia
 
-Ak dii_score_12 ∈ [0-3]:  level = "very_low"
-Ak dii_score_12 ∈ [4-6]:  level = "low"
-Ak dii_score_12 ∈ [7-9]:  level = "high"
-Ak dii_score_12 ∈ [10-12]: level = "very_high"
+Pásma:  very_low 0-3 · low 4-6 · high 7-9 · very_high 10-12
 
-percentile = Σ distribúcie pod level + (pozícia v level × distribúcia level)
+Celočíselné skóre s reprezentuje interval [s−0,5; s+0,5] (continuity
+correction), takže spojité hranice pásiem sú −0,5 / 3,5 / 6,5 / 9,5 / 12,5
+a šírky 4 / 3 / 3 / 3.
+
+percentile = Σ distribúcie pod pásmom + (pozícia v pásme × distribúcia pásma)
+kde pozícia v pásme = (s − dolná hranica) / šírka pásma, orezané na [0, 1]
+
+Výsledok sa orezáva na [1, 99] — 0 ani 100 by tvrdili absolútnu istotu.
 ```
 
-**Príklad (dataset 2025-DII-v3):** Firma s DII 7 v SK:
-- very_low (0-3): 41,6 % firiem pod ňou
-- low (4-6): 32,0 % firiem pod ňou
-- Firma je na začiatku "high" pásma = je nad ~74 % SK firiem (presný percentil závisí od vnútropásmovej interpolácie)
+**Prečo tie isté hranice ako pri mediáne (§3.3):** percentil je definične
+inverziou mediánu. Model musí byť ten istý, inak firma presne na mediáne vidí
+na jednej karte „odchýlka 0,0" vedľa percentilu, ktorý nie je 50. Pri tomto
+vzorci platí `percentil(diiMedianScore) = 50` pre SK, ČR aj EÚ-27 — a je to
+zafixované testom v `engines/benchmarkEngine.test.ts`.
+
+**Príklad (dataset 2025-DII-v3):** Firma s DII 7 v SK je nad **77 %** firiem:
+41,6 % (celé very_low) + 32,0 % (celé low) + 1/6 × 20,4 % (skóre 7 leží 0,5
+nad dolnou hranicou pásma high, ktoré je 3 body široké).
+
+> **Oprava 5. 8. 2026:** predchádzajúca implementácia brala hranice ako 3/6/9
+> a delila každé pásmo tromi. Dno pásma tak dostalo tretinu jeho hmoty (skóre 4
+> → 52. percentil namiesto 47) a pásmo very_low so štyrmi hodnotami (0–3) sa
+> delilo tromi, takže skóre 3 dostalo celú hmotu pásma. Uvedený príklad pre
+> DII 7 dával 80 namiesto 77.
 
 ### 4.2 Porovnanie voči sektoru
 
@@ -163,7 +178,21 @@ ors_gap_sector = ors_score - sector_benchmarks[sector].ors_estimated_median
 ors_gap_size = ors_score - size_benchmarks[size].ors_estimated_median
 ```
 
-**Disclaimer:** ORS benchmarky sú odvodené odhady, nie tvrdé dáta. Zobrazujú sa s explicitným upozornením.
+Všetky tri sú implementované (`orsVsCountry`, `orsVsSector`, `orsVsSize`), rovnako
+ako DII porovnanie podľa veľkosti (`diiVsSize`). Do 5. 8. 2026 bolo implementované
+len sektorové porovnanie — `sizeBand` sa zbieral, odovzdával do enginu a tam
+zahodil, takže päťčlenná firma sa porovnávala s rovnakým mediánom ako
+dvestočlenná, hoci `sizeBenchmarks` dáta existovali.
+
+**Disclaimer:** ORS benchmarky sú odvodené odhady, nie tvrdé dáta — a rovnako aj
+sektorové a veľkostné DII mediány (Eurostat ich po sektoroch ani veľkostiach
+nepublikuje). Každé porovnanie preto nesie pole `source` (`'eurostat'` =
+meraná distribúcia, `'expert'` = odhad) a UI podľa neho rozdeľuje karty do
+dvoch skupín. Pri mikrofirmách sa navyše zobrazuje upozornenie, že Eurostat
+firmy pod 10 zamestnancov vôbec nepokrýva.
+
+**Uložené výsledky spred zmeny** tieto polia nemajú, preto sú v type voliteľné
+a UI ich vtedy nevykreslí.
 
 ---
 

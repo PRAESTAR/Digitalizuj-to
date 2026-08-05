@@ -290,6 +290,13 @@ export interface BenchmarkComparison {
   /** null = porovnanie nedostupné (nemerané skóre alebo chýbajúce referenčné dáta). */
   gap: number | null;
   labelSk: string;
+  /**
+   * Pôvod referenčnej hodnoty. 'eurostat' = meraná distribúcia isoc_e_dii;
+   * 'expert' = expertný odhad (ORS mediány, sektorové aj veľkostné hodnoty).
+   * UI podľa toho vyberá disclaimer — dovtedy bol text natvrdo v engine a
+   * pri sektorových DII mediánoch chýbal, hoci odhady sú rovnako.
+   */
+  source?: 'eurostat' | 'expert';
   disclaimer?: string;
 }
 
@@ -301,6 +308,16 @@ export interface BenchmarkResults {
   diiVsEu: BenchmarkComparison;
   diiVsSector: BenchmarkComparison & { sector: string };
   orsVsSector: BenchmarkComparison;
+  /**
+   * Porovnania podľa veľkosti a domáceho trhu. Voliteľné, lebo uložené
+   * výsledky spred ich zavedenia (2026-08-05) ich nemajú — UI ich vtedy
+   * jednoducho nevykreslí. Dovtedy sa `sizeBand` zbieral, odovzdával do
+   * enginu a tam zahodil, takže päťčlenná firma sa porovnávala s rovnakým
+   * mediánom ako dvestočlenná.
+   */
+  diiVsSize?: BenchmarkComparison & { sizeBand: string };
+  orsVsCountry?: BenchmarkComparison;
+  orsVsSize?: BenchmarkComparison & { sizeBand: string };
 }
 
 export interface Recommendation {

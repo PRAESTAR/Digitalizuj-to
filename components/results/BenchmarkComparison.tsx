@@ -28,6 +28,14 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
           </h2>
         </div>
 
+        {/* Karty sú rozdelené podľa PÔVODU referenčnej hodnoty, nie podľa
+            metriky. Len porovnanie s trhom stojí na meraných Eurostat dátach a
+            má percentil; všetko ostatné sú expertné odhady. Predtým viseli
+            vedľa seba bez rozlíšenia a disclaimer mala jediná karta, hoci
+            odhadom bola aj sektorová DII hodnota. */}
+        <p className="text-xs font-semibold uppercase tracking-wide text-[#86868b] mb-3">
+          {t('groupMeasured')}
+        </p>
         <div className="grid gap-3 sm:gap-4 md:grid-cols-2 stagger-children">
           {/* Domáca karta podľa trhu mutácie (sk→SK, cs→ČR). V EÚ režime (en)
               by bola len duplikátom EÚ karty, preto sa vynecháva. Staré
@@ -50,6 +58,13 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
             label={benchmarks.diiVsEu.labelSk}
             percentile={benchmarks.diiVsEu.percentile}
           />
+        </div>
+
+        <p className="text-xs font-semibold uppercase tracking-wide text-[#86868b] mt-8 mb-1">
+          {t('groupEstimated')}
+        </p>
+        <p className="text-xs text-[#86868b] mb-3 break-words">{t('estimatedNote')}</p>
+        <div className="grid gap-3 sm:gap-4 md:grid-cols-2 stagger-children">
           <BenchmarkCard
             title={t('vsSector')}
             icon="🏢"
@@ -57,13 +72,40 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
             gap={benchmarks.diiVsSector.gap}
             label={benchmarks.diiVsSector.labelSk}
           />
+          {/* Nové porovnania chýbajú v starých uložených výsledkoch — vtedy sa
+              karta jednoducho nevykreslí. */}
+          {benchmarks.diiVsSize && (
+            <BenchmarkCard
+              title={t('vsSize')}
+              icon="👥"
+              value={diiValue}
+              gap={benchmarks.diiVsSize.gap}
+              label={benchmarks.diiVsSize.labelSk}
+            />
+          )}
+          {benchmarks.orsVsCountry && (
+            <BenchmarkCard
+              title={t('orsVsCountry')}
+              icon="🗺️"
+              gap={benchmarks.orsVsCountry.gap}
+              label={benchmarks.orsVsCountry.labelSk}
+            />
+          )}
           <BenchmarkCard
             title={t('orsVsSector')}
             icon="⚙️"
             gap={benchmarks.orsVsSector.gap}
             label={benchmarks.orsVsSector.labelSk}
-            disclaimer={benchmarks.orsVsSector.disclaimer}
           />
+          {benchmarks.orsVsSize && (
+            <BenchmarkCard
+              title={t('orsVsSize')}
+              icon="📐"
+              gap={benchmarks.orsVsSize.gap}
+              label={benchmarks.orsVsSize.labelSk}
+              disclaimer={benchmarks.orsVsSize.sizeBand === 'micro' ? t('microCaveat') : undefined}
+            />
+          )}
         </div>
 
         {/* items-start + shrink-0: pri zalomení zdroja na 2-3 riadky musí bodka zostať hore a nesmie sa stlačiť */}

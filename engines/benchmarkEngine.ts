@@ -1,14 +1,12 @@
 import type { BenchmarkResults, BenchmarkComparison, DIIScore, ORSScore } from '@/types';
-import { benchmarkData } from '@/data/benchmarkData';
+import { benchmarkData, type DiiDistribution } from '@/data/benchmarkData';
 import { MARKET_LABEL, type Market } from '@/lib/market';
 
 export function calculateBenchmarks(
   dii: DIIScore,
   ors: ORSScore,
   sector: string,
-  // TODO(IMPROVEMENT_CHECKLIST.md P1): orsVsSize/orsVsCountry porovnania zatiaľ
-  // nie sú implementované, hoci sizeBenchmarks dáta existujú — zámerne nepoužité.
-  _sizeBand: string,
+  sizeBand: string,
   /**
    * Domáci trh referenčných čísel — odvodený od jazykovej mutácie
    * (sk→SK, cs→CZ, en→EÚ priemer). Pole `diiVsSk` z historických dôvodov
@@ -26,84 +24,146 @@ export function calculateBenchmarks(
       ...calculateSectorBenchmark(dii, sector),
       sector,
     },
+    diiVsSize: {
+      ...calculateDIISizeBenchmark(dii, sizeBand),
+      sizeBand,
+    },
+    orsVsCountry: calculateORSCountryBenchmark(ors, market),
     orsVsSector: calculateORSSectorBenchmark(ors, sector),
+    orsVsSize: {
+      ...calculateORSSizeBenchmark(ors, sizeBand),
+      sizeBand,
+    },
   };
 }
 
-function calculateDIIBenchmark(
-  dii: DIIScore,
-  country: Market
-): BenchmarkComparison {
+/**
+ * Pásma DII v3 (Eurostat isoc_e_dii): 0–3 very_low, 4–6 low, 7–9 high,
+ * 10–12 very_high. Spojité hranice sú posunuté o −0,5 (continuity
+ * correction), lebo celočíselné skóre `s` reprezentuje interval
+ * [s−0,5; s+0,5]. Je to ten istý model, z ktorého BENCHMARK_SPEC §3.3
+ * odvádza `diiMedianScore`, takže percentil je jeho inverzia:
+ * percentil(medián) = 50.
+ *
+ * Predtým sa hranice brali ako 3/6/9 a každé pásmo sa delilo tromi. Malo to
+ * tri následky: dno pásma dostalo tretinu jeho hmoty (skóre 4 → 52. percentil
+ * namiesto ~47), pásmo very_low má štyri celé hodnoty (0–3), no delilo sa
+ * tromi, a firma presne na mediáne videla na jednej karte „gap 0,0" vedľa
+ * „percentil 55 %".
+ */
+const DII_BANDS = [
+  { key: 'very_low', lower: -0.5, width: 4 },
+  { key: 'low', lower: 3.5, width: 3 },
+  { key: 'high', lower: 6.5, width: 3 },
+  { key: 'very_high', lower: 9.5, width: 3 },
+] as const;
+
+/** Krajné hodnoty sa orezávajú — 0 ani 100 by tvrdili absolútnu istotu. */
+const clampPercentile = (p: number): number => Math.round(Math.min(99, Math.max(1, p)));
+
+/**
+ * Podiel firiem so skóre pod zadanou hodnotou, v percentách.
+ * Exportované kvôli testom (invariant percentil(medián) = 50 sa dá overiť
+ * len na neceločíselnom vstupe).
+ */
+export function diiPercentile(score12: number, dist: DiiDistribution): number {
+  let cumulative = 0;
+  for (let i = 0; i < DII_BANDS.length; i++) {
+    const { key, lower, width } = DII_BANDS[i];
+    const isLast = i === DII_BANDS.length - 1;
+    if (score12 < lower + width || isLast) {
+      const positionInBand = Math.min(1, Math.max(0, (score12 - lower) / width));
+      return clampPercentile((cumulative + positionInBand * dist[key]) * 100);
+    }
+    cumulative += dist[key];
+  }
+  return clampPercentile(cumulative * 100); // nedosiahnuteľné
+}
+
+const DII_UNMEASURED = 'Nedostupné — DII nemerané';
+const ORS_UNMEASURED = 'Nedostupné — ORS nemerané';
+
+function calculateDIIBenchmark(dii: DIIScore, country: Market): BenchmarkComparison {
   const countryData = benchmarkData.countryBenchmarks[country];
   if (!countryData) {
     // gap null + žiadny percentil — 0 by sa tvárilo ako reálna (najhoršia) hodnota
-    return { gap: null, labelSk: 'Nedostupné' };
+    return { gap: null, labelSk: 'Nedostupné', source: 'eurostat' };
   }
   if (!dii.measured || dii.score12 === null) {
-    return { gap: null, labelSk: 'Nedostupné — DII nemerané' };
+    return { gap: null, labelSk: DII_UNMEASURED, source: 'eurostat' };
   }
-
-  const dist = countryData.diiDistribution;
-  const score12 = dii.score12;
-
-  // Calculate percentile based on DII distribution
-  let percentile: number;
-  if (score12 <= 3) {
-    percentile = (score12 / 3) * dist.very_low * 100;
-  } else if (score12 <= 6) {
-    percentile = (dist.very_low + ((score12 - 3) / 3) * dist.low) * 100;
-  } else if (score12 <= 9) {
-    percentile = (dist.very_low + dist.low + ((score12 - 6) / 3) * dist.high) * 100;
-  } else {
-    percentile = (dist.very_low + dist.low + dist.high + ((score12 - 9) / 3) * dist.very_high) * 100;
-  }
-  percentile = Math.round(Math.min(99, Math.max(1, percentile)));
 
   const gap = Math.round((dii.score12 - countryData.diiMedianScore) * 10) / 10;
-  const label = getGapLabel(gap, MARKET_LABEL[country], 'dii12');
-
-  return { percentile, gap, labelSk: label };
-}
-
-function calculateSectorBenchmark(
-  dii: DIIScore,
-  sector: string
-): BenchmarkComparison {
-  const sectorData = benchmarkData.sectorBenchmarks[sector];
-  if (!sectorData) {
-    return { gap: null, labelSk: 'Sektorový benchmark nedostupný' };
-  }
-  if (!dii.measured || dii.score12 === null) {
-    return { gap: null, labelSk: 'Nedostupné — DII nemerané' };
-  }
-
-  const gap = Math.round((dii.score12 - sectorData.diiMedian) * 10) / 10;
-  const sectorLabel = getSectorName(sector);
 
   return {
+    percentile: diiPercentile(dii.score12, countryData.diiDistribution),
     gap,
-    labelSk: getGapLabel(gap, sectorLabel, 'dii12'),
+    labelSk: getGapLabel(gap, MARKET_LABEL[country], 'dii12'),
+    source: 'eurostat',
   };
 }
 
-function calculateORSSectorBenchmark(
-  ors: ORSScore,
-  sector: string
-): BenchmarkComparison {
+function calculateSectorBenchmark(dii: DIIScore, sector: string): BenchmarkComparison {
   const sectorData = benchmarkData.sectorBenchmarks[sector];
   if (!sectorData) {
-    return {
-      gap: null,
-      labelSk: 'Sektorový benchmark nedostupný',
-      disclaimer: 'ORS benchmarky sú expertné odhady, nie empirické dáta.',
-    };
+    return { gap: null, labelSk: 'Sektorový benchmark nedostupný', source: 'expert' };
+  }
+  if (!dii.measured || dii.score12 === null) {
+    return { gap: null, labelSk: DII_UNMEASURED, source: 'expert' };
+  }
+
+  const gap = Math.round((dii.score12 - sectorData.diiMedian) * 10) / 10;
+
+  return {
+    gap,
+    labelSk: getGapLabel(gap, getSectorName(sector), 'dii12'),
+    source: 'expert',
+  };
+}
+
+function calculateDIISizeBenchmark(dii: DIIScore, sizeBand: string): BenchmarkComparison {
+  const sizeData = benchmarkData.sizeBenchmarks[sizeBand];
+  if (!sizeData) {
+    return { gap: null, labelSk: 'Veľkostný benchmark nedostupný', source: 'expert' };
+  }
+  if (!dii.measured || dii.score12 === null) {
+    return { gap: null, labelSk: DII_UNMEASURED, source: 'expert' };
+  }
+
+  const gap = Math.round((dii.score12 - sizeData.diiMedian) * 10) / 10;
+
+  return {
+    gap,
+    labelSk: getGapLabel(gap, getSizeName(sizeBand), 'dii12'),
+    source: 'expert',
+  };
+}
+
+function calculateORSCountryBenchmark(ors: ORSScore, country: Market): BenchmarkComparison {
+  const countryData = benchmarkData.countryBenchmarks[country];
+  if (!countryData) {
+    return { gap: null, labelSk: 'Nedostupné', source: 'expert' };
   }
   if (ors.scorePenalized === null) {
-    return {
-      gap: null,
-      labelSk: 'Nedostupné — ORS nemerané',
-      disclaimer: 'ORS benchmarky sú expertné odhady odvodené z DII dát, nie priamo merané.',
-    };
+    return { gap: null, labelSk: ORS_UNMEASURED, source: 'expert' };
+  }
+
+  const gap = Math.round((ors.scorePenalized - countryData.orsEstimatedMedian) * 10) / 10;
+
+  return {
+    gap,
+    labelSk: getGapLabel(gap, MARKET_LABEL[country]),
+    source: 'expert',
+  };
+}
+
+function calculateORSSectorBenchmark(ors: ORSScore, sector: string): BenchmarkComparison {
+  const sectorData = benchmarkData.sectorBenchmarks[sector];
+  if (!sectorData) {
+    return { gap: null, labelSk: 'Sektorový benchmark nedostupný', source: 'expert' };
+  }
+  if (ors.scorePenalized === null) {
+    return { gap: null, labelSk: ORS_UNMEASURED, source: 'expert' };
   }
 
   const gap = Math.round((ors.scorePenalized - sectorData.orsEstimatedMedian) * 10) / 10;
@@ -111,7 +171,25 @@ function calculateORSSectorBenchmark(
   return {
     gap,
     labelSk: getGapLabel(gap, getSectorName(sector)),
-    disclaimer: 'ORS benchmarky sú expertné odhady odvodené z DII dát, nie priamo merané.',
+    source: 'expert',
+  };
+}
+
+function calculateORSSizeBenchmark(ors: ORSScore, sizeBand: string): BenchmarkComparison {
+  const sizeData = benchmarkData.sizeBenchmarks[sizeBand];
+  if (!sizeData) {
+    return { gap: null, labelSk: 'Veľkostný benchmark nedostupný', source: 'expert' };
+  }
+  if (ors.scorePenalized === null) {
+    return { gap: null, labelSk: ORS_UNMEASURED, source: 'expert' };
+  }
+
+  const gap = Math.round((ors.scorePenalized - sizeData.orsEstimatedMedian) * 10) / 10;
+
+  return {
+    gap,
+    labelSk: getGapLabel(gap, getSizeName(sizeBand)),
+    source: 'expert',
   };
 }
 
@@ -138,4 +216,15 @@ function getSectorName(sector: string): string {
     other: 'sektora',
   };
   return names[sector] || 'sektora';
+}
+
+/** Genitív do gap labelu — „Nad priemerom malých firiem (10–49)". */
+function getSizeName(sizeBand: string): string {
+  const names: Record<string, string> = {
+    micro: 'mikrofiriem (1–9)',
+    small: 'malých firiem (10–49)',
+    medium: 'stredných firiem (50–249)',
+    large: 'veľkých firiem (250+)',
+  };
+  return names[sizeBand] || 'firiem tejto veľkosti';
 }

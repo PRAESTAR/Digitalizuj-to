@@ -287,7 +287,14 @@
     "vsSector": "DII vs. your sector",
     "orsVsSector": "Operational maturity vs. sector",
     "source": "Benchmark data: {source}. Version: {version} ({date}).",
-    "vsCz": "DII vs. Czechia"
+    "vsCz": "DII vs. Czechia",
+    "vsSize": "DII vs. company size",
+    "orsVsCountry": "Operational readiness vs. market",
+    "orsVsSize": "Operational readiness vs. size",
+    "groupMeasured": "Measured data — Eurostat isoc_e_dii 2025",
+    "groupEstimated": "Expert estimates — not Eurostat data",
+    "estimatedNote": "Eurostat does not publish medians by sector or company size. The comparisons below rest on our expert estimates calibrated to the Slovak distribution — treat them as indicative, not as measurement.",
+    "microCaveat": "Eurostat does not cover companies under 10 employees — the micro-company figure is purely an expert estimate."
   },
   "customer": {
     "notFoundTitle": "The result is not available on this device",

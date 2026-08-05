@@ -16,6 +16,11 @@
  *  8. DII mapovanie (data/diiIndicators.json) nesedí s bankou — striktný v3
  *     režim: každá 'dii' otázka musí byť namapovaná na indikátor ALEBO
  *     explicitne vylúčená s dôvodom; kritériá musia byť vyhodnotiteľné
+ *  9. benchmarkData: editovateľná kópia sa rozišla so zdrojom
+ * 10. benchmarkData: distribúcia nesedí sama so sebou (súčet ≠ 1, medián
+ *     nesedí s vlastnou distribúciou, ORS mimo rozsahu)
+ * 11. benchmarkData: sektor/veľkosť voliteľná v kvíze nemá referenčný záznam
+ *     (inak sa respondentovi ticho zobrazí „benchmark nedostupný")
  *
  * Spustenie:  node scripts/validate-model.mjs
  * Návratový kód 1 = nájdené chyby (vhodné do CI).
@@ -27,6 +32,9 @@ const bank = JSON.parse(readFileSync('data/questionBank.json', 'utf8'));
 const mirror = readFileSync('config/model/questionBank.json', 'utf8');
 const scoringSrc = readFileSync('data/scoringConfig.ts', 'utf8');
 const diiMap = JSON.parse(readFileSync('data/diiIndicators.json', 'utf8'));
+const bench = JSON.parse(readFileSync('data/benchmarkData.json', 'utf8'));
+const benchMirror = readFileSync('config/model/benchmarkData.json', 'utf8');
+const marketSrc = readFileSync('lib/market.ts', 'utf8');
 
 const errors = [];
 const warn = [];
@@ -171,6 +179,67 @@ for (const e of diiMap.excludedDiiQuestions) {
 for (const id of new Set(all.filter((q) => (q.maps_to_score ?? []).includes('dii')).map((q) => q.id))) {
   if (!mappedIds.has(id) && !excludedIds.has(id)) {
     errors.push(`${id}: má 'dii' tag, ale nie je ani kritériom indikátora, ani vo vylúčenom zozname (striktný v3 vyžaduje explicitné rozhodnutie)`);
+  }
+}
+
+// --- 9: benchmark zrkadlo ----------------------------------------------------
+// Rovnaký princíp ako #7 pre otázkovú banku. Nie je to akademické: kým sa
+// hodnoty držali zvlášť v TS a v JSON kópii, kópii chýbal celý blok ČR, hoci
+// runtime s ním počítal.
+if (JSON.stringify(bench) !== JSON.stringify(JSON.parse(benchMirror))) {
+  errors.push('data/benchmarkData.json a config/model/benchmarkData.json sa OBSAHOVO rozchádzajú');
+}
+
+// --- 10: invarianty benchmark datasetu ---------------------------------------
+for (const [code, c] of Object.entries(bench.countryBenchmarks)) {
+  const d = c.diiDistribution;
+  const sum = d.very_low + d.low + d.high + d.very_high;
+  if (Math.abs(sum - 1) > 0.005) {
+    errors.push(`benchmark/${code}: diiDistribution má súčet ${sum.toFixed(4)}, očakávané 1.000 ±0.005`);
+  }
+  // Medián sa odvádza z distribúcie (BENCHMARK_SPEC §3.3) — táto kontrola chytí
+  // klasickú chybu „aktualizoval som distribúciu, medián som zabudol".
+  // Vzorec platí, kým medián padá do pásma low; inak sa preskočí.
+  if (d.very_low < 0.5 && d.very_low + d.low > 0.5) {
+    const derived = 3.5 + ((0.5 - d.very_low) / d.low) * 3;
+    if (Math.abs(derived - c.diiMedianScore) > 0.06) {
+      errors.push(
+        `benchmark/${code}: diiMedianScore ${c.diiMedianScore} nesedí s odvodením z distribúcie (${derived.toFixed(2)}) — BENCHMARK_SPEC §3.3`
+      );
+    }
+  }
+  if (c.orsEstimatedMedian < 0 || c.orsEstimatedMedian > 100) {
+    errors.push(`benchmark/${code}: orsEstimatedMedian ${c.orsEstimatedMedian} je mimo rozsahu 0–100`);
+  }
+}
+
+// Každý trh z lib/market.ts musí mať referenčné dáta, inak daná jazyková
+// mutácia ticho zobrazí „Nedostupné".
+const markets = [...marketSrc.matchAll(/'(SK|CZ|EU27)'/g)].map((m) => m[1]);
+for (const m of new Set(markets)) {
+  if (!bench.countryBenchmarks[m]) {
+    errors.push(`benchmark: trh ${m} z lib/market.ts nemá countryBenchmarks záznam`);
+  }
+}
+
+// --- 11: referenčná integrita voči banke -------------------------------------
+// Bez tejto kontroly sa pridanie sektora/veľkosti do kvízu prejaví až tak, že
+// respondent uvidí „benchmark nedostupný" — ticho a bez chyby v builde.
+const optionValues = (tag) =>
+  new Set(
+    all
+      .filter((q) => (q.maps_to_score ?? []).includes(tag))
+      .flatMap((q) => (q.options ?? []).map((o) => o.value ?? o.id))
+  );
+
+for (const v of optionValues('benchmark_sector')) {
+  if (!bench.sectorBenchmarks[v]) {
+    errors.push(`benchmark: sektor "${v}" je voliteľný v kvíze, ale nemá sectorBenchmarks záznam`);
+  }
+}
+for (const v of optionValues('benchmark_size')) {
+  if (!bench.sizeBenchmarks[v]) {
+    errors.push(`benchmark: veľkosť "${v}" je voliteľná v kvíze, ale nemá sizeBenchmarks záznam`);
   }
 }
 
