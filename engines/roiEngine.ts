@@ -3,6 +3,7 @@ import {
   defaultHourlyCostEur,
   processBenchmarks,
   manualShareFromMaturity,
+  assumedMaturityLevel,
   manualShareWhenSelfReportedManual,
   processKeyFromAnswerValue,
   invoicingVolumeFromBand,
@@ -18,7 +19,11 @@ import {
 interface ROIInputs {
   /** null = veľkosť firmy nebola uvedená — engine ju priznane predpokladá. */
   employeeCountBand: string | null;
-  maturityLevel: number;
+  /**
+   * Zrelosť procesov 0–4 z `ind_03`/`cx_A01`. `null` = neuvedená alebo
+   * mimo domény — engine ju potom priznane predpokladá, nedosádza ticho.
+   */
+  maturityLevel: number | null;
   manualProcesses: string[];
   /**
    * Respondent VÝSLOVNE vybral „Žiadny — všetko máme digitalizované".
@@ -105,7 +110,13 @@ export function calculateBusinessImpact(
 ): BusinessImpact {
   // Hodinová cena práce sa nepýta ako otázka — vždy priemer SR (viď data/scoringConfig.ts).
   const hourlyCost = defaultHourlyCostEur;
-  const globalManualShare = manualShareFromMaturity[inputs.maturityLevel] ?? 0.65;
+  // Neuvedená zrelosť sa priznáva rovnako ako neuvedená veľkosť firmy:
+  // počíta sa ďalej, ale s disclaimerom a zastropovanou dôveryhodnosťou.
+  // Default je stredná úroveň — nie najhoršia (nafúkla by úsporu), nie
+  // najlepšia (zmazala by ju).
+  const maturityAssumed = inputs.maturityLevel === null;
+  const maturityLevel = inputs.maturityLevel ?? assumedMaturityLevel;
+  const globalManualShare = manualShareFromMaturity[maturityLevel];
 
   // Veľkosť firmy sa už ticho nedosádza — keď chýba, počíta sa ďalej, ale
   // priznane: disclaimer, prefix v audite a zastropovaná dôveryhodnosť.
@@ -274,7 +285,9 @@ export function calculateBusinessImpact(
   ) / 100;
   // Bez známej veľkosti firmy stoja objemy na predpoklade — self-report
   // o procesoch nesmie zvyšovať dôveru v číslo, ktorého základ je hádaný.
-  const confidence = sizeBandAssumed ? Math.min(rawConfidence, 0.3) : rawConfidence;
+  const confidence = sizeBandAssumed || maturityAssumed
+    ? Math.min(rawConfidence, 0.3)
+    : rawConfidence;
 
   let confidenceLabel: string;
   if (confidence >= 0.7) confidenceLabel = 'Vysoká — prevažne self-reported dáta';
@@ -282,12 +295,12 @@ export function calculateBusinessImpact(
   else confidenceLabel = 'Nízka — prevažne benchmarkové odhady';
 
   // Risk reduction
-  const currentRiskLevel = inputs.maturityLevel <= 1 ? 'vysoké' : inputs.maturityLevel <= 2 ? 'stredné' : 'nízke';
+  const currentRiskLevel = maturityLevel <= 1 ? 'vysoké' : maturityLevel <= 2 ? 'stredné' : 'nízke';
   const potentialRiskLevel = 'nízke';
   const mitigations = generateMitigations(answers, questions);
 
   // Opportunity gap
-  const gapPercentage = Math.max(0, Math.round((1 - inputs.maturityLevel / 4) * 100));
+  const gapPercentage = Math.max(0, Math.round((1 - maturityLevel / 4) * 100));
 
   // Politika zobrazenia scenárov podľa meranej governance a známosti veľkosti.
   const displayPolicy = resolveScenarioPolicy(inputs.categoryScoreF, sizeBandAssumed);
@@ -309,6 +322,11 @@ export function calculateBusinessImpact(
     // aj niekoľkonásobne, takže je to najsilnejšia výhrada k celému číslu.
     disclaimers.unshift(
       'Veľkosť firmy nebola uvedená — objemy procesov sú počítané pre pásmo 10–49 zamestnancov. Odhad je preto len orientačný a pri inej veľkosti sa môže líšiť aj niekoľkonásobne.'
+    );
+  }
+  if (maturityAssumed) {
+    disclaimers.push(
+      `Zrelosť procesov nebola zistená — počíta sa s úrovňou ${assumedMaturityLevel} z 4 (${manualShareFromMaturity[assumedMaturityLevel] * 100} % ručnej práce). Firma s výrazne inou úrovňou digitalizácie dostane odlišný odhad.`
     );
   }
   if (capFactor < 1) {
@@ -333,6 +351,8 @@ export function calculateBusinessImpact(
     inputAssumptions: {
       sizeBandAssumed,
       assumedSizeBand: sizeBandAssumed ? sizeBand : null,
+      maturityAssumed,
+      assumedMaturityLevel: maturityAssumed ? assumedMaturityLevel : null,
     },
     timeSavings: {
       hoursPerYear: {
@@ -486,14 +506,20 @@ export function extractROIInputs(
     return ans && Array.isArray(ans.value) ? ans.value : [];
   };
 
-  // Find maturity level from process questions
-  let maturityLevel = 2; // default
+  // Zrelosť procesov. Doména je 0–4 (kľúče manualShareFromMaturity) a
+  // validuje sa proti nej — parseInt sám prijme aj 9 alebo −3 a taká hodnota
+  // by neskončila chybou, ale tichým nezmyslom: firma na „úrovni 9" by
+  // spadla na fallback 0,65 (teda úroveň 1), dostala rizikovosť „nízke"
+  // a medzeru 0 %. Neplatná hodnota je odteraz to isté ako chýbajúca.
+  let maturityLevel: number | null = null;
   const processQ = answers.find(a =>
-    ['ind_03', 'cx_A01'].includes(a.questionId) && !a.isUnknown
+    ['ind_03', 'cx_A01'].includes(a.questionId) && !a.isUnknown && !a.wasSkipped
   );
   if (processQ && typeof processQ.value === 'string') {
-    const parsed = parseInt(processQ.value);
-    if (!isNaN(parsed)) maturityLevel = parsed;
+    const parsed = parseInt(processQ.value, 10);
+    if (Number.isInteger(parsed) && parsed in manualShareFromMaturity) {
+      maturityLevel = parsed;
+    }
   }
 
   // Manuálne procesy: komplexný kvíz cez cx_A05, indikatívny cez

@@ -28,6 +28,11 @@ function criterionMet(criterion: DiiCriterion, answer: Answer): boolean {
   return criterion.metWhen.anyOfValues.some(v => values.includes(v));
 }
 
+/** Zaokrúhlenie na desatinu — VÝHRADNE pre zobrazenie, nikdy pred ďalším výpočtom. */
+function round1(v: number): number {
+  return Math.round(v * 10) / 10;
+}
+
 /**
  * O koľko bodov pohne skóre otázky jedna „najmenšia zmena odpovede".
  *
@@ -191,6 +196,11 @@ export function calculateORS(
   questions: Question[]
 ): ORSScore {
   const categories: Record<string, CategoryScore> = {};
+  // Neskrátené skóre kategórií. Zobrazované hodnoty v `categories` sú
+  // zaokrúhlené na desatinu; agregácia, penalta aj maturity level musia
+  // počítať odtiaľto, inak sa chyba zaokrúhlenia znásobí a na hranici pásma
+  // preklopí level (namerané: 27 zo 4 000 kombinácií odpovedí).
+  const catScoresExact: Record<string, number> = {};
   const validCategories = ['A', 'B', 'C', 'D', 'E', 'F'];
 
   for (const cat of validCategories) {
@@ -251,6 +261,8 @@ export function calculateORS(
         }
       : null;
 
+    if (catScore !== null) catScoresExact[cat] = catScore;
+
     categories[cat] = {
       name: categoryNames[cat],
       score: catScore !== null ? Math.round(catScore * 10) / 10 : null,
@@ -273,14 +285,16 @@ export function calculateORS(
   const measuredCategories = measuredCats.length;
 
   let orsScore: number | null = null;
+  let orsScoreExact: number | null = null;
   if (measuredCategories > 0) {
     let weightedSum = 0;
     let weightSum = 0;
     for (const cat of measuredCats) {
-      weightedSum += (categories[cat].score as number) * categories[cat].weight;
+      weightedSum += catScoresExact[cat] * categories[cat].weight;
       weightSum += categories[cat].weight;
     }
-    orsScore = Math.round((weightedSum / weightSum) * 10) / 10;
+    orsScoreExact = weightedSum / weightSum;
+    orsScore = round1(orsScoreExact);
   }
 
   // Rozsah celku sa skladá z rozsahov kategórií rovnakým váženým priemerom
@@ -316,22 +330,27 @@ export function calculateORS(
   let penaltyApplied = false;
   let penaltyReason: string | null = null;
   let scorePenalized = orsScore;
+  let scorePenalizedExact = orsScoreExact;
 
   // Penalizácia sa aplikuje len na MERANÚ kategóriu E — bez zodpovedaných
   // bezpečnostných otázok by sa penalizoval nezmeraný stav (E=0 by nebolo zistenie, ale artefakt).
   const securityMeasured = categories['E']?.measured ?? false;
-  const securityScore = categories['E']?.score ?? null;
+  // Prah aj samotný násobok sa počítajú z NEZAOKRÚHLENÉHO skóre kategórie E:
+  // pri hodnote tesne pod 30 rozhodovala desatina o tom, či penalta vôbec
+  // nastúpi, a zaokrúhlená vstupná hodnota tak menila výsledok skokom.
+  const securityScore = catScoresExact['E'] ?? null;
   if (
-    orsScore !== null &&
+    orsScoreExact !== null &&
     securityMeasured &&
     securityScore !== null &&
     securityScore < scoringConfig.securityPenaltyThreshold
   ) {
     const factor = 1 - scoringConfig.securityPenaltyMaxFactor +
       scoringConfig.securityPenaltyMaxFactor * (securityScore / scoringConfig.securityPenaltyThreshold);
-    scorePenalized = Math.round(orsScore * factor * 10) / 10;
+    scorePenalizedExact = orsScoreExact * factor;
+    scorePenalized = round1(scorePenalizedExact);
     penaltyApplied = true;
-    penaltyReason = `Kritický bezpečnostný stav (E: ${securityScore}/100) — penalizácia ${Math.round((1 - factor) * 100)}%`;
+    penaltyReason = `Kritický bezpečnostný stav (E: ${round1(securityScore)}/100) — penalizácia ${Math.round((1 - factor) * 100)}%`;
 
     // Pásmo prejde tou istou penaltou ako bod. Bez toho karta zobrazovala
     // penalizované číslo nad rozsahom počítaným z nepenalizovaného skóre —
@@ -341,20 +360,27 @@ export function calculateORS(
     // rozsah ostáva rozsahom TOHO ISTÉHO údaja, ktorý je nad ním vypísaný.
     if (orsBand) {
       orsBand = {
-        lower: Math.round(orsBand.lower * factor * 10) / 10,
-        upper: Math.round(orsBand.upper * factor * 10) / 10,
+        lower: round1(orsBand.lower * factor),
+        upper: round1(orsBand.upper * factor),
         reasonSk: `${orsBand.reasonSk} Rozsah je po bezpečnostnej penalizácii, rovnako ako zobrazené skóre.`,
       };
     }
   }
 
-  // Maturity level — len pri meranom ORS
+  // Maturity level — len pri meranom ORS, a z NEZAOKRÚHLENEJ hodnoty.
+  //
+  // Pásma sú polootvorené zdola: porovnáva sa ostrým `>`, takže prah patrí
+  // do nižšieho pásma. Pri `maturityThresholds = [20, 40, 60, 80]`:
+  //   level 0 = [0, 20]   level 1 = (20, 40]   level 2 = (40, 60]
+  //   level 3 = (60, 80]  level 4 = (80, 100]
+  // Hranica sa vyhodnocuje nad PENALIZOVANÝM skóre — nálepka teda hovorí
+  // o stave po zohľadnení bezpečnosti, nie o surovej zrelosti.
   let maturityLevel: number | null = null;
-  if (scorePenalized !== null) {
+  if (scorePenalizedExact !== null) {
     const thresholds = scoringConfig.maturityThresholds;
     maturityLevel = 0;
     for (let i = 0; i < thresholds.length; i++) {
-      if (scorePenalized > thresholds[i]) maturityLevel = i + 1;
+      if (scorePenalizedExact > thresholds[i]) maturityLevel = i + 1;
     }
   }
 
@@ -371,12 +397,8 @@ export function calculateORS(
   };
 }
 
-/**
- * Get the maturity level number (0-4) from a maturity scale answer.
- */
-export function getMaturityLevel(answers: Answer[], questionId: string): number {
-  const answer = answers.find(a => a.questionId === questionId);
-  if (!answer || answer.isUnknown) return -1;
-  const val = typeof answer.value === 'string' ? parseInt(answer.value) : -1;
-  return isNaN(val) ? -1 : val;
-}
+// `getMaturityLevel` odstránený 6. 8. 2026. Nemal jediného volajúceho a jeho
+// návratová hodnota −1 nebola platnou úrovňou, takže index do
+// `manualShareFromMaturity[-1]` by dal `undefined`. Zrelosť sa číta výhradne
+// v `roiEngine.extractROIInputs`, ktorý ju validuje proti doméne 0–4 a pri
+// neplatnej hodnote vracia `null` — teda „nezistené", nie tichý default.

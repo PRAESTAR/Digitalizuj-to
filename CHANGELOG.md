@@ -8,6 +8,33 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Presnosť výpočtu (6. 8. 2026)
+
+- **Zaokrúhľuje sa až zobrazenie.** ORS prechádzal tromi zaokrúhleniami za
+  sebou — skóre kategórie na desatinu, z tých zaokrúhlených vážený priemer,
+  ten znova, a až z neho maturity level. Drift bol malý (do 0,12 bodu), ale na
+  hranici pásma rozhodujúci: v **27 zo 4 000** kombinácií odpovedí dal inú
+  nálepku než presná matematika. Z plnej presnosti sa odteraz počíta agregácia,
+  prah aj násobok bezpečnostnej penalizácie (pri kategórii E tesne pod 30
+  rozhodovala desatina o tom, či penalta vôbec nastúpi), maturity level aj
+  konfidenčné pásmo. Zvyškový rozdiel je 0,05 bodu — polovica kroku zobrazenia,
+  teda teoretické minimum. Stráži to test, ktorý drží presnú referenčnú
+  implementáciu vedľa enginu.
+- **Sémantika pásiem maturity je zdokumentovaná a otestovaná.** Porovnáva sa
+  ostrým `>`, takže prah patrí do nižšieho pásma: skóre 40,0 je level 1, nie 2.
+  Dalo sa to prečítať oboma smermi a hodnota presne na prahu je práve tá,
+  o ktorú sa vedú spory.
+- **Zrelosť procesov mimo domény 0–4 sa už nepočíta.** `parseInt` prijal aj
+  `9` — taká hodnota neskončila chybou, ale tichým nezmyslom: firma na
+  „úrovni 9" spadla na fallback 0,65 (teda úroveň 1), dostala rizikovosť
+  „nízke" a medzeru 0 %. Neplatná hodnota je odteraz to isté ako chýbajúca,
+  `maturityLevel` je `number | null` a volajúci to musí riešiť. Predpoklad
+  sa priznáva disclaimerom a stropom dôveryhodnosti, rovnako ako neuvedená
+  veľkosť firmy.
+- **`getMaturityLevel` odstránená.** Nemala jediného volajúceho a jej návratová
+  hodnota −1 nebola platnou úrovňou, takže `manualShareFromMaturity[-1]` by
+  dal `undefined`.
+
 ### Revízia otázkovej banky 1.6 a konfidenčné pásma (6. 8. 2026)
 
 - **Šesť dvojhlavňových otázok rozdelených na dvanásť.** Pýtali sa na dve veci

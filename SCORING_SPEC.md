@@ -417,7 +417,56 @@ Penalta je deterministický násobok, takže rovnaký prenos hraníc je korektn�
 **V UI** sa rozsah zobrazuje len vtedy, keď je širší než bod: pri plnom
 pokrytí by „6–6" nič nehovorilo.
 
-## 9. Indikatívny vs. komplexný kvíz
+---
+
+## 9. Presnosť výpočtu a sémantika pásiem
+
+### 9.1 Zaokrúhľuje sa až zobrazenie
+
+ORS prechádzal **tromi zaokrúhleniami za sebou**: skóre kategórie na desatinu,
+z tých zaokrúhlených vážený priemer, ten sa zaokrúhlil znova a až z neho sa
+odvodil maturity level. Zmerané na reálnej banke: drift do **0,12 bodu** a
+v **27 zo 4 000** kombinácií odpovedí (0,7 %) preklopený level — teda iná
+nálepka („Rozvíjajúci sa" vs. „Pokročilý") než dáva presná matematika.
+
+Od 6. 8. 2026 sa zaokrúhľuje len to, čo ide do výstupu. Z plnej presnosti sa
+počíta:
+
+- vážený priemer kategórií → celkové ORS,
+- **prah aj násobok bezpečnostnej penalizácie** (pri kategórii E tesne pod 30
+  rozhodovala desatina o tom, či penalta vôbec nastúpi),
+- maturity level,
+- konfidenčné pásmo.
+
+Zvyškový rozdiel je **0,05 bodu** — presne polovica kroku zobrazenia, teda
+teoretické minimum pri jednom desatinnom mieste. Stráži to test
+`engines/rounding.test.ts`, ktorý drží presnú referenčnú implementáciu vedľa
+enginu a porovnáva ich na 4 000 kombináciách odpovedí.
+
+### 9.2 Pásma maturity sú polootvorené zdola
+
+Porovnáva sa **ostrým `>`**, takže prah patrí do NIŽŠIEHO pásma. Pri
+`maturityThresholds = [20, 40, 60, 80]`:
+
+| Level | Rozsah | Nálepka |
+|---|---|---|
+| 0 | [0, 20] | Digitálny nováčik |
+| 1 | (20, 40] | Začiatočník |
+| 2 | (40, 60] | Rozvíjajúci sa |
+| 3 | (60, 80] | Pokročilý |
+| 4 | (80, 100] | Digitálny líder |
+
+Hodnota **presne na prahu** je práve tá, o ktorú sa vedú spory — skóre 40,0 je
+level 1, nie 2. Testované per hranicu.
+
+### 9.3 Level sa počíta z PENALIZOVANÉHO skóre
+
+Nálepka hovorí o stave **po zohľadnení bezpečnosti**, nie o surovej zrelosti.
+Firma s dobrými procesmi a kritickou bezpečnosťou dostane nižší level, a to je
+zámer — nie chyba. Nepenalizované `score` zostáva vo výstupe pre audit, v UI
+sa nezobrazuje.
+
+## 10. Indikatívny vs. komplexný kvíz
 
 Motor **nerozlišuje** typ kvízu vo výpočte — `calculateDII`/`calculateORS`/`calculateAIReadiness`/`calculateTDRI` dostávajú len `answers` a `questions`, žiadny parameter `assessmentType`. Rozdiel medzi kvízmi je čisto v tom, **koľko a ktoré otázky boli zodpovedané**, a prejaví sa dvoma cestami:
 
@@ -430,7 +479,7 @@ Pásmo nevzniká z parametra `assessmentType`, ale zo skutočného zloženia zod
 
 ---
 
-## 10. Konfigurácia
+## 11. Konfigurácia
 
 Parametre v `data/scoringConfig.ts` (zdroj pravdy) / `config/model/scoringConfig.json` (editovateľná kópia — treba manuálne synchronizovať):
 

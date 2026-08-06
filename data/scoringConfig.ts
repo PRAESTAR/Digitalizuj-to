@@ -285,6 +285,17 @@ export const manualShareWhenSelfReportedManual = 0.85;
  */
 export const governanceScenarioGates = { high: 75, standard: 50 };
 
+/**
+ * Zrelosť, s ktorou sa počíta, keď ju dotazník nezistil (otázka preskočená,
+ * „Neviem", alebo hodnota mimo domény 0–4).
+ *
+ * Stredná úroveň zámerne: najnižšia by úsporu nafúkla (90 % ručnej práce),
+ * najvyššia by ju takmer zmazala (5 %). Predpoklad sa v ROI priznáva
+ * disclaimerom a zastropovanou dôveryhodnosťou, rovnako ako neuvedená
+ * veľkosť firmy — nedosádza sa ticho.
+ */
+export const assumedMaturityLevel = 2;
+
 export const manualShareFromMaturity: Record<number, number> = {
   0: 0.90,
   1: 0.65,

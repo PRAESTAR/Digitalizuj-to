@@ -113,10 +113,40 @@ describe('extractROIInputs — ostatné vstupy', () => {
     expect(inputs.categoryScoreF).toBe(72);
   });
 
+  test('zrelosť mimo domény 0–4 je to isté ako nezistená', () => {
+    // parseInt sám prijme aj 9 alebo −3. Taká hodnota by neskončila chybou,
+    // ale tichým nezmyslom: firma na „úrovni 9" by spadla na fallback 0,65
+    // (teda úroveň 1), dostala rizikovosť „nízke" a medzeru 0 %.
+    expect(extractROIInputs([answer('ind_03', '3')], [], 0).maturityLevel).toBe(3);
+    expect(extractROIInputs([answer('ind_03', '9')], [], 0).maturityLevel).toBeNull();
+    expect(extractROIInputs([answer('ind_03', '-3')], [], 0).maturityLevel).toBeNull();
+    expect(extractROIInputs([answer('ind_03', 'tri')], [], 0).maturityLevel).toBeNull();
+    expect(extractROIInputs([{ ...answer('ind_03', ''), isUnknown: true }], [], 0).maturityLevel).toBeNull();
+    expect(extractROIInputs([{ ...answer('ind_03', ''), wasSkipped: true }], [], 0).maturityLevel).toBeNull();
+  });
+
+  test('predpokladaná zrelosť sa prizná disclaimerom a stropom dôveryhodnosti', () => {
+    const base = {
+      employeeCountBand: 'small', manualProcesses: ['invoicing'], noManualProcesses: false,
+      invoicingVolumeBand: 'medium', adminHeadcountBand: '4_10', categoryScoreF: 60,
+    };
+    const zistena = calculateBusinessImpact([], [], { ...base, maturityLevel: 2 });
+    const nezistena = calculateBusinessImpact([], [], { ...base, maturityLevel: null });
+
+    // Číslo je rovnaké (default je práve úroveň 2), ale priznanie sa líši.
+    expect(nezistena.timeSavings.hoursPerYear.mid).toBe(zistena.timeSavings.hoursPerYear.mid);
+    expect(nezistena.disclaimers.some(d => d.includes('Zrelosť procesov nebola zistená'))).toBe(true);
+    expect(zistena.disclaimers.some(d => d.includes('Zrelosť procesov nebola zistená'))).toBe(false);
+    expect(nezistena.financialImpact.confidence).toBeLessThanOrEqual(0.3);
+    expect(zistena.financialImpact.confidence).toBeGreaterThan(nezistena.financialImpact.confidence);
+    expect(nezistena.inputAssumptions?.maturityAssumed).toBe(true);
+    expect(zistena.inputAssumptions?.maturityAssumed).toBe(false);
+  });
+
   test('chýbajúce vstupy zostávajú null — nedosádzajú sa ticho pásma', () => {
     const inputs = extractROIInputs([], [], 0);
 
-    expect(inputs.maturityLevel).toBe(2); // jediný default, ktorý zostáva
+    expect(inputs.maturityLevel).toBeNull();
     expect(inputs.employeeCountBand).toBeNull();
     expect(inputs.invoicingVolumeBand).toBeNull();
     expect(inputs.adminHeadcountBand).toBeNull();

@@ -455,3 +455,20 @@ tromi defaultmi. Väzbu teraz nesie `processKeyFromAnswerValue`:
 Frekvencie, časy, automatizovateľnosť a chybovosť týchto troch sú z §2.2;
 hodnoty pre mikrofirmy a `reworkMinutesPerError`/`exceptionRate` sú expertný
 odhad odvodený pomerom, ktorý držia ostatné záznamy (micro ≈ 0,4 × small).
+
+
+### Nezistená zrelosť procesov
+
+`maturityLevel` je `number | null`. `null` znamená, že sa zrelosť nezistila —
+otázka `ind_03`/`cx_A01` bola preskočená, zodpovedaná „Neviem", alebo mala
+hodnotu **mimo domény 0–4**.
+
+Posledný prípad je dôvod, prečo validácia vznikla: `parseInt` sám prijme aj
+`9` alebo `−3` a taká hodnota neskončila chybou, ale tichým nezmyslom —
+firma na „úrovni 9" spadla na fallback 0,65 (teda úroveň 1), dostala rizikovosť
+„nízke" a medzeru 0 %.
+
+Pri `null` sa počíta s `assumedMaturityLevel = 2` (stredná úroveň: najnižšia
+by úsporu nafúkla na 90 % ručnej práce, najvyššia by ju zmazala na 5 %) a
+predpoklad sa **prizná** — disclaimerom, príznakom `inputAssumptions.maturityAssumed`
+a zastropovanou dôveryhodnosťou na 0,3, rovnako ako pri neuvedenej veľkosti firmy.

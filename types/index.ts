@@ -333,8 +333,18 @@ export interface ScenarioDisplayPolicy {
 export interface BusinessImpact {
   /** Voliteľné — uložené výsledky spred 2026-08-05 pole nemajú. */
   displayPolicy?: ScenarioDisplayPolicy;
-  /** Priznané dosadené vstupy — dnes len veľkosť firmy. */
-  inputAssumptions?: { sizeBandAssumed: boolean; assumedSizeBand: string | null };
+  /**
+   * Priznané dosadené vstupy. Každý predpoklad tu MUSÍ byť viditeľný —
+   * ticho dosadená hodnota je horšia než chýbajúce číslo, lebo vyzerá
+   * ako meranie. `maturityAssumed` pribudlo 6. 8. 2026 spolu s validáciou
+   * zrelosti proti doméne 0–4.
+   */
+  inputAssumptions?: {
+    sizeBandAssumed: boolean;
+    assumedSizeBand: string | null;
+    maturityAssumed?: boolean;
+    assumedMaturityLevel?: number | null;
+  };
   timeSavings: {
     hoursPerYear: ScenarioValues;
     mdPerYear: ScenarioValues;
