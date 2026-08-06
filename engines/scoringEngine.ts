@@ -6,7 +6,15 @@ import { diiIndicators, excludedDiiQuestionIds, mappedDiiQuestionIds, type DiiCr
  * Platná odpoveď = existuje a nie je Neviem ani preskočená. Nemerané sa
  * nikde nefabrikuje na nulu — otázka bez platnej odpovede jednoducho
  * nevstupuje do agregácie (indikátor/kategória ostáva nemeraná).
+ *
+ * Exportované, aby rovnakú definíciu používal aj `recommendationEngine`
+ * — keby si každý engine držal vlastnú, časom sa rozídu a odporúčania by
+ * sa spúšťali nad dátami, ktoré skóre považuje za nemerané.
  */
+export function isValidAnswer(answers: Answer[], questionId: string): Answer | undefined {
+  return validAnswer(answers, questionId);
+}
+
 function validAnswer(answers: Answer[], questionId: string): Answer | undefined {
   const a = answers.find(ans => ans.questionId === questionId);
   return a && !a.isUnknown && !a.wasSkipped ? a : undefined;

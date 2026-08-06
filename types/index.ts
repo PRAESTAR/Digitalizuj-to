@@ -351,7 +351,13 @@ export interface BenchmarkResults {
 
 export interface Recommendation {
   id: string;
-  type: 'critical_risk' | 'quick_win' | 'strategic' | 'long_term';
+  /**
+   * `risk_mitigation` = stredne závažné riziko do horizontu 3–12 mesiacov.
+   * Bez neho sa stredné riziká do odporúčaní nedostali vôbec: ich maximum
+   * bolo pod jediným prahom, takže RF08/RF10/RF11/RF12 boli matematicky
+   * nedosiahnuteľné.
+   */
+  type: 'critical_risk' | 'risk_mitigation' | 'quick_win' | 'strategic' | 'long_term';
   category: string;
   titleSk: string;
   descriptionSk: string;
@@ -373,6 +379,8 @@ export interface Strength {
 export interface Recommendations {
   strengths: Strength[];
   criticalRisks: Recommendation[];
+  /** Stredne závažné riziká — horizont 3–12 mesiacov. Voliteľné kvôli uloženým výsledkom spred zavedenia. */
+  riskMitigations?: Recommendation[];
   quickWins: Recommendation[];
   strategicInitiatives: Recommendation[];
   longTermInitiatives: Recommendation[];

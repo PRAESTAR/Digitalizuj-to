@@ -9,10 +9,12 @@
 -- Stĺpec `answers_json` zostáva ZÁMERNE PRÁZDNY: odpovede po otázkach sa
 -- od 5. 8. 2026 neukladajú (boli tu pre zrušenú administráciu, takže by sa
 -- najcitlivejšia časť dát uchovávala bez účelu). Stĺpec sa nechal v schéme,
--- aby sa dal zápis obnoviť bez migrácie, ak preň vznikne účel a právny základ. Je to zmena oproti pôvodnému sľubu „nič sa neodosiela
--- na server", takže texty na webe (FAQ, poznámka v kvíze, panel zdieľania)
--- boli v rovnakom kroku upravené. Právny základ a retenčná lehota sú vecou
--- prevádzkovateľa — technicky nie je nastavené automatické mazanie.
+-- aby sa dal zápis obnoviť bez migrácie, ak preň vznikne účel a právny základ.
+--
+-- Ukladanie výsledku je zmena oproti pôvodnému sľubu „nič sa neodosiela na
+-- server", takže texty na webe (FAQ, poznámka v kvíze, panel zdieľania) boli
+-- v rovnakom kroku upravené. Retenčná lehota je vecou prevádzkovateľa —
+-- technicky nie je nastavené automatické mazanie.
 --
 -- Spustenie:
 --   mysql -h db.r6.websupport.sk -u digitalizuj -p Digitalizuj \
