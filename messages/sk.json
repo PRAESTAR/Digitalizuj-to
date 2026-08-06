@@ -34,7 +34,7 @@
     "q3": "Čo je DII (Digital Intensity Index)?",
     "a3": "DII je oficiálny ukazovateľ digitálnej intenzity firiem, ktorý zbiera Eurostat naprieč EÚ. Skóruje adopciu 12 digitálnych technológií a pomáha porovnávať firmy voči benchmarku EÚ.",
     "q4": "Odosielajú sa moje odpovede niekam?",
-    "a4": "Čiastočne — po dokončení diagnostiky. Vaše jednotlivé odpovede zostávajú výlučne vo vašom prehliadači a na server sa neodosielajú. Ukladá sa len hotový výsledok (vypočítané skóre a odporúčania), aby ste ho vedeli otvoriť aj neskôr a na inom zariadení cez permanentný odkaz alebo QR kód. Neukladá sa meno ani e-mail — výsledok je dostupný len cez 64-znakový náhodný kód, ktorý sa nedá uhádnuť. Návštevnosť sa meria cez Google Analytics až po vašom súhlase a obsah odpovedí sa do merania nedostane nikdy.",
+    "a4": "Čiastočne — po dokončení diagnostiky. Vaše jednotlivé odpovede zostávajú výlučne vo vašom prehliadači a na server sa neodosielajú. Ukladá sa len hotový výsledok (vypočítané skóre a odporúčania), aby ste ho vedeli otvoriť aj neskôr a na inom zariadení cez permanentný odkaz alebo QR kód. Neukladá sa meno ani e-mail — výsledok je dostupný len cez 64-znakový náhodný kód, ktorý sa nedá uhádnuť. Návštevnosť sa meria cez Google Analytics až po vašom súhlase a obsah odpovedí sa do merania nedostane nikdy. Uložený výsledok sa automaticky maže po 24 mesiacoch a kedykoľvek si ho môžete zmazať sami tlačidlom pri permanentnom odkaze.",
     "q5": "Koľko trvá hodnotenie?",
     "a5": "Indikatívny kvíz trvá 5–7 minút (15 otázok). Komplexná diagnostika trvá 15–20 minút (43–49 otázok s adaptívnym branchingom).",
     "q6": "Čo je povinná e-fakturácia od 1. 1. 2027?",
@@ -119,7 +119,7 @@
     "skip": "Neviem / Preskočiť",
     "tooltipLabel": "Vysvetlenie otázky",
     "multiSelectHint": "Vyberte všetky, ktoré platia",
-    "localNotice": "Vaše odpovede sa spracovávajú vo vašom prehliadači a na server sa neodosielajú. Po dokončení sa uloží len výsledné skóre pod náhodným kódom, aby ste sa k nemu vedeli vrátiť — bez mena, e-mailu či iného identifikačného údaja.",
+    "localNotice": "Vaše odpovede sa spracovávajú vo vašom prehliadači a na server sa neodosielajú. Po dokončení sa uloží len výsledné skóre pod náhodným kódom, aby ste sa k nemu vedeli vrátiť — bez mena, e-mailu či iného identifikačného údaja. Uložený výsledok sa po 24 mesiacoch automaticky zmaže a zmazať si ho môžete aj sami.",
     "emptyTitle": "Žiadny aktívny kvíz",
     "emptyText": "Vyberte si typ diagnostiky na úvodnej stránke."
   },
@@ -159,7 +159,15 @@
     "qrAlt": "QR kód pre výsledok {hash}",
     "generating": "Generujem QR…",
     "privacyTitle": "Súkromie",
-    "privacyText": "Vaše jednotlivé odpovede zostávajú len v tomto prehliadači. Na server sa uložilo iba výsledné skóre pod týmto náhodným kódom — vďaka tomu výsledok otvoríte aj na inom zariadení. Kto dostane QR kód alebo odkaz, uvidí anonymizovaný súhrn a firmu z neho identifikovať nedokáže."
+    "privacyText": "Vaše jednotlivé odpovede zostávajú len v tomto prehliadači. Na server sa uložilo iba výsledné skóre pod týmto náhodným kódom — vďaka tomu výsledok otvoríte aj na inom zariadení. Kto dostane QR kód alebo odkaz, uvidí anonymizovaný súhrn a firmu z neho identifikovať nedokáže. Uložený výsledok sa automaticky maže po 24 mesiacoch a zmazať si ho môžete kedykoľvek sami.",
+    "deleteCta": "Zmazať tento výsledok",
+    "deleteConfirm": "Výsledok sa nenávratne zmaže zo servera aj z tohto prehliadača. Permanentný odkaz aj QR kód prestanú fungovať.",
+    "deleteConfirmYes": "Áno, zmazať",
+    "deleteCancel": "Zrušiť",
+    "deleteWorking": "Mažem…",
+    "deleteDone": "Výsledok bol zmazaný. Odkaz už neotvorí nikto vrátane vás.",
+    "deleteError": "Výmaz sa nepodaril, výsledok zostal uložený. Skúste to prosím znova.",
+    "retention": "Uložený výsledok sa automaticky maže po 24 mesiacoch od uloženia."
   },
   "footer": {
     "tagline": "Adaptívny model DAP · DII-Compatible + ODRM",

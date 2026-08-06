@@ -34,7 +34,7 @@
     "q3": "What is the DII (Digital Intensity Index)?",
     "a3": "The DII is the official indicator of enterprise digital intensity collected by Eurostat across the EU. It scores the adoption of 12 digital technologies and enables comparison against the EU benchmark.",
     "q4": "Are my answers sent anywhere?",
-    "a4": "Partly — once you finish the assessment. Your individual answers stay in your browser and are never sent to the server. Only the finished result (calculated scores and recommendations) is stored, so you can open it later and on another device via the permanent link or QR code. No name or e-mail is stored — the result is reachable only through a random 64-character code that cannot be guessed. Traffic is measured via Google Analytics only after your consent, and the content of your answers never enters that measurement.",
+    "a4": "Partly — once you finish the assessment. Your individual answers stay in your browser and are never sent to the server. Only the finished result (calculated scores and recommendations) is stored, so you can open it later and on another device via the permanent link or QR code. No name or e-mail is stored — the result is reachable only through a random 64-character code that cannot be guessed. Traffic is measured via Google Analytics only after your consent, and the content of your answers never enters that measurement. A stored result is deleted automatically after 24 months, and you can delete it yourself at any time using the button next to the permanent link.",
     "q5": "How long does the assessment take?",
     "a5": "The indicative quiz takes 5–7 minutes (15 questions). The comprehensive assessment takes 15–20 minutes (43–49 questions with adaptive branching).",
     "q6": "What is the mandatory e-invoicing requirement from 1 January 2027?",
@@ -119,7 +119,7 @@
     "skip": "Don't know / Skip",
     "tooltipLabel": "Explanation of the question",
     "multiSelectHint": "Select all that apply",
-    "localNotice": "Your answers are processed in your browser and are never sent to the server. When you finish, only the resulting scores are stored under a random code so you can come back to them — with no name, e-mail or other identifying detail.",
+    "localNotice": "Your answers are processed in your browser and are never sent to the server. When you finish, only the resulting scores are stored under a random code so you can come back to them — with no name, e-mail or other identifying detail. A stored result is deleted automatically after 24 months, and you can also delete it yourself.",
     "emptyTitle": "No active assessment",
     "emptyText": "Choose an assessment type on the home page."
   },
@@ -159,7 +159,15 @@
     "qrAlt": "QR code for result {hash}",
     "generating": "Generating QR…",
     "privacyTitle": "Privacy",
-    "privacyText": "Your individual answers stay in this browser only. Just the resulting scores were stored on our server under this random code, which is how you can open the result on another device. Anyone who receives the QR code or link sees an anonymised summary and cannot identify your company from it."
+    "privacyText": "Your individual answers stay in this browser only. Just the resulting scores were stored on our server under this random code, which is how you can open the result on another device. Anyone who receives the QR code or link sees an anonymised summary and cannot identify your company from it. A stored result is deleted automatically after 24 months, and you can delete it yourself at any time.",
+    "deleteCta": "Delete this result",
+    "deleteConfirm": "The result will be permanently deleted from the server and from this browser. The permanent link and the QR code will stop working.",
+    "deleteConfirmYes": "Yes, delete it",
+    "deleteCancel": "Cancel",
+    "deleteWorking": "Deleting…",
+    "deleteDone": "The result has been deleted. Nobody can open the link any more, including you.",
+    "deleteError": "Deletion failed and the result is still stored. Please try again.",
+    "retention": "A stored result is deleted automatically 24 months after it was saved."
   },
   "footer": {
     "tagline": "Adaptive DAP model · DII-Compatible + ODRM",

@@ -27,6 +27,14 @@ import type { PeerSnapshot, ResultSnapshot, Respondent, AssessmentType } from '@
 
 const SAVE_ENDPOINT = '/api/result-save.php';
 const LOAD_ENDPOINT = '/api/result.php';
+const DELETE_ENDPOINT = '/api/result-delete.php';
+
+/**
+ * Retenčná lehota v mesiacoch — musí sedieť s `RETENTION_MONTHS`
+ * v `hosting/api/result-save.php`. Tu žije preto, aby ju vedeli zobraziť
+ * texty o súkromí bez ďalšieho volania na server.
+ */
+export const RETENTION_MONTHS = 24;
 
 interface SaveInput {
   hash: string;
@@ -114,5 +122,30 @@ export async function loadResultFromServer(hash: string): Promise<PeerSnapshot |
     };
   } catch {
     return null;
+  }
+}
+
+/**
+ * Zmaže uložený výsledok. Autorizáciou je znalosť hashu — kto vie výsledok
+ * zobraziť, smie ho aj odstrániť (viď hlavičku `result-delete.php`).
+ *
+ * Vracia true aj vtedy, keď na serveri nič nebolo: cieľom volajúceho je
+ * „tento výsledok nech neexistuje", a ten je splnený tak či tak. Chybu
+ * hlási len vtedy, keď sa výmaz naozaj nepodaril, aby sme používateľovi
+ * netvrdili niečo, čo nie je pravda.
+ */
+export async function deleteResultFromServer(hash: string): Promise<boolean> {
+  try {
+    const res = await fetch(DELETE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hash }),
+      credentials: 'omit',
+    });
+    if (!res.ok) return false;
+    const data: unknown = await res.json();
+    return typeof data === 'object' && data !== null && (data as { ok?: boolean }).ok === true;
+  } catch {
+    return false;
   }
 }

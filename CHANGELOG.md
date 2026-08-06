@@ -8,6 +8,33 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Retencia a výmaz výsledkov (6. 8. 2026)
+
+- **Uložené výsledky sa mažú po 24 mesiacoch.** Dovtedy nič staré záznamy
+  neodstraňovalo — dáta by tam zostali, kým by ich niekto ručne nezmazal, a
+  text o súkromí by sľuboval niečo, čo sa technicky nedialo. Hosting nemá
+  cron ani zapnuté MariaDB EVENT, takže mazanie visí na zápise: každý uložený
+  výsledok odstráni dávku prezretých riadkov. Znamená to, že bez prevádzky sa
+  nemaže nič — lehota je **najviac** 24 mesiacov od posledného zápisu, nie
+  presne 24. Prune beží až po odoslaní odpovede a vo vlastnom `try`, aby
+  zlyhanie údržby nikdy nezhodilo uloženie výsledku, ktorý používateľ práve
+  dokončil.
+- **Výsledok sa dá zmazať.** Predtým neexistovala žiadna cesta — ani pre
+  používateľa, ani pre prevádzkovateľa okrem ručného zásahu v databáze —
+  takže právo na výmaz sa nedalo uplatniť. Nový endpoint
+  `api/result-delete.php` a tlačidlo na oboch miestach, kde používateľ hash
+  vidí: pri permanentnom odkaze hneď po kvíze a na stránke `/r/{hash}`.
+  Maže obe kópie naraz, serverovú aj tú v prehliadači; lokálnu až po tom, čo
+  server výmaz potvrdí, aby sa nestratil prístup k záznamu, ktorý ďalej žije.
+  Autorizáciou je znalosť hashu — rovnaký model ako pri čítaní. Vedomý
+  dôsledok: komu odkaz prepošlete, ten výsledok môže aj zmazať. Silnejšia
+  autorizácia by znamenala účty a prihlasovanie, čo je pre anonymnú
+  diagnostiku horší kompromis než toto riziko.
+- **Texty hovoria obe veci.** FAQ (ide aj do štruktúrovaných dát pre Google),
+  upozornenie v kvíze aj panel o súkromí pri odkaze dopĺňajú lehotu a možnosť
+  výmazu v sk/cs/en. Dovtedy opisovali len to, ČO sa ukladá — nie ako dlho a
+  ako sa toho zbaviť.
+
 ### Ukladanie a zdieľanie výsledkov (5. 8. 2026)
 
 - **Výsledky sa ukladajú na server.** Do tohto dátumu výsledok neopustil

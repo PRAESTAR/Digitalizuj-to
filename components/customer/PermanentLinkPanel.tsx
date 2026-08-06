@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import type { ResultSnapshot, Respondent, AssessmentType } from '@/types';
 import { generateResultId, saveResultToStorage } from '@/lib/resultHash';
 import { saveResultToServer } from '@/lib/resultStore';
 import { toPeerSnapshot } from '@/lib/snapshotMapper';
 import QRCodeCard from './QRCodeCard';
+import DeleteResultButton from './DeleteResultButton';
 
 interface Props {
   result: ResultSnapshot;
@@ -31,6 +32,7 @@ export default function PermanentLinkPanel({
   completedAt,
 }: Props) {
   const locale = useLocale();
+  const t = useTranslations('share');
   const [hash, setHash] = useState<string | null>(null);
 
   useEffect(() => {
@@ -86,5 +88,15 @@ export default function PermanentLinkPanel({
   }
 
   const url = `${SITE_URL}/r/${hash}`;
-  return <QRCodeCard url={url} hash={hash} />;
+  return (
+    <div className="space-y-3">
+      <QRCodeCard url={url} hash={hash} />
+      {/* Výmaz patrí sem, nie len na /r/{hash}: toto je prvá a často jediná
+          obrazovka, kde sa používateľ dozvie, že sa výsledok vôbec uložil. */}
+      <div className="px-4 sm:px-6 lg:px-8">
+        <p className="text-xs text-[#86868b] leading-relaxed mb-2">{t('retention')}</p>
+        <DeleteResultButton hash={hash} />
+      </div>
+    </div>
+  );
 }

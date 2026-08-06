@@ -166,3 +166,26 @@ export function loadResultFromStorage(hash: string): StoredResult | null {
     return null;
   }
 }
+
+/**
+ * Odstráni výsledok z prehliadača — aj samotný záznam, aj odkaz naň v indexe.
+ * Bez druhého kroku by index ukazoval na kľúč, ktorý už neexistuje, a výpis
+ * uložených výsledkov by obsahoval prázdne položky.
+ *
+ * Dopĺňa serverový výmaz (`deleteResultFromServer`): jedno bez druhého nechá
+ * kópiu žiť ďalej, takže obe volá `DeleteResultButton` naraz.
+ */
+export function removeResultFromStorage(hash: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(STORAGE_PREFIX + hash);
+    const index: string[] = JSON.parse(localStorage.getItem(INDEX_KEY) ?? '[]');
+    const next = index.filter((h) => h !== hash);
+    if (next.length !== index.length) {
+      localStorage.setItem(INDEX_KEY, JSON.stringify(next));
+    }
+  } catch {
+    // Storage vypnutý alebo poškodený JSON — serverová časť výmazu je
+    // dôležitejšia a tá beží nezávisle.
+  }
+}

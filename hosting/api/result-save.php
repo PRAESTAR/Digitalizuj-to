@@ -36,6 +36,17 @@ header('Cache-Control: no-store');
 const MAX_BODY_BYTES = 524288;
 /** Koľko výsledkov smie z jednej IP pribudnúť za hodinu. */
 const MAX_PER_IP_HOUR = 20;
+/**
+ * Retenčná lehota. Po nej sa výsledok zmaže — permanentný odkaz prestane
+ * fungovať a vráti to isté, čo neexistujúci hash. Hosting nemá cron, takže
+ * mazanie visí na zápise: pri každom uloženom výsledku sa odstráni dávka
+ * prezretých riadkov. To znamená, že bez prevádzky sa nemaže nič — lehota
+ * je teda „najviac 24 mesiacov od posledného zápisu", nie presne 24.
+ * Alternatíva (MariaDB EVENT) je na zdieľanom hostingu spravidla vypnutá.
+ */
+const RETENTION_MONTHS = 24;
+/** Strop jednej dávky, aby prune nikdy nezdržal odpoveď používateľovi. */
+const PRUNE_BATCH = 200;
 
 function fail(string $reason, int $status = 400): never {
   http_response_code($status);
@@ -167,6 +178,26 @@ try {
   ]);
 
   echo json_encode(['ok' => true, 'stored' => true]);
+
+  // Prune AŽ PO odoslaní odpovede a vo vlastnom try — zlyhanie údržby nesmie
+  // zhodiť uloženie výsledku, ktorý používateľ práve dokončil.
+  if (function_exists('fastcgi_finish_request')) {
+    fastcgi_finish_request();
+  }
+  try {
+    $prune = $pdo->prepare(
+      'DELETE FROM assessment_results
+        WHERE created_at < (NOW() - INTERVAL ' . RETENTION_MONTHS . ' MONTH)
+        LIMIT ' . PRUNE_BATCH
+    );
+    $prune->execute();
+    $removed = $prune->rowCount();
+    if ($removed > 0) {
+      error_log(sprintf('result-save: retencia zmazala %d zaznamov', $removed));
+    }
+  } catch (PDOException $e) {
+    error_log('result-save/prune: ' . $e->getMessage());
+  }
 } catch (PDOException $e) {
   // 23000 = porušenie unique kľúča. Opakované odoslanie toho istého výsledku
   // (obnovenie stránky, druhý tab) nie je chyba — výsledok už uložený je.

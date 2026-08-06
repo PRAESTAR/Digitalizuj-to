@@ -25,6 +25,9 @@
 
 - **Obsah modelu** (otázky, možnosti, vetvenie) žije v MariaDB a `data/questionBank.json` je z nej kompilovaný nasadzovací artefakt — nie naopak.
 - **Výsledky diagnostiky** sa od 5. 8. 2026 ukladajú do tabuľky `assessment_results` ako agregáty (odpovede po otázkach nie); `localStorage` zostáva ako prvá, okamžitá vrstva. Dovtedy výsledok neopustil prehliadač, takže permanentný odkaz fungoval len na jednom zariadení.
+  - `api/result-save.php` — zápis (strop 512 kB, tvar hashu aj UUID, 20 zápisov z IP za hodinu, idempotencia cez unique kľúč). Po odoslaní odpovede spúšťa **retenčný prune**: mazanie riadkov starších než `RETENTION_MONTHS` (24) v dávkach po 200. Hosting nemá cron ani MariaDB EVENT, takže mazanie visí na prevádzke — lehota je „najviac 24 mesiacov od posledného zápisu", nie presne 24.
+  - `api/result.php` — čítanie podľa hashu, vracia anonymizovaný snapshot.
+  - `api/result-delete.php` — výmaz na žiadosť. Autorizáciou je znalosť hashu, rovnako ako pri čítaní: 64 hex znakov sa uhádnuť nedá. Vedomý dôsledok — komu odkaz prepošlete, ten výsledok môže aj zmazať; silnejšia autorizácia by znamenala účty, čo je pre anonymnú diagnostiku horší kompromis.
 - **Scoring a benchmark dáta** zostávajú v repe (`data/*.json` + typované wrappery), lebo sú súčasťou verzovaného modelu, nie používateľských dát.
 
 ---

@@ -14,6 +14,7 @@ import { loadResultFromServer } from '@/lib/resultStore';
 import type { PeerSnapshot } from '@/types';
 import PeerComparisonPanel from './PeerComparisonPanel';
 import QRCodeCard from './QRCodeCard';
+import DeleteResultButton from './DeleteResultButton';
 
 const SITE_URL =
   typeof window !== 'undefined'
@@ -27,7 +28,10 @@ interface Props {
 type ViewState =
   | { kind: 'loading' }
   | { kind: 'found'; snapshot: PeerSnapshot; hash: string }
-  | { kind: 'missing'; hash: string };
+  | { kind: 'missing'; hash: string }
+  // Po výmaze sa výsledok nesmie ďalej zobrazovať — v pamäti komponentu ešte
+  // je, ale nechať ho na obrazovke by protirečilo tomu, čo sme práve potvrdili.
+  | { kind: 'deleted' };
 
 /**
  * Skutočný hash z adresy. Na produkcii (statický export) sem Apache prepisuje
@@ -94,6 +98,29 @@ export default function UserOwnResultView({ hash }: Props) {
         <div className="inline-flex items-center gap-2 text-[#6e6e73] text-sm">
           <span className="w-2 h-2 rounded-full bg-[#86868b] animate-pulse" />
           {t('common.loading')}
+        </div>
+      </div>
+    );
+  }
+
+  if (state.kind === 'deleted') {
+    return (
+      <div className="site-container py-12 sm:py-16 text-center">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-6 rounded-3xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center">
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h1 className="text-xl sm:text-2xl font-bold text-[#1d1d1f] mb-3 break-words">
+          {t('share.deleteDone')}
+        </h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 mt-8">
+          <Link
+            href="/"
+            className="btn-apple-primary inline-flex items-center justify-center gap-2 w-full sm:w-auto px-7 py-3.5 rounded-full text-white font-semibold"
+          >
+            {t('customer.startNew')}
+          </Link>
         </div>
       </div>
     );
@@ -208,11 +235,12 @@ export default function UserOwnResultView({ hash }: Props) {
       <PeerComparisonPanel current={snapshot} />
       <QRCodeCard url={url} hash={resultHash} />
 
-      <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 sm:p-5 text-sm text-[#1d1d1f] leading-relaxed">
+      <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 sm:p-5 text-sm text-[#1d1d1f] leading-relaxed space-y-3">
         <p className="font-bold text-emerald-700 mb-1">{t('share.privacyTitle')}</p>
         <p>
           {t('share.privacyText')}
         </p>
+        <DeleteResultButton hash={resultHash} onDeleted={() => setState({ kind: 'deleted' })} />
       </div>
     </div>
   );
