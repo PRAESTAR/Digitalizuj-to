@@ -371,8 +371,8 @@ Dotazník sa **nepýta** na hodinovú cenu práce vo firme — je to citlivý ú
 
 ### 7.1 Dva režimy
 
-1. **Indikatívny kvíz** (15 otázok): Rýchly screening. Výsledok = orientačné skóre + rozhodnutie či pokračovať.
-2. **Komplexný kvíz** (50 otázok v banke, reálne 43–49 podľa vetvenia): Hlbšia diagnostika rozdelená do modulov.
+1. **Indikatívny kvíz** (18 otázok): Rýchly screening. Výsledok = orientačné skóre + rozhodnutie či pokračovať.
+2. **Komplexný kvíz** (57 otázok v banke, reálne 49–57 podľa vetvenia): Hlbšia diagnostika rozdelená do modulov.
 
 ### 7.2 Branching princípy
 
@@ -448,8 +448,8 @@ Používame **statické benchmark hodnoty** odvodené z verejných Eurostat dát
 **Dilema:** Viac otázok = presnejšie meranie, ale nižšia completion rate.
 
 **Rozhodnutie:** 
-- Indikatívny kvíz (15 otázok) = nízka záťaž, nižšia presnosť.
-- Komplexný kvíz (43–49 otázok) = vyššia záťaž, vyššia presnosť.
+- Indikatívny kvíz (18 otázok) = nízka záťaž, nižšia presnosť.
+- Komplexný kvíz (49–57 otázok) = vyššia záťaž, vyššia presnosť.
 - Branching znižuje reálny počet otázok.
 
 ### 9.4 DII mapovanie nie je 1:1
@@ -529,6 +529,8 @@ Tabuľka je generovaná zo zdrojov pravdy (questionBank + diiIndicators) — pri
 | `ind_01` | indikatívny | meta | benchmark_sector | — |
 | `ind_02` | indikatívny | meta | benchmark_size | — |
 | `ind_03` | indikatívny | A | ors_A | — |
+| `ind_03b` | indikatívny | A | ors_A | — |
+| `ind_03c_manual` | indikatívny | A | ors_A | — |
 | `ind_04` | indikatívny | A | ors_A, ors_B | — |
 | `ind_05` | indikatívny | B | ors_B, dii | DII7, DII8, DII9 |
 | `ind_06_integration` | indikatívny | B | ors_B | — |
@@ -537,6 +539,7 @@ Tabuľka je generovaná zo zdrojov pravdy (questionBank + diiIndicators) — pri
 | `ind_09_server_age` | indikatívny | D | ors_D, ors_E | — |
 | `ind_10` | indikatívny | E | ors_E, dii | vylúčená (mimo v3) |
 | `ind_11` | indikatívny | E | ors_E | — |
+| `ind_11b` | indikatívny | E | ors_E | — |
 | `ind_12` | indikatívny | dii | dii | DII3, DII4, DII10 |
 | `ind_13` | indikatívny | F | ors_F | — |
 | `ind_14` | indikatívny | F | ors_F, ors_E | — |
@@ -544,16 +547,19 @@ Tabuľka je generovaná zo zdrojov pravdy (questionBank + diiIndicators) — pri
 | `cx_01` | komplexný | meta | benchmark_sector | — |
 | `cx_02` | komplexný | meta | benchmark_size | — |
 | `cx_03` | komplexný | meta | — | — |
+| `cx_04_role` | komplexný | meta | — | — |
 | `cx_A01` | komplexný | A | ors_A | — |
 | `cx_A02` | komplexný | A | ors_A, dii | vylúčená (mimo v3) |
 | `cx_A03` | komplexný | A | ors_A, ors_B | — |
 | `cx_A04` | komplexný | A | ors_A | — |
+| `cx_A04b` | komplexný | A | ors_A | — |
 | `cx_A05` | komplexný | A | ors_A | — |
 | `cx_A06_ai_automation` | komplexný | A | ors_A, ai_readiness | — |
 | `cx_B01` | komplexný | B | ors_B, dii | DII7, DII8, DII9 |
 | `cx_B02` | komplexný | B | — | — |
 | `cx_B03` | komplexný | B | ors_B | — |
 | `cx_B04` | komplexný | B | ors_B | — |
+| `cx_B04b` | komplexný | B | ors_B | — |
 | `cx_B05` | komplexný | B | ors_B, ors_F | — |
 | `cx_B05b_outsource` | komplexný | B | ors_B | — |
 | `cx_B06_ecommerce` | komplexný | B | dii | DII10 |
@@ -567,6 +573,7 @@ Tabuľka je generovaná zo zdrojov pravdy (questionBank + diiIndicators) — pri
 | `cx_D05_cloud` | komplexný | D | ors_D | — |
 | `cx_D06` | komplexný | D | ors_D, dii | vylúčená (mimo v3) |
 | `cx_D07` | komplexný | D | ors_D | — |
+| `cx_D07b` | komplexný | D | ors_D | — |
 | `cx_D08_app_lifecycle` | komplexný | D | ors_D | — |
 | `cx_E01` | komplexný | E | ors_E | — |
 | `cx_E02` | komplexný | E | ors_E | — |
@@ -574,7 +581,10 @@ Tabuľka je generovaná zo zdrojov pravdy (questionBank + diiIndicators) — pri
 | `cx_E04` | komplexný | E | ors_E | — |
 | `cx_E05` | komplexný | E | ors_E | — |
 | `cx_E06` | komplexný | E | ors_E | — |
+| `cx_E06b` | komplexný | E | ors_E | — |
 | `cx_E07` | komplexný | E | ors_E | — |
+| `cx_E09_endpoint` | komplexný | E | ors_E | — |
+| `cx_E10_awareness` | komplexný | E | ors_E | — |
 | `cx_E08_nis2` | komplexný | E | ors_E | — |
 | `cx_F01` | komplexný | F | ors_F | — |
 | `cx_F02` | komplexný | F | ors_F | — |

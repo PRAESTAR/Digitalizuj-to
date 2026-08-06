@@ -152,6 +152,30 @@ export interface DIIIndicator {
 }
 
 /**
+ * Rozsah, v ktorom sa výsledok reálne pohybuje.
+ *
+ * NIE JE to štatistický interval spoľahlivosti — na ten by bola potrebná
+ * rozptylová štruktúra položiek z pilotu, ktorý zatiaľ nebehol (viď
+ * reliability roadmapa). Je to DETERMINISTICKÝ rozsah odvodený z toho, čo
+ * dotazník o firme nezistil:
+ *
+ *  - DII: nemeraný indikátor môže byť splnený aj nesplnený, takže skutočný
+ *    počet leží medzi „všetky nemerané nesplnené" a „všetky splnené".
+ *  - ORS: o koľko by kategóriou pohla zmena JEDNEJ odpovede o jeden stupeň
+ *    škály — priamy dôsledok toho, koľkými položkami je kategória meraná.
+ *    Kategória s jednou otázkou je odhad, kategória so šiestimi meranie.
+ *
+ * Vďaka tomu 18-otázkový a 51-otázkový výsledok prestali vyzerať rovnako
+ * isto, bez toho, aby sme si vymysleli číslo, ktoré nevieme podložiť.
+ */
+export interface ConfidenceBand {
+  lower: number;
+  upper: number;
+  /** Krátke vysvetlenie, čím je rozsah spôsobený — ide priamo do UI. */
+  reasonSk: string;
+}
+
+/**
  * DII skóre s per-indikátorovou agregáciou. score12 je EXTRAPOLÁCIA
  * (splnené / merané × 12) — nemerané indikátory skóre nefabrikujú,
  * pokrytie priznáva measuredIndicators + confidence. measured=false
@@ -170,6 +194,8 @@ export interface DIIScore {
   levelLabelSk: string | null;
   /** Vždy 12 riadkov — po jednom pre každý v3/2025 indikátor. */
   indicators: DIIIndicator[];
+  /** Rozsah 0–12, v ktorom leží skutočný počet splnených indikátorov. */
+  band: ConfidenceBand | null;
 }
 
 /**
@@ -186,6 +212,8 @@ export interface CategoryScore {
   answeredQuestions: number;
   totalQuestions: number;
   confidence: 'high' | 'medium' | 'low';
+  /** Ako veľmi kategóriou pohne zmena jednej odpovede o stupeň škály. */
+  band: ConfidenceBand | null;
 }
 
 /**
@@ -202,6 +230,8 @@ export interface ORSScore {
   categories: Record<string, CategoryScore>;
   penaltyApplied: boolean;
   penaltyReason: string | null;
+  /** Rozsah celkového ORS, zložený z rozsahov meraných kategórií. */
+  band: ConfidenceBand | null;
 }
 
 export interface RiskFactor {

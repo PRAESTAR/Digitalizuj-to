@@ -8,6 +8,74 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Revízia otázkovej banky 1.6 a konfidenčné pásma (6. 8. 2026)
+
+- **Šesť dvojhlavňových otázok rozdelených na dvanásť.** Pýtali sa na dve veci
+  naraz — „počítače a mobily", „výpadok alebo strata dát", „nákupy, faktúry,
+  dovolenky" — takže firma, ktorá mala jedno vyriešené a druhé nie, si musela
+  vybrať, čo zamlčí. Váhy sa **delia, nie zdvojujú**: súčet oboch polovíc sa
+  rovná pôvodnej váhe, inak by téma v priemere kategórie zosilnela dvojnásobne.
+  Stráži to test. Rizikové príznaky išli na tú polovicu, ktorá ich dokladá —
+  `ind_11` predtým flagovala chýbajúce zálohy aj chýbajúci BC/DR plán z jednej
+  odpovede, teraz zálohová polovica flaguje RF02 a prevádzková RF09.
+- **Tri nové otázky.** Banka merala zálohy, MFA aj aktualizácie, ale nikde sa
+  nepýtala, **čím sú počítače chránené** a **či o tom ľudia niečo vedia** —
+  pritom phishing a ransomware sú u malých firiem najčastejší vstupný bod.
+  Pribudla otázka na ochranu koncových staníc (flaguje RF11 len pri úplnej
+  absencii ochrany) a na bezpečnostné školenia (zámerne **bez** rizikového
+  príznaku: medzi 14 faktormi žiadny o povedomí nie je a zavedenie nového by
+  prepočítalo menovateľ TDRI, teda zmenilo rizikové skóre všetkým doterajším
+  výsledkom). Tretia otázka dopĺňa manuálne procesy do **indikatívnej vetvy** —
+  dovtedy indikatívne ROI vždy počítalo z benchmarkových defaultov, takže dve
+  firmy s desaťnásobne odlišnou mierou ručnej práce dostali rovnaký odhad.
+- **Rola respondenta ako premenná** — len v komplexnom kvíze. Kto dotazník
+  vypĺňa, systematicky posúva odpovede: majiteľ pozná procesy a preceňuje stav
+  IT, správca naopak. Meta otázka s váhou 0, do skóre nevstupuje.
+- **Dĺžka kvízov:** indikatívny 15 → 18 otázok, komplexný 50 → 57. Rola sa do
+  indikatívneho zámerne nepridala — je to vstup do lievika a jeho dĺžka
+  rozhoduje o tom, koľko ľudí diagnostiku vôbec dokončí. Test stráži strop 20.
+- **Reverse-keyed položky odložené do P2.** Ich účel je detekcia acquiescence
+  bias a straightlingu, čo sa dá vyhodnotiť až pri 100+ hodnoteniach — teda na
+  rovnakom horizonte ako Cronbachova alfa. Dovtedy by sa platilo dlhším kvízom
+  a mätúcimi formuláciami bez akéhokoľvek výnosu.
+- **Konfidenčné pásma.** 18-otázkový a 51-otázkový výsledok vyzerali rovnako
+  isto. Nie je to interval spoľahlivosti — ten by vyžadoval pilotné dáta, ktoré
+  neexistujú — ale **deterministický rozsah z toho, čo dotazník nezistil**. Pri
+  DII je to logická hranica: nemeraný indikátor môže byť splnený aj nesplnený,
+  takže skutočný počet leží medzi „všetky nemerané nesplnené" a „všetky
+  splnené". Pri ORS je to citlivosť na jednu odpoveď: kategória meraná jedinou
+  otázkou sa pohne o celý stupeň škály, kategória so šiestimi o zlomok. Rozsah
+  sa v UI ukáže len vtedy, keď je širší než bod.
+
+- **Opravy z nezávislej kontroly revízie.** Adversariálna kontrola v piatich
+  optikách našla šesť vecí, ktoré by inak išli live:
+  - **Penalizované ORS padalo mimo vlastného rozsahu.** Karta vypisuje skóre po
+    bezpečnostnej penalizácii, pásmo sa počítalo z nepenalizovaného — firma so
+    slabou bezpečnosťou videla „28/100" a hneď pod tým „Rozsah 35–46". Pásmo
+    prejde odteraz tou istou penaltou ako bod; stráži to test nad reálnou bankou.
+  - **„Žiadny ručný proces" znamenalo vyšší odhad úspor.** Odpoveď „všetko máme
+    digitalizované" sa filtrovala na prázdny zoznam, nerozoznateľný od
+    nezodpovedanej otázky, takže ROI spadlo na tri **predpokladané** procesy:
+    3 203 €/rok oproti 1 940 € pre firmu, ktorá jeden ručný proces priznala.
+    Monotónnosť bola obrátená. Nerozpoznaná hodnota naďalej spúšťa defaulty —
+    to je rozbité mapovanie, nie neexistujúca ručná práca.
+  - **Ochrana koncových staníc prestala flagovať RF11.** Faktor sa volá „Žiadne
+    logovanie/monitoring" a jeho odporúčanie znie „Zapnite logovanie" — firma
+    s proaktívnym monitoringom, ale bez antivírusu by dostala radu, ktorá jej
+    medzeru nerieši. Vysvetlenie v poli `reason` sa navyše pri `flag_risk`
+    zahadzuje. Rovnaký dôvod ako pri školeniach: vhodný faktor neexistuje.
+  - **Rozdelenie ind_11 stratilo riziko pri viacdňovom výpadku.** Pôvodná otázka
+    flagovala RF09 aj pri „stáli by sme dni/týždne"; po rozdelení zostalo
+    pravidlo len na najhoršej možnosti, takže riziko prepadlo z potvrdeného
+    (6,3 b) na odvodené (2,2 b). Pravidlo je späť.
+  - **Web sľuboval 15-otázkový kvíz.** Počty v pätnástich reťazcoch (výber kvízu,
+    FAQ — ktorá ide aj do štruktúrovaných dát pre Google, SEO popisy, metodika,
+    popisy kvízov v banke) zostali na starých hodnotách. Dorovnané na 18 / 49–57
+    vrátane odhadov trvania.
+  - **Rozsah DII karty sa dal čítať ako body.** Veľké číslo je `score100`, pásmo
+    je v indikátoroch 0–12 — spoločný text „Rozsah 4–8" pod „48/100" zvádzal.
+    Obe pásma majú odteraz jednotku v texte.
+
 ### Retencia a výmaz výsledkov (6. 8. 2026)
 
 - **Uložené výsledky sa mažú po 24 mesiacoch.** Dovtedy nič staré záznamy

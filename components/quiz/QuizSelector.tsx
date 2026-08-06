@@ -58,7 +58,7 @@ export default function QuizSelector() {
         <div className="relative">
           <div className="flex items-center gap-3 sm:gap-4 mb-5">
             <span className="flex flex-shrink-0 items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#1d1d1f]/[0.05] font-bold text-lg sm:text-xl">
-              <span className="text-gradient-aurora">15</span>
+              <span className="text-gradient-aurora">18</span>
             </span>
             <div className="min-w-0">
               <h3 className="text-lg sm:text-xl font-bold text-[#1d1d1f] break-words">

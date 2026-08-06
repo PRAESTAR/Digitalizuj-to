@@ -314,7 +314,7 @@ Detailná špecifikácia (vzorce, scenáre, confidence, zdroje hodinovej ceny pr
 |------------|-------------|
 | `single_choice` | Priamo `option.score` (0–100), žiadna ďalšia transformácia. |
 | `multi_select` (normálny) | `min(100, round(Σ vybraných option.score / max_score × 100))`. |
-| `multi_select` (invertovaný, `scoring_note` obsahuje "Invertované") | `max(0, 100 + Σ vybraných option.score)` — možnosti majú záporné skóre. |
+| `multi_select` (invertovaný, `scoring_mode: "inverted"`) | `max(0, 100 + Σ vybraných option.score)` — možnosti majú záporné skóre. |
 
 Typy `numeric_input`, `numeric_bands`, `conditional_matrix` spomínané v pôvodnej dokumentácii **nie sú implementované** — `QuestionCard.tsx` podporuje výhradne `single_choice` a `multi_select`.
 
@@ -333,13 +333,104 @@ Typy `numeric_input`, `numeric_bands`, `conditional_matrix` spomínané v pôvod
 
 ---
 
-## 8. Indikatívny vs. komplexný kvíz
-
-Motor **nerozlišuje** typ kvízu vo výpočte — `calculateDII`/`calculateORS`/`calculateAIReadiness`/`calculateTDRI` dostávajú len `answers` a `questions`, žiadny parameter `assessmentType`. Rozdiel medzi kvízmi je čisto v tom, **koľko a ktoré otázky boli zodpovedané** (menej otázok v indikatívnom kvíze → menej dát → nižšia `confidence` na kategóriovej úrovni, ale **nie** explicitné confidence pásmo na úrovni celkového skóre ako 45 ± 15). Označenie výsledku ako orientačný/plný sa deje len na úrovni UI (typ assessmentu v `ResultSnapshot`), nie vo vzorcoch.
 
 ---
 
-## 9. Konfigurácia
+## 8. Konfidenčné pásma
+
+Implementácia: `engines/scoringEngine.ts` → `categorySensitivity`, pole `band`
+na `DIIScore`, `ORSScore` a `CategoryScore`.
+
+**Čo pásmo NIE JE.** Nie je to štatistický interval spoľahlivosti. Ten by
+vyžadoval rozptylovú štruktúru položiek z pilotu, ktorý zatiaľ nebehol (viď
+reliability roadmapa v `IMPROVEMENT_CHECKLIST.md`). Vydávať odhad za interval
+spoľahlivosti by bola presne tá falošná presnosť, ktorú má pásmo odstrániť.
+
+**Čo pásmo JE.** Deterministický rozsah odvodený z toho, čo dotazník nezistil.
+
+### 8.1 DII — logická hranica z nemeraných indikátorov
+
+```
+unmeasured = 12 − measuredIndicators
+band.lower = metIndicators                 // všetky nemerané nesplnené
+band.upper = metIndicators + unmeasured    // všetky nemerané splnené
+```
+
+Bod `score12 = round(met/measured × 12)` leží vždy vnútri: z `m ≤ k` a
+`k ≤ 12` vyplýva `(m − k)(12 − k) ≤ 0`, teda `12m/k ≤ m + 12 − k`.
+Stráži to test.
+
+### 8.2 ORS — citlivosť na jednu odpoveď
+
+Kategória je vážený priemer položiek, takže vplyv položky je `w_i / Σw` krát
+jej krok. Maximum cez položky je citlivosť: **o koľko bodov pohne kategóriou
+zmena jedinej odpovede**.
+
+```
+krok single_choice  = 100 / (počet možností − 1)          // susedná možnosť
+krok multi_select   = najväčšia |option.score|            // jedna zaškrtnutá položka
+                      (pri normálnom režime prepočítaná cez max_score na 0–100)
+
+sensitivity = max cez zodpovedané položky ( w_i / Σw × krok_i )
+band = [max(0, score − sensitivity), min(100, score + sensitivity)]
+```
+
+Krok multi-selectu je **jedna položka, nie celý rozsah**. Pri
+`cx_A05`/`ind_03c_manual` posunie jedna zaškrtnutá položka skóre najviac
+o 14 bodov; brať ju ako plný stupeň by nafúklo rozsah kategórie A
+štvornásobne oproti tomu, čo sa reálne môže stať. Do citlivosti vstupujú len
+položky so **zodpovedanou** otázkou; nezodpovedané do priemeru nikdy
+nevstúpili, takže by rozsah nafúkli o niečo, čo skóre neovplyvnilo.
+
+Celkové ORS pásmo sa skladá z kategóriových pásiem tým istým váženým
+priemerom ako bodový odhad, takže bod leží vždy vnútri.
+
+**Prečo práve toto.** Kategória meraná jedinou otázkou sa pohne o celý stupeň,
+kategória so šiestimi o zlomok. Indikatívny kvíz meria kategóriu C jednou
+otázkou, komplexný tromi — a presne tento rozdiel dovtedy na výsledku vidieť
+nebolo. Test to overuje priamo na reálnej banke: rovnaké odpovede,
+indikatívna vetva má širší rozsah než komplexná.
+
+**Čo pásmo nepokrýva.** Reliabilitu samotného nástroja (vnútornú konzistenciu
+položiek). To je otázka na pilot a Cronbachovu alfu, nie na výpočet nad
+jedným respondentom. Penalizovaná hodnota ORS pásmo nedostáva — penalta je
+odvodená úprava, nie meranie.
+
+### 8.3 Ako to vyzerá v číslach
+
+Rovnaké „stredné" odpovede na oboch vetvách (banka 1.6):
+
+| | ORS | Rozsah | Šírka | DII | Rozsah |
+|---|---|---|---|---|---|
+| Indikatívny (18 otázok) | 51,9 | 37,3–66,5 | 29,2 | 6/12 | 4–8 |
+| Komplexný (57 otázok) | 58,9 | 52,7–65,0 | 12,3 | 7/12 | 6–8 |
+
+Rozdiel ženie kategória C: indikatívny kvíz ju meria **jedinou** otázkou
+(rozsah 25–75), komplexný tromi (44,9–65,7).
+
+**Pri bezpečnostnej penalizácii** prejde pásmo tým istým násobkom ako bod.
+Bez toho karta vypisovala penalizované číslo nad rozsahom počítaným
+z nepenalizovaného skóre — firma so slabou bezpečnosťou videla napríklad
+„28/100" a hneď pod tým „Rozsah 35–46", teda číslo mimo vlastného rozsahu.
+Penalta je deterministický násobok, takže rovnaký prenos hraníc je korektný.
+
+**V UI** sa rozsah zobrazuje len vtedy, keď je širší než bod: pri plnom
+pokrytí by „6–6" nič nehovorilo.
+
+## 9. Indikatívny vs. komplexný kvíz
+
+Motor **nerozlišuje** typ kvízu vo výpočte — `calculateDII`/`calculateORS`/`calculateAIReadiness`/`calculateTDRI` dostávajú len `answers` a `questions`, žiadny parameter `assessmentType`. Rozdiel medzi kvízmi je čisto v tom, **koľko a ktoré otázky boli zodpovedané**, a prejaví sa dvoma cestami:
+
+1. nižšia `confidence` na kategóriovej úrovni (podiel „Neviem" na položených otázkach),
+2. **širšie konfidenčné pásmo** na úrovni celkového skóre (§8) — kategória meraná jedinou otázkou má rozsah ±25 bodov, kategória so šiestimi zlomok z toho.
+
+Pásmo nevzniká z parametra `assessmentType`, ale zo skutočného zloženia zodpovedaných položiek, takže funguje aj pre nedokončený alebo silne rozvetvený kvíz. Označenie výsledku ako orientačný/plný sa naďalej deje len na úrovni UI (typ assessmentu v `ResultSnapshot`), nie vo vzorcoch.
+
+> **Zmena 6. 8. 2026.** Táto sekcia dovtedy tvrdila, že explicitné pásmo na úrovni celkového skóre **neexistuje**. Od zavedenia §8 to už neplatí.
+
+---
+
+## 10. Konfigurácia
 
 Parametre v `data/scoringConfig.ts` (zdroj pravdy) / `config/model/scoringConfig.json` (editovateľná kópia — treba manuálne synchronizovať):
 

@@ -1,12 +1,12 @@
 {
-  "version": "1.5-MVP",
+  "version": "1.6",
   "model_name": "Adaptívny model DAP",
-  "last_updated": "2026-07-24",
+  "last_updated": "2026-08-06",
   "indicative_quiz": {
     "id": "indicative_v1",
     "name": "Indikatívny kvíz",
-    "description": "Rýchly screening digitálnej zrelosti (max 15 otázok)",
-    "max_questions": 15,
+    "description": "Rýchly screening digitálnej zrelosti (max 18 otázok)",
+    "max_questions": 18,
     "questions": [
       {
         "id": "ind_01",
@@ -116,9 +116,9 @@
         "id": "ind_03",
         "category": "A",
         "dimension": "process_digitalization",
-        "question_sk": "Ako by ste opísali väčšinu vašich interných procesov (objednávky, fakturácia, schvaľovanie, reporting)?",
+        "question_sk": "Ako spracúvate objednávky a fakturáciu?",
         "question_type": "single_choice",
-        "weight": 1.5,
+        "weight": 0.8,
         "options": [
           {
             "value": "0",
@@ -127,22 +127,22 @@
           },
           {
             "value": "1",
-            "label": "Niektoré procesy máme v systéme, ale veľa robíme ručne",
+            "label": "Časť máme v systéme, veľa prepisujeme ručne",
             "score": 25
           },
           {
             "value": "2",
-            "label": "Väčšina procesov je v systémoch, máme definované postupy",
+            "label": "Objednávky aj faktúry vznikajú priamo v systéme",
             "score": 50
           },
           {
             "value": "3",
-            "label": "Procesy sú automatizované, minimálne ručné zásahy",
+            "label": "Systém ich spracuje sám, ručne riešime len výnimky",
             "score": 75
           },
           {
             "value": "4",
-            "label": "Procesy priebežne optimalizujeme na základe dát",
+            "label": "Priebežne ich optimalizujeme podľa dát zo systému",
             "score": 100
           }
         ],
@@ -155,9 +155,113 @@
         "maps_to_roi_model": [
           "manual_share"
         ],
-        "tooltip": "Myslíme tým, ako reálne pracujete deň-čo-deň, nie čo máte nakúpené.",
+        "tooltip": "Myslíme tým, ako reálne pracujete deň čo deň, nie čo máte nakúpené.",
         "allow_unknown": true,
         "scale": "linear-5"
+      },
+      {
+        "branching_rules": [],
+        "evidence_type": "self_assessment",
+        "maps_to_risk": [],
+        "maps_to_roi_model": [],
+        "tooltip": "Schvaľovanie nákupov, dovoleniek či faktúr a pravidelné výkazy pre vedenie.",
+        "allow_unknown": true,
+        "id": "ind_03b",
+        "category": "A",
+        "dimension": "approval_reporting",
+        "question_sk": "Ako u vás prebieha schvaľovanie a interný reporting?",
+        "question_type": "single_choice",
+        "weight": 0.7,
+        "options": [
+          {
+            "value": "0",
+            "label": "Ústne, e-mailom alebo na papieri",
+            "score": 0
+          },
+          {
+            "value": "1",
+            "label": "Čiastočne digitálne, ale bez určeného postupu",
+            "score": 25
+          },
+          {
+            "value": "2",
+            "label": "Máme určené postupy a robíme to v systéme",
+            "score": 50
+          },
+          {
+            "value": "3",
+            "label": "Schvaľovanie beží automaticky, reporty sa generujú samé",
+            "score": 75
+          },
+          {
+            "value": "4",
+            "label": "Sledujeme to priebežne a podľa dát upravujeme",
+            "score": 100
+          }
+        ],
+        "maps_to_score": [
+          "ors_A"
+        ],
+        "scale": "linear-5"
+      },
+      {
+        "branching_rules": [],
+        "evidence_type": "self_assessment",
+        "maps_to_risk": [],
+        "maps_to_roi_model": [
+          "manual_processes"
+        ],
+        "tooltip": "Vyberte všetky, ktoré sú stále prevažne manuálne.",
+        "allow_unknown": true,
+        "id": "ind_03c_manual",
+        "category": "A",
+        "dimension": "process_specific",
+        "question_sk": "Ktoré z týchto procesov stále robíte prevažne ručne alebo na papieri?",
+        "question_type": "multi_select",
+        "weight": 0.8,
+        "options": [
+          {
+            "value": "invoicing",
+            "label": "Fakturácia / Objednávky",
+            "score": -12
+          },
+          {
+            "value": "hr_onboarding",
+            "label": "HR / Onboarding zamestnancov",
+            "score": -10
+          },
+          {
+            "value": "warehouse",
+            "label": "Sklad / Inventúra",
+            "score": -12
+          },
+          {
+            "value": "reporting",
+            "label": "Reporting / Výkazy",
+            "score": -14
+          },
+          {
+            "value": "service",
+            "label": "Servis / Zákazky",
+            "score": -12
+          },
+          {
+            "value": "purchasing",
+            "label": "Nákup / Obstarávanie",
+            "score": -10
+          },
+          {
+            "value": "none",
+            "label": "Žiadny — všetko máme digitalizované",
+            "score": 0
+          }
+        ],
+        "max_score": 100,
+        "scoring_note": "Invertované: viac vybraných = nižšie skóre. Skóre = 100 + suma záporných hodnôt (min 0).",
+        "scoring_mode": "inverted",
+        "maps_to_score": [
+          "ors_A"
+        ]
       },
       {
         "id": "ind_04",
@@ -555,47 +659,38 @@
       {
         "id": "ind_11",
         "category": "E",
-        "dimension": "business_continuity",
-        "question_sk": "Čo by sa stalo, keby ste zajtra prišli o všetky dáta alebo hlavný systém?",
+        "dimension": "backup_recovery",
+        "question_sk": "Keby ste zajtra prišli o všetky firemné dáta, ako rýchlo by ste ich obnovili?",
         "question_type": "single_choice",
-        "weight": 1.3,
+        "weight": 0.7,
         "options": [
           {
-            "value": "disaster",
-            "label": "Boli by sme v existenčnom ohrození",
+            "value": "none",
+            "label": "Neobnovili — zálohy nemáme alebo o nich nevieme",
             "score": 0
           },
           {
-            "value": "major_impact",
-            "label": "Stáli by sme niekoľko dní/týždňov, veľké straty",
+            "value": "untested",
+            "label": "Zálohy máme, ale obnovu sme nikdy neskúšali",
             "score": 33
           },
           {
-            "value": "managed",
-            "label": "Máme zálohy, obnovili by sme sa do 24–48 hodín",
+            "value": "tested_slow",
+            "label": "Zálohy testujeme, obnovili by sme sa do 1–2 dní",
             "score": 67
           },
           {
-            "value": "prepared",
-            "label": "Máme otestovaný DR plán, obnovíme sa do hodín",
+            "value": "tested_fast",
+            "label": "Obnovu máme overenú, zvládneme ju do niekoľkých hodín",
             "score": 100
           }
         ],
         "branching_rules": [
           {
-            "condition": "value == 'disaster'",
+            "condition": "value == 'none'",
             "action": "flag_risk",
-            "target": [
-              "RF02",
-              "RF09"
-            ],
-            "reason": "Existenčné ohrozenie pri strate dát = chýbajúce zálohy aj BC/DR plán"
-          },
-          {
-            "condition": "value == 'major_impact'",
-            "action": "flag_risk",
-            "target": "RF09",
-            "reason": "Viacdňový výpadok = chýbajúci BC/DR plán"
+            "target": "RF02",
+            "reason": "Bez zálohy je strata dát nezvratná"
           }
         ],
         "evidence_type": "self_assessment",
@@ -603,12 +698,66 @@
           "ors_E"
         ],
         "maps_to_risk": [
-          "RF02",
+          "RF02"
+        ],
+        "maps_to_roi_model": [],
+        "tooltip": "Ide o samotné dáta — účtovníctvo, zákazníkov, dokumenty.",
+        "allow_unknown": true,
+        "scale": "linear-4"
+      },
+      {
+        "branching_rules": [
+          {
+            "condition": "value == 'critical'",
+            "action": "flag_risk",
+            "target": "RF09",
+            "reason": "Žiadny náhradný prevádzkový postup = chýbajúci BC plán"
+          },
+          {
+            "condition": "value == 'improvise'",
+            "action": "flag_risk",
+            "target": "RF09",
+            "reason": "Viacdňový výpadok bez pripraveného postupu = chýbajúci BC plán"
+          }
+        ],
+        "evidence_type": "self_assessment",
+        "maps_to_risk": [
           "RF09"
         ],
         "maps_to_roi_model": [],
-        "tooltip": "DR plán = Disaster Recovery plán, definuje čo robiť pri strate dát alebo výpadku.",
+        "tooltip": "Nejde o obnovu dát, ale o to, či viete medzitým fungovať.",
         "allow_unknown": true,
+        "id": "ind_11b",
+        "category": "E",
+        "dimension": "business_continuity",
+        "question_sk": "Keby vám zajtra vypadol hlavný systém, ako dlho by firma stála?",
+        "question_type": "single_choice",
+        "weight": 0.6,
+        "options": [
+          {
+            "value": "critical",
+            "label": "Stáli by sme, kým sa to neopraví — náhradný postup nemáme",
+            "score": 0
+          },
+          {
+            "value": "improvise",
+            "label": "Improvizovali by sme na papieri, trvalo by to dni",
+            "score": 33
+          },
+          {
+            "value": "partial",
+            "label": "Na kľúčové činnosti máme dohodnutý náhradný postup",
+            "score": 67
+          },
+          {
+            "value": "tested",
+            "label": "Náhradný postup máme zapísaný aj vyskúšaný",
+            "score": 100
+          }
+        ],
+        "maps_to_score": [
+          "ors_E"
+        ],
         "scale": "linear-4"
       },
       {
@@ -799,7 +948,7 @@
   "complex_quiz": {
     "id": "complex_v1",
     "name": "Komplexný kvíz",
-    "description": "Hlbšia diagnostika digitálnej zrelosti (43–49 otázok, adaptívne)",
+    "description": "Hlbšia diagnostika digitálnej zrelosti (49–57 otázok, adaptívne)",
     "modules": [
       {
         "id": "module_meta",
@@ -968,6 +1117,49 @@
             "tooltip": null,
             "allow_unknown": true,
             "scale": "meta"
+          },
+          {
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": "Pomáha nám vysvetliť rozdiely v odpovediach — do výsledku nevstupuje.",
+            "allow_unknown": false,
+            "id": "cx_04_role",
+            "category": "meta",
+            "dimension": "respondent_role",
+            "question_sk": "Kto vypĺňa tento dotazník?",
+            "question_type": "single_choice",
+            "weight": 0,
+            "options": [
+              {
+                "value": "owner",
+                "label": "Majiteľ alebo konateľ",
+                "score": 0
+              },
+              {
+                "value": "manager",
+                "label": "Riaditeľ alebo vedúci útvaru",
+                "score": 0
+              },
+              {
+                "value": "it_internal",
+                "label": "Interný IT správca",
+                "score": 0
+              },
+              {
+                "value": "it_external",
+                "label": "Externý IT dodávateľ",
+                "score": 0
+              },
+              {
+                "value": "other",
+                "label": "Iná rola",
+                "score": 0
+              }
+            ],
+            "maps_to_score": [],
+            "scale": "meta"
           }
         ]
       },
@@ -1117,10 +1309,10 @@
           {
             "id": "cx_A04",
             "category": "A",
-            "dimension": "approval_workflows",
-            "question_sk": "Ako funguje schvaľovanie (objednávky, faktúry, dovolenky, nákupy)?",
+            "dimension": "approval_finance",
+            "question_sk": "Ako funguje schvaľovanie nákupov a faktúr?",
             "question_type": "single_choice",
-            "weight": 1,
+            "weight": 0.6,
             "options": [
               {
                 "value": "email",
@@ -1129,12 +1321,12 @@
               },
               {
                 "value": "paper",
-                "label": "Papierové formuláre / podpisy",
+                "label": "Papierové formuláre a podpisy",
                 "score": 25
               },
               {
                 "value": "basic_digital",
-                "label": "Digitálne, ale bez definovaného workflow",
+                "label": "Digitálne, ale bez určeného postupu",
                 "score": 50
               },
               {
@@ -1157,8 +1349,53 @@
             "maps_to_roi_model": [
               "approval_waste"
             ],
-            "tooltip": "Myslíme akékoľvek schvaľovanie — nákupy, dovolenky, faktúry, zmeny.",
+            "tooltip": "Objednávky, prijaté faktúry, limity na nákup.",
             "allow_unknown": true,
+            "scale": "linear-5"
+          },
+          {
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": null,
+            "allow_unknown": true,
+            "id": "cx_A04b",
+            "category": "A",
+            "dimension": "approval_hr",
+            "question_sk": "Ako funguje schvaľovanie personálnych vecí (dovolenky, home office, cestovné príkazy)?",
+            "question_type": "single_choice",
+            "weight": 0.4,
+            "options": [
+              {
+                "value": "verbal",
+                "label": "Ústne alebo cez chat, nikde sa to nezapisuje",
+                "score": 0
+              },
+              {
+                "value": "paper",
+                "label": "Papierové žiadanky alebo e-mail",
+                "score": 25
+              },
+              {
+                "value": "basic_digital",
+                "label": "Máme na to nástroj, ale postup určený nie je",
+                "score": 50
+              },
+              {
+                "value": "workflow",
+                "label": "Digitálny workflow so schvaľovaním a evidenciou",
+                "score": 75
+              },
+              {
+                "value": "integrated",
+                "label": "Prepojené s dochádzkou a mzdami, s prehľadom čerpania",
+                "score": 100
+              }
+            ],
+            "maps_to_score": [
+              "ors_A"
+            ],
             "scale": "linear-5"
           },
           {
@@ -1467,24 +1704,24 @@
           {
             "id": "cx_B04",
             "category": "B",
-            "dimension": "source_of_truth",
-            "question_sk": "Máte jasne definované, ktorý systém je 'zdroj pravdy' pre kľúčové dáta (zákazníci, produkty, objednávky)?",
+            "dimension": "source_of_truth_customers",
+            "question_sk": "Máte určené, ktorý systém je zdrojom pravdy pre zákazníkov a obchodné prípady?",
             "question_type": "single_choice",
-            "weight": 1.2,
+            "weight": 0.6,
             "options": [
               {
                 "value": "no",
-                "label": "Nie — rovnaké dáta sú v rôznych systémoch a líšia sa",
+                "label": "Nie — tie isté údaje sú vo viacerých systémoch a líšia sa",
                 "score": 0
               },
               {
                 "value": "informal",
-                "label": "Neformálne — ľudia vedia kam sa pozrieť, ale nie je to definované",
+                "label": "Neformálne — ľudia vedia, kam sa pozrieť, ale zapísané to nie je",
                 "score": 33
               },
               {
                 "value": "defined",
-                "label": "Áno — pre hlavné entity máme definovaný source of truth",
+                "label": "Áno — máme to určené a dodržiavame to",
                 "score": 67
               },
               {
@@ -1511,6 +1748,55 @@
             "maps_to_roi_model": [],
             "tooltip": null,
             "allow_unknown": true,
+            "scale": "linear-4"
+          },
+          {
+            "branching_rules": [
+              {
+                "condition": "value == 'no'",
+                "action": "flag_risk",
+                "target": "RF08",
+                "reason": "Rozchádzajúce sa produktové a skladové dáta nemajú vlastníka"
+              }
+            ],
+            "evidence_type": "self_assessment",
+            "maps_to_risk": [
+              "RF08"
+            ],
+            "maps_to_roi_model": [],
+            "tooltip": "Ak nepredávate produkty, myslíme tým cenník služieb a evidenciu kapacít.",
+            "allow_unknown": true,
+            "id": "cx_B04b",
+            "category": "B",
+            "dimension": "source_of_truth_products",
+            "question_sk": "Máte určené, ktorý systém je zdrojom pravdy pre produkty, ceny a sklad?",
+            "question_type": "single_choice",
+            "weight": 0.6,
+            "options": [
+              {
+                "value": "no",
+                "label": "Nie — ceny a stavy sa v systémoch rozchádzajú",
+                "score": 0
+              },
+              {
+                "value": "informal",
+                "label": "Neformálne — vie sa to, ale zapísané to nie je",
+                "score": 33
+              },
+              {
+                "value": "defined",
+                "label": "Áno — máme to určené a dodržiavame to",
+                "score": 67
+              },
+              {
+                "value": "enforced",
+                "label": "Áno — je to technicky vynútené (PIM alebo ERP ako master)",
+                "score": 100
+              }
+            ],
+            "maps_to_score": [
+              "ors_B"
+            ],
             "scale": "linear-4"
           },
           {
@@ -2083,29 +2369,29 @@
           {
             "id": "cx_D07",
             "category": "D",
-            "dimension": "devices",
-            "question_sk": "Ako spravujete pracovné zariadenia (počítače, notebooky, mobily)?",
+            "dimension": "devices_computers",
+            "question_sk": "Ako spravujete firemné počítače a notebooky?",
             "question_type": "single_choice",
-            "weight": 0.6,
+            "weight": 0.35,
             "options": [
               {
                 "value": "byod_unmanaged",
-                "label": "Zamestnanci používajú vlastné zariadenia, nespravujeme ich",
+                "label": "Zamestnanci používajú vlastné, nespravujeme ich",
                 "score": 0
               },
               {
                 "value": "company_unmanaged",
-                "label": "Firemné zariadenia, ale bez centrálnej správy",
+                "label": "Firemné, ale bez centrálnej správy",
                 "score": 33
               },
               {
                 "value": "managed",
-                "label": "Firemné zariadenia s centrálnou správou (MDM, GPO)",
+                "label": "Firemné s centrálnou správou (GPO, Intune, MDM)",
                 "score": 67
               },
               {
                 "value": "lifecycle",
-                "label": "Plný lifecycle management — nákup, správa, výmena, vyradenie",
+                "label": "Plný lifecycle — nákup, správa, výmena, vyradenie",
                 "score": 100
               }
             ],
@@ -2120,6 +2406,48 @@
             "maps_to_roi_model": [],
             "tooltip": "MDM = Mobile Device Management, GPO = Group Policy.",
             "allow_unknown": true,
+            "scale": "linear-4"
+          },
+          {
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_risk": [
+              "RF10"
+            ],
+            "maps_to_roi_model": [],
+            "tooltip": "Ráta sa aj firemný e-mail v súkromnom telefóne.",
+            "allow_unknown": true,
+            "id": "cx_D07b",
+            "category": "D",
+            "dimension": "devices_mobile",
+            "question_sk": "Ako spravujete mobily a tablety, na ktorých sa pracuje s firemnými dátami?",
+            "question_type": "single_choice",
+            "weight": 0.25,
+            "options": [
+              {
+                "value": "byod_unmanaged",
+                "label": "Súkromné telefóny, firma na ne nevidí",
+                "score": 0
+              },
+              {
+                "value": "company_unmanaged",
+                "label": "Firemné telefóny, ale bez centrálnej správy",
+                "score": 33
+              },
+              {
+                "value": "managed",
+                "label": "Spravované cez MDM, firemné dáta vieme vymazať na diaľku",
+                "score": 67
+              },
+              {
+                "value": "lifecycle",
+                "label": "MDM so zásadami, oddelením firemných dát a vyraďovaním",
+                "score": 100
+              }
+            ],
+            "maps_to_score": [
+              "ors_D"
+            ],
             "scale": "linear-4"
           },
           {
@@ -2434,10 +2762,10 @@
           {
             "id": "cx_E06",
             "category": "E",
-            "dimension": "bcdr",
-            "question_sk": "Máte plán čo robiť pri výpadku systémov alebo strate dát (BC/DR plán)?",
+            "dimension": "disaster_recovery",
+            "question_sk": "Máte zdokumentovaný postup obnovy systémov a dát po havárii (DR)?",
             "question_type": "single_choice",
-            "weight": 1,
+            "weight": 0.5,
             "options": [
               {
                 "value": "none",
@@ -2446,17 +2774,17 @@
               },
               {
                 "value": "informal",
-                "label": "Neformálne — ľudia vedia čo robiť, ale nie je to zapísané",
+                "label": "Neformálne — ľudia vedia, čo robiť, ale zapísané to nie je",
                 "score": 33
               },
               {
                 "value": "documented",
-                "label": "Máme zdokumentovaný plán",
+                "label": "Máme zdokumentovaný postup obnovy",
                 "score": 67
               },
               {
                 "value": "tested",
-                "label": "Zdokumentovaný plán, pravidelne testovaný",
+                "label": "Zdokumentovaný a pravidelne testovaný obnovou nanečisto",
                 "score": 100
               }
             ],
@@ -2476,8 +2804,57 @@
               "RF09"
             ],
             "maps_to_roi_model": [],
-            "tooltip": "BC = Business Continuity (zabezpečenie prevádzky), DR = Disaster Recovery (obnova po havárii).",
+            "tooltip": "DR = Disaster Recovery, teda ako dostanete systémy a dáta späť do prevádzky.",
             "allow_unknown": true,
+            "scale": "linear-4"
+          },
+          {
+            "branching_rules": [
+              {
+                "condition": "value == 'none'",
+                "action": "flag_risk",
+                "target": "RF09",
+                "reason": "Bez náhradného prevádzkového postupu firma počas výpadku stojí"
+              }
+            ],
+            "evidence_type": "direct",
+            "maps_to_risk": [
+              "RF09"
+            ],
+            "maps_to_roi_model": [],
+            "tooltip": "BC = Business Continuity, teda ako pokračuje práca, kým IT nebeží.",
+            "allow_unknown": true,
+            "id": "cx_E06b",
+            "category": "E",
+            "dimension": "business_continuity",
+            "question_sk": "Máte určené, ako bude firma fungovať počas výpadku, kým sa systémy neobnovia (BC)?",
+            "question_type": "single_choice",
+            "weight": 0.5,
+            "options": [
+              {
+                "value": "none",
+                "label": "Nie — počkali by sme, kým to nabehne",
+                "score": 0
+              },
+              {
+                "value": "informal",
+                "label": "Vieme si poradiť, ale dohodnuté to nemáme",
+                "score": 33
+              },
+              {
+                "value": "documented",
+                "label": "Pre kľúčové činnosti máme určené náhradné postupy",
+                "score": 67
+              },
+              {
+                "value": "tested",
+                "label": "Náhradné postupy máme aj vyskúšané",
+                "score": 100
+              }
+            ],
+            "maps_to_score": [
+              "ors_E"
+            ],
             "scale": "linear-4"
           },
           {
@@ -2518,6 +2895,86 @@
             "maps_to_roi_model": [],
             "tooltip": null,
             "allow_unknown": true,
+            "scale": "linear-4"
+          },
+          {
+            "branching_rules": [],
+            "evidence_type": "direct",
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": "EDR/XDR = ochrana, ktorá útok nielen blokuje, ale aj zaznamená a upozorní naň.",
+            "allow_unknown": true,
+            "id": "cx_E09_endpoint",
+            "category": "E",
+            "dimension": "endpoint_protection",
+            "question_sk": "Akú ochranu majú firemné počítače proti vírusom a útokom?",
+            "question_type": "single_choice",
+            "weight": 0.8,
+            "options": [
+              {
+                "value": "none",
+                "label": "Žiadnu, prípadne to neriešime",
+                "score": 0
+              },
+              {
+                "value": "builtin",
+                "label": "Len to, čo je súčasťou operačného systému",
+                "score": 33
+              },
+              {
+                "value": "av",
+                "label": "Kúpený antivírus na každom počítači",
+                "score": 67
+              },
+              {
+                "value": "edr",
+                "label": "EDR/XDR s centrálnym dohľadom a reakciou na incidenty",
+                "score": 100
+              }
+            ],
+            "maps_to_score": [
+              "ors_E"
+            ],
+            "scale": "linear-4"
+          },
+          {
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_risk": [],
+            "maps_to_roi_model": [],
+            "tooltip": "Ide o školenie ľudí, nie o technické opatrenia.",
+            "allow_unknown": true,
+            "id": "cx_E10_awareness",
+            "category": "E",
+            "dimension": "security_awareness",
+            "question_sk": "Ako často školíte zamestnancov na kybernetickú bezpečnosť (phishing, heslá)?",
+            "question_type": "single_choice",
+            "weight": 0.6,
+            "options": [
+              {
+                "value": "never",
+                "label": "Neškolíme",
+                "score": 0
+              },
+              {
+                "value": "onboarding",
+                "label": "Len pri nástupe",
+                "score": 33
+              },
+              {
+                "value": "annual",
+                "label": "Aspoň raz ročne",
+                "score": 67
+              },
+              {
+                "value": "continuous",
+                "label": "Pravidelne, vrátane skúšobných phishingových kampaní",
+                "score": 100
+              }
+            ],
+            "maps_to_score": [
+              "ors_E"
+            ],
             "scale": "linear-4"
           },
           {

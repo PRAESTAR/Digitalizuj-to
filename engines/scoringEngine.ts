@@ -1,4 +1,4 @@
-import type { Answer, DIIScore, DIIIndicator, ORSScore, CategoryScore, Question } from '@/types';
+import type { Answer, DIIScore, DIIIndicator, ORSScore, CategoryScore, ConfidenceBand, Question } from '@/types';
 import { scoringConfig, maturityLabels, diiLevelLabels, categoryNames } from '@/data/scoringConfig';
 import { diiIndicators, excludedDiiQuestionIds, mappedDiiQuestionIds, type DiiCriterion } from '@/data/diiIndicators';
 
@@ -26,6 +26,52 @@ function criterionMet(criterion: DiiCriterion, answer: Answer): boolean {
   }
   const values = Array.isArray(answer.value) ? answer.value : [answer.value];
   return criterion.metWhen.anyOfValues.some(v => values.includes(v));
+}
+
+/**
+ * O koľko bodov pohne skóre otázky jedna „najmenšia zmena odpovede".
+ *
+ * `single_choice`: posun o susednú možnosť, teda `100 / (počet možností − 1)`.
+ * `multi_select`: zaškrtnutie alebo odškrtnutie JEDNEJ položky. Nie celý
+ * rozsah — pri `cx_A05`/`ind_03c_manual` posunie jedna položka skóre najviac
+ * o 14 bodov, nie o 100. Brať multi-select ako plný stupeň by nafúklo rozsah
+ * kategórie A štvornásobne oproti tomu, čo sa reálne môže stať.
+ */
+function questionStep(q: Question): number {
+  const options = q.options ?? [];
+  if (q.question_type === 'multi_select') {
+    if (options.length === 0) return 0;
+    const largest = Math.max(...options.map(o => Math.abs(o.score)));
+    if (q.scoring_mode === 'inverted') return largest; // hodnoty sú už v bodoch
+    const max = q.max_score ?? 100;
+    return max > 0 ? (largest / max) * 100 : 0;
+  }
+  return options.length > 1 ? 100 / (options.length - 1) : 100;
+}
+
+/**
+ * O koľko bodov pohne kategóriou zmena JEDNEJ odpovede.
+ *
+ * Kategória je vážený priemer položiek, takže vplyv položky je `w_i / Σw`
+ * krát jej krok. Maximum cez položky je citlivosť odhadu na jedinú odpoveď —
+ * priamy dôsledok toho, koľkými položkami je kategória meraná. Kategória
+ * s jednou otázkou sa pohne o celý stupeň, kategória so šiestimi o zlomok.
+ * Presne tento rozdiel odlišuje indikatívny kvíz od komplexného a dovtedy
+ * nebol na výsledku vidieť.
+ *
+ * Nie je to štatistická chyba merania — je to citlivostná analýza, ktorú
+ * vieme spočítať bez pilotných dát.
+ */
+function categorySensitivity(
+  items: { weight: number; step: number }[]
+): number {
+  const totalWeight = items.reduce((s, i) => s + i.weight, 0);
+  if (totalWeight <= 0 || items.length === 0) return 0;
+  let worst = 0;
+  for (const item of items) {
+    worst = Math.max(worst, (item.weight / totalWeight) * item.step);
+  }
+  return Math.round(Math.min(100, worst) * 10) / 10;
 }
 
 /**
@@ -82,6 +128,7 @@ export function calculateDII(
       level: null,
       levelLabelSk: null,
       indicators,
+      band: null,
     };
   }
 
@@ -104,6 +151,19 @@ export function calculateDII(
   else if (score12 <= 9) level = 'high';
   else level = 'very_high';
 
+  // Nemeraný indikátor môže byť splnený aj nesplnený. Skutočný počet preto
+  // leží medzi „všetky nemerané nesplnené" (= metIndicators) a „všetky
+  // splnené" (= metIndicators + nemerané). Extrapolovaný bod vždy padne
+  // dovnútra: z m ≤ k a k ≤ 12 vyplýva 12m/k ≤ m + 12 − k.
+  const unmeasured = 12 - measuredIndicators;
+  const band: ConfidenceBand = {
+    lower: metIndicators,
+    upper: metIndicators + unmeasured,
+    reasonSk: unmeasured === 0
+      ? 'Všetkých 12 indikátorov je zmeraných — rozsah je jediná hodnota.'
+      : `${unmeasured} z 12 indikátorov dotazník nezisťoval, takže skutočný počet leží v tomto rozsahu.`,
+  };
+
   return {
     score100,
     score12,
@@ -114,6 +174,7 @@ export function calculateDII(
     level,
     levelLabelSk: diiLevelLabels[level],
     indicators,
+    band,
   };
 }
 
@@ -172,6 +233,24 @@ export function calculateORS(
     else if (unknownRatio > 0.25) confidence = 'medium';
     else confidence = 'high';
 
+    // Citlivosť sa počíta len z položiek, ktoré kategóriu naozaj sýtia —
+    // teda z tých so ZODPOVEDANOU otázkou. Rátať aj nezodpovedané by rozsah
+    // nafúklo o veci, ktoré do priemeru nikdy nevstúpili.
+    const answeredItems = catAnswers.map(ans => {
+      const q = catQuestions.find(q => q.id === ans.questionId)!;
+      return { weight: q.weight, step: questionStep(q) };
+    });
+    const sensitivity = measured ? categorySensitivity(answeredItems) : 0;
+    const catBand: ConfidenceBand | null = measured && catScore !== null
+      ? {
+          lower: Math.round(Math.max(0, catScore - sensitivity) * 10) / 10,
+          upper: Math.round(Math.min(100, catScore + sensitivity) * 10) / 10,
+          reasonSk: catAnswers.length === 1
+            ? 'Kategóriu meria jediná otázka — jej zmena posunie skóre o celý stupeň škály.'
+            : `Zmena jednej z ${catAnswers.length} odpovedí o stupeň posunie skóre o ${sensitivity} b.`,
+        }
+      : null;
+
     categories[cat] = {
       name: categoryNames[cat],
       score: catScore !== null ? Math.round(catScore * 10) / 10 : null,
@@ -183,6 +262,7 @@ export function calculateORS(
       answeredQuestions: catAnswers.length,
       totalQuestions: catQuestions.length,
       confidence,
+      band: catBand,
     };
   }
 
@@ -201,6 +281,35 @@ export function calculateORS(
       weightSum += categories[cat].weight;
     }
     orsScore = Math.round((weightedSum / weightSum) * 10) / 10;
+  }
+
+  // Rozsah celku sa skladá z rozsahov kategórií rovnakým váženým priemerom
+  // ako bodový odhad — bod preto leží vždy vnútri. Kategória meraná jedinou
+  // otázkou rozsah roztiahne úmerne svojej váhe, čo je presne ten rozdiel
+  // medzi indikatívnym a komplexným kvízom, ktorý dovtedy nebolo vidieť.
+  let orsBand: ConfidenceBand | null = null;
+  if (orsScore !== null && measuredCategories > 0) {
+    let lowerSum = 0, upperSum = 0, bandWeightSum = 0;
+    let thinnest = '';
+    let widest = -1;
+    for (const cat of measuredCats) {
+      const c = categories[cat];
+      if (!c.band) continue;
+      lowerSum += c.band.lower * c.weight;
+      upperSum += c.band.upper * c.weight;
+      bandWeightSum += c.weight;
+      const width = c.band.upper - c.band.lower;
+      if (width > widest) { widest = width; thinnest = c.name; }
+    }
+    if (bandWeightSum > 0) {
+      orsBand = {
+        lower: Math.round((lowerSum / bandWeightSum) * 10) / 10,
+        upper: Math.round((upperSum / bandWeightSum) * 10) / 10,
+        reasonSk: measuredCategories < 6
+          ? `Merané sú ${measuredCategories} zo 6 oblastí; najmenej presne je meraná oblasť ${thinnest}.`
+          : `Najmenej presne je meraná oblasť ${thinnest} — tam sa skóre hýbe najviac.`,
+      };
+    }
   }
 
   // Security penalty (category E)
@@ -223,6 +332,20 @@ export function calculateORS(
     scorePenalized = Math.round(orsScore * factor * 10) / 10;
     penaltyApplied = true;
     penaltyReason = `Kritický bezpečnostný stav (E: ${securityScore}/100) — penalizácia ${Math.round((1 - factor) * 100)}%`;
+
+    // Pásmo prejde tou istou penaltou ako bod. Bez toho karta zobrazovala
+    // penalizované číslo nad rozsahom počítaným z nepenalizovaného skóre —
+    // firma so slabou bezpečnosťou tak videla napríklad „28/100" a hneď pod
+    // tým „Rozsah 35–46", teda číslo mimo vlastného rozsahu. Penalta je
+    // deterministický násobok, takže rovnaký prenos hraníc je korektný:
+    // rozsah ostáva rozsahom TOHO ISTÉHO údaja, ktorý je nad ním vypísaný.
+    if (orsBand) {
+      orsBand = {
+        lower: Math.round(orsBand.lower * factor * 10) / 10,
+        upper: Math.round(orsBand.upper * factor * 10) / 10,
+        reasonSk: `${orsBand.reasonSk} Rozsah je po bezpečnostnej penalizácii, rovnako ako zobrazené skóre.`,
+      };
+    }
   }
 
   // Maturity level — len pri meranom ORS
@@ -244,6 +367,7 @@ export function calculateORS(
     categories,
     penaltyApplied,
     penaltyReason,
+    band: orsBand,
   };
 }
 

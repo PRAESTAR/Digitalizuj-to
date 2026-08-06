@@ -368,8 +368,8 @@ Dotazník sa **nepýta** na hodinovú cenu práce vo firme — je to citlivý ú
 
 ### 7.1 Dva režimy
 
-1. **Indikatívny kvíz** (15 otázok): Rýchly screening. Výsledok = orientačné skóre + rozhodnutie či pokračovať.
-2. **Komplexný kvíz** (50 otázok v banke, reálne 43–49 podľa vetvenia): Hlbšia diagnostika rozdelená do modulov.
+1. **Indikatívny kvíz** (18 otázok): Rýchly screening. Výsledok = orientačné skóre + rozhodnutie či pokračovať.
+2. **Komplexný kvíz** (57 otázok v banke, reálne 49–57 podľa vetvenia): Hlbšia diagnostika rozdelená do modulov.
 
 ### 7.2 Branching princípy
 
@@ -445,8 +445,8 @@ Používame **statické benchmark hodnoty** odvodené z verejných Eurostat dát
 **Dilema:** Viac otázok = presnejšie meranie, ale nižšia completion rate.
 
 **Rozhodnutie:** 
-- Indikatívny kvíz (15 otázok) = nízka záťaž, nižšia presnosť.
-- Komplexný kvíz (43–49 otázok) = vyššia záťaž, vyššia presnosť.
+- Indikatívny kvíz (18 otázok) = nízka záťaž, nižšia presnosť.
+- Komplexný kvíz (49–57 otázok) = vyššia záťaž, vyššia presnosť.
 - Branching znižuje reálny počet otázok.
 
 ### 9.4 DII mapovanie nie je 1:1

@@ -29,9 +29,57 @@ describe('extractROIInputs — manuálne procesy', () => {
     const inputs = extractROIInputs(answers, [], 50);
 
     expect(inputs.manualProcesses).toEqual([]);
+    expect(inputs.noManualProcesses).toBe(true);
   });
 
-  test('bez cx_A05 je zoznam procesov prázdny — indikatívny kvíz nemá otázku na manuálne procesy', () => {
+  test('„žiadny ručný proces" sa odlíši od nezodpovedanej otázky', () => {
+    // Bez tohto rozlíšenia obe cesty vyprodukovali prázdny zoznam a engine
+    // spadol na tri benchmarkové defaulty — firma, ktorá tvrdila, že ručné
+    // nemá NIČ, tak dostala VYŠŠÍ odhad úspor než firma, ktorá jeden ručný
+    // proces priznala. Monotónnosť bola obrátená.
+    expect(extractROIInputs([answer('cx_A05', ['none'])], [], 50).noManualProcesses).toBe(true);
+    expect(extractROIInputs([], [], 50).noManualProcesses).toBe(false);
+    // Nerozpoznaná hodnota je rozbité mapovanie, nie neexistujúca ručná práca.
+    expect(extractROIInputs([answer('cx_A05', ['nieco_ine'])], [], 50).noManualProcesses).toBe(false);
+  });
+
+  test('deklarované „žiadny ručný proces" nedostane úsporu z predpokladaných procesov', () => {
+    const base = {
+      employeeCountBand: 'small', maturityLevel: 1,
+      invoicingVolumeBand: 'medium', adminHeadcountBand: '4_10', categoryScoreF: 60,
+    };
+    const ziadny = calculateBusinessImpact([], [], {
+      ...base, manualProcesses: [], noManualProcesses: true,
+    });
+    const jeden = calculateBusinessImpact([], [], {
+      ...base, manualProcesses: ['invoicing'], noManualProcesses: false,
+    });
+    const nezodpovedane = calculateBusinessImpact([], [], {
+      ...base, manualProcesses: [], noManualProcesses: false,
+    });
+
+    expect(ziadny.calculationAudit).toEqual([]);
+    expect(ziadny.timeSavings.hoursPerYear.mid).toBe(0);
+    // Kľúčová vlastnosť: priznanie ručnej práce musí odhad ZVÝŠIŤ, nie znížiť.
+    expect(jeden.timeSavings.hoursPerYear.mid).toBeGreaterThan(ziadny.timeSavings.hoursPerYear.mid);
+    // Nezodpovedaná otázka naďalej používa benchmark defaulty.
+    expect(nezodpovedane.calculationAudit.length).toBe(3);
+  });
+
+  test('indikatívna vetva sa číta z ind_03c_manual (pribudlo 6. 8. 2026)', () => {
+    // Dovtedy indikatívne ROI vždy počítalo z benchmarkových defaultov, takže
+    // dve firmy s úplne odlišnou mierou ručnej práce dostali rovnaký odhad.
+    const answers = [
+      answer('ind_02', 'small'),
+      answer('ind_03c_manual', ['warehouse', 'reporting', 'none']),
+    ];
+
+    const inputs = extractROIInputs(answers, [], 50);
+
+    expect(inputs.manualProcesses).toEqual(['warehouse', 'reporting']);
+  });
+
+  test('ind_05 (používané systémy) sa do manuálnych procesov nedostane', () => {
     // ind_05 je otázka o POUŽÍVANÝCH SYSTÉMOCH (erp, crm...), nie o manuálnych
     // procesoch — jej hodnoty sa nesmú dostať do manualProcesses. Benchmark
     // default (3 procesy) doplní až calculateBusinessImpact s korektným
@@ -98,7 +146,7 @@ describe('calculateBusinessImpact — voľba procesov', () => {
   test('bez self-reported procesov počíta s 3 defaultnými benchmark procesmi', () => {
     const impact = calculateBusinessImpact([], [], {
       ...baseInputs,
-      manualProcesses: [],
+      manualProcesses: [], noManualProcesses: false,
     });
 
     const processes = impact.calculationAudit.map(e => e.process);
@@ -116,7 +164,7 @@ describe('calculateBusinessImpact — voľba procesov', () => {
   test('self-reported procesy sa použijú presne a označia sa ako mix', () => {
     const impact = calculateBusinessImpact([], [], {
       ...baseInputs,
-      manualProcesses: ['invoicing', 'hr_onboarding'],
+      manualProcesses: ['invoicing', 'hr_onboarding'], noManualProcesses: false,
     });
 
     const processes = impact.calculationAudit.map(e => e.process);
@@ -132,7 +180,7 @@ describe('calculateBusinessImpact — voľba procesov', () => {
     // vypadli, nahradené tromi defaultmi.
     const impact = calculateBusinessImpact([], [], {
       ...baseInputs,
-      manualProcesses: ['warehouse', 'service', 'purchasing'],
+      manualProcesses: ['warehouse', 'service', 'purchasing'], noManualProcesses: false,
     });
 
     const processes = impact.calculationAudit.map(e => e.process);
@@ -143,7 +191,7 @@ describe('calculateBusinessImpact — voľba procesov', () => {
   test('neznáma hodnota procesu sa odfiltruje a nastúpia defaulty', () => {
     const impact = calculateBusinessImpact([], [], {
       ...baseInputs,
-      manualProcesses: ['nieco_neexistujuce'],
+      manualProcesses: ['nieco_neexistujuce'], noManualProcesses: false,
     });
 
     const processes = impact.calculationAudit.map(e => e.process);
@@ -155,7 +203,7 @@ describe('calculateBusinessImpact — self-reported vstupy menia výsledok', () 
   const base = {
     employeeCountBand: 'medium',
     maturityLevel: 1,
-    manualProcesses: ['invoicing'],
+    manualProcesses: ['invoicing'], noManualProcesses: false,
     adminHeadcountBand: null,
     categoryScoreF: 60,
   };
@@ -168,10 +216,10 @@ describe('calculateBusinessImpact — self-reported vstupy menia výsledok', () 
 
   test('proces označený za ručný dostane vyšší podiel manuálnej práce', () => {
     const oznaceny = calculateBusinessImpact([], [], {
-      ...base, maturityLevel: 3, invoicingVolumeBand: 'medium', manualProcesses: ['invoicing'],
+      ...base, maturityLevel: 3, invoicingVolumeBand: 'medium', manualProcesses: ['invoicing'], noManualProcesses: false,
     });
     const neoznaceny = calculateBusinessImpact([], [], {
-      ...base, maturityLevel: 3, invoicingVolumeBand: 'medium', manualProcesses: [],
+      ...base, maturityLevel: 3, invoicingVolumeBand: 'medium', manualProcesses: [], noManualProcesses: false,
     });
     const entry = (i: typeof oznaceny) => i.calculationAudit.find(e => e.process === 'invoicing')!;
     expect(entry(oznaceny).manualShare).toBeGreaterThan(entry(neoznaceny).manualShare);
@@ -184,7 +232,7 @@ describe('calculateBusinessImpact — self-reported vstupy menia výsledok', () 
     const vela = {
       ...base,
       invoicingVolumeBand: 'very_high',
-      manualProcesses: ['invoicing', 'warehouse', 'service', 'purchasing'],
+      manualProcesses: ['invoicing', 'warehouse', 'service', 'purchasing'], noManualProcesses: false,
     };
     const bezStropu = calculateBusinessImpact([], [], vela);
     const maloLudi = calculateBusinessImpact([], [], { ...vela, adminHeadcountBand: '1_3' });
@@ -202,7 +250,7 @@ describe('calculateBusinessImpact — chýbajúca veľkosť firmy', () => {
   const base = {
     employeeCountBand: null,
     maturityLevel: 1,
-    manualProcesses: [],
+    manualProcesses: [], noManualProcesses: false,
     invoicingVolumeBand: null,
     adminHeadcountBand: null,
     categoryScoreF: 80,
@@ -223,7 +271,7 @@ describe('calculateBusinessImpact — politika scenárov podľa governance', () 
   const base = {
     employeeCountBand: 'small',
     maturityLevel: 1,
-    manualProcesses: [],
+    manualProcesses: [], noManualProcesses: false,
     invoicingVolumeBand: null,
     adminHeadcountBand: null,
   };

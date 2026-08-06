@@ -39,6 +39,16 @@ export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: Scor
               <div className="text-xs text-[#6e6e73] mt-2 font-medium">
                 {dii.score12}/12 (DII) &middot; {t('levels.dii.' + dii.level)}
               </div>
+              {/* Rozsah sa ukazuje len keď je širší než bod — pri plnom pokrytí
+                  by „6–6" nič nehovorilo, len pridalo šum. */}
+              {/* Vlastný kľúč s jednotkou: DII pásmo je v INDIKÁTOROCH (0–12),
+                  kým veľké číslo nad ním je score100. Spoločný text „Rozsah
+                  4–8" by sa čítal ako body zo stovky. */}
+              {dii.band && dii.band.upper > dii.band.lower && (
+                <div className="text-xs text-[#86868b] mt-1 font-medium" title={dii.band.reasonSk}>
+                  {t('cards.bandRangeIndicators', { lower: dii.band.lower, upper: dii.band.upper })}
+                </div>
+              )}
               {dii.measuredIndicators < 12 && (
                 <div className="text-xs text-[#86868b] mt-1 font-medium">
                   {t('cards.diiCoverage', { measured: dii.measuredIndicators })}
@@ -124,6 +134,17 @@ export default function ScoreCards({ dii, ors, tdri, impact, aiReadiness }: Scor
               <div className="text-xs text-[#6e6e73] mt-2 font-medium">
                 Level {ors.maturityLevel} &middot; {t('levels.maturity.' + ors.maturityLevel)}
               </div>
+              {/* Rozsah patrí k NEPENALIZOVANÉMU skóre — penalta je odvodená
+                  úprava, nie meranie, a jej premietnutie do hraníc by
+                  naznačovalo presnosť, ktorú citlivostný výpočet nepokrýva. */}
+              {ors.band && ors.band.upper > ors.band.lower && (
+                <div className="text-xs text-[#86868b] mt-1 font-medium" title={ors.band.reasonSk}>
+                  {t('cards.bandRange', {
+                    lower: Math.round(ors.band.lower),
+                    upper: Math.round(ors.band.upper),
+                  })}
+                </div>
+              )}
               {ors.penaltyApplied && (
                 <div className="flex items-center gap-1.5 mt-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />

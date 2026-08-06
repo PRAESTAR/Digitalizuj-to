@@ -36,8 +36,8 @@ Súbor `questionBank.json` má dve hlavné sekcie:
 }
 ```
 
-- **Indikatívny kvíz** — plochý zoznam v `indicative_quiz.questions` (žiadne moduly). Aktuálne **15 otázok**.
-- **Komplexný kvíz** — otázky sú rozdelené do `complex_quiz.modules[].questions`. `questionEngine.getQuizQuestions('complex')` ich sploští do jedného poľa v poradí modulov (`module_meta`, `module_A`...`module_F`, `module_ROI`, `module_DII`). Aktuálne **50 otázok** definovaných naprieč 9 modulmi; keďže vetvenie je od verzie 1.4-MVP reálne podmienené (viď sekcia 5.2), konkrétny respondent reálne uvidí typicky **43–49** z nich — presný počet po úprave otázok si vždy overte priamo v súbore.
+- **Indikatívny kvíz** — plochý zoznam v `indicative_quiz.questions` (žiadne moduly). Aktuálne **18 otázok**.
+- **Komplexný kvíz** — otázky sú rozdelené do `complex_quiz.modules[].questions`. `questionEngine.getQuizQuestions('complex')` ich sploští do jedného poľa v poradí modulov (`module_meta`, `module_A`...`module_F`, `module_ROI`, `module_DII`). Aktuálne **57 otázok** definovaných naprieč 9 modulmi; keďže vetvenie je od verzie 1.4-MVP reálne podmienené (viď sekcia 5.2), konkrétny respondent reálne uvidí typicky **49–57** z nich — presný počet po úprave otázok si vždy overte priamo v súbore.
 
 Poradie otázok v poli/module **je funkčné** — `questionEngine.getNextQuestion()` vracia prvú nezodpovedanú, nepreskočenú otázku v tomto poradí (lineárne skenovanie, nie prioritizácia podľa ID).
 
@@ -344,3 +344,23 @@ Príklady: `cx_A01` (prvá otázka modulu A), `cx_A06_ai_automation`, `cx_DII02b
 - **Počet opcií:** 3–5 je ideálne; nad 6 pôsobí neprehľadne.
 - **Pred odovzdaním:** spustite `npm run validate:model` (beží aj automaticky pri `npm run build`) — kontroluje branching ciele a poradie, rizikové faktory, škály aj DII mapovanie. Naživo (`npm run dev`) potom overte sémantiku podmienok — parser nerozpoznanú `condition` syntax ticho vyhodnotí ako false.
 - **Zdroj pravdy obsahu je MariaDB** (pozri README §„Obsah modelu v databáze"): `data/questionBank.json` je nasadzovací artefakt kompilovaný z DB (`npm run model:pull`); ručná editácia JSON je výnimka, ktorú treba spätne preniesť do DB, inak ju najbližší publish prepíše.
+
+### Rozdeľovanie dvojhlavňových otázok
+
+Otázka, ktorá sa pýta na dve veci naraz („počítače a mobily", „výpadok alebo
+strata dát"), nemá pre časť firiem pravdivú odpoveď — tie, čo majú jedno
+vyriešené a druhé nie, musia si vybrať, čo zamlčia. Pri rozdeľovaní platí:
+
+1. **Váhy sa DELIA, nie zdvojujú.** Súčet váh oboch polovíc sa musí rovnať
+   pôvodnej váhe, inak téma v priemere kategórie zosilnie dvojnásobne.
+   Stráži to test `data/questionBank.test.ts`.
+2. **ID si ponechá tá polovica, ktorá nesie pôvodný signál.** `roiEngine`
+   číta niektoré ID natvrdo (`ind_03`, `cx_A01`, `cx_A05`, `ind_02`,
+   `cx_02`, `cx_ROI02`, `cx_ROI03`, `ind_03c_manual`); premenovanie by
+   ROI ticho vrátilo na benchmarkové defaulty — bez chyby, bez varovania.
+3. **Rizikový príznak ide na tú polovicu, ktorá ho naozaj dokladá.**
+   Pôvodná `ind_11` flagovala RF02 aj RF09 z jednej odpovede; po rozdelení
+   flaguje zálohová polovica RF02 a prevádzková RF09.
+4. **Hodnoty možností sa nemenia, ak ich niekto vyhľadáva.**
+   `ind_03c_manual` používa tie isté hodnoty ako `cx_A05`, lebo benchmarky
+   procesov sa hľadajú podľa nich.

@@ -11,6 +11,9 @@ function cat(score: number | null): CategoryScore {
     name: 'test', score, measured: score !== null, weight: 0.2,
     contribution: score, answeredQuestions: score === null ? 0 : 3,
     totalQuestions: 3, confidence: 'high',
+    // Odporúčania rozsah nečítajú — fixture ho drží prázdny zámerne, aby
+    // test nezačal závisieť od citlivostného výpočtu, ktorý netestuje.
+    band: null,
   };
 }
 
@@ -20,7 +23,7 @@ function ors(scores: Partial<Record<string, number | null>>, total = 45): ORSSco
   return {
     score: total, scorePenalized: total, measuredCategories: 6,
     maturityLevel: 2, maturityLabelSk: 'Rozvíjajúci sa',
-    categories, penaltyApplied: false, penaltyReason: null,
+    categories, penaltyApplied: false, penaltyReason: null, band: null,
   };
 }
 

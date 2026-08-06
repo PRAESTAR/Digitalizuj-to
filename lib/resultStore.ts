@@ -65,7 +65,15 @@ export async function saveResultToServer(input: SaveInput): Promise<boolean> {
         sector: input.respondent.sector || 'other',
         sizeBand: input.respondent.employeeCountBand || 'small',
         country: 'SK',
-        modelVersion: input.result.modelVersion?.scoringConfigVersion,
+        // Verzia scoringu AJ banky. Samotný scoring config sa nemení, keď sa
+        // menia otázky — a revízia banky 1.6 (6. 8. 2026) rozdelila šesť
+        // otázok, takže výsledky spred a po nej nie sú priamo porovnateľné.
+        // Bez verzie banky v denormalizovanom stĺpci by sa tie dve skupiny
+        // dali odlíšiť len rozparsovaním result_json.
+        modelVersion: [
+          input.result.modelVersion?.scoringConfigVersion,
+          input.result.modelVersion?.questionBankVersion,
+        ].filter(Boolean).join('/qb'),
         // Denormalizované skóre pre výpisy v administrácii — server ich
         // neprepočítava, berie ich odtiaľto.
         scores: {

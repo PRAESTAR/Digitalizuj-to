@@ -20,6 +20,20 @@ interface ROIInputs {
   employeeCountBand: string | null;
   maturityLevel: number;
   manualProcesses: string[];
+  /**
+   * Respondent VÝSLOVNE vybral „Žiadny — všetko máme digitalizované".
+   *
+   * Bez tohto rozlíšenia bol prázdny `manualProcesses` nerozoznateľný od
+   * nezodpovedanej otázky a engine spadol na tri benchmarkové defaulty.
+   * Dôsledok bol obrátený: firma, ktorá priznala jeden ručný proces, dostala
+   * NIŽŠÍ odhad úspor (1 940 €/rok) než firma, ktorá tvrdila, že ručné nemá
+   * nič (3 203 €/rok z troch PREDPOKLADANÝCH procesov).
+   *
+   * Nastavuje sa len pri hodnote 'none' — nerozpoznaná hodnota procesu
+   * znamená rozbité mapovanie, nie neexistujúcu ručnú prácu, a tam majú
+   * defaulty nastúpiť ďalej.
+   */
+  noManualProcesses: boolean;
   /** null = objem fakturácie neuvedený (vrátane „Neviem"). */
   invoicingVolumeBand: string | null;
   /** null = počet administratívnych pracovníkov neuvedený. */
@@ -172,8 +186,10 @@ export function calculateBusinessImpact(
     });
   }
 
-  // If no specific processes, estimate from general maturity
-  if (relevantProcesses.length === 0) {
+  // Bez konkrétnych procesov sa odhaduje z celkovej zrelosti — ALE len keď
+  // sa respondent nevyjadril. Kto výslovne vybral „žiadny", nemá dostať
+  // úsporu z troch procesov, o ktorých práve povedal, že ručné nie sú.
+  if (relevantProcesses.length === 0 && !inputs.noManualProcesses) {
     const defaultProcs = ['invoicing', 'reporting', 'approval_workflows'];
     for (const proc of defaultProcs) {
       const benchmark = processBenchmarks[proc];
@@ -480,11 +496,16 @@ export function extractROIInputs(
     if (!isNaN(parsed)) maturityLevel = parsed;
   }
 
-  // Manuálne procesy sa self-reportujú len v komplexnom kvíze (cx_A05).
-  // Indikatívny kvíz procesnú otázku nemá (ind_05 je otázka o používaných
-  // systémoch — jej hodnoty sa nesmú miešať do zoznamu manuálnych procesov);
-  // prázdny zoznam rieši calculateBusinessImpact benchmark defaultmi.
-  const manualProcs = getMultiSelectValues('cx_A05');
+  // Manuálne procesy: komplexný kvíz cez cx_A05, indikatívny cez
+  // ind_03c_manual (pribudol 6. 8. 2026). Dovtedy indikatívne ROI VŽDY
+  // počítalo z benchmarkových defaultov, takže dve firmy s úplne odlišnou
+  // mierou ručnej práce dostali rovnaký odhad úspory. Obe otázky používajú
+  // ZHODNÉ hodnoty možností — benchmarky procesov sa hľadajú podľa nich.
+  // Vetvy sa nikdy neprelínajú, takže spojenie zoznamov nič nezdvojí.
+  const manualProcs = [
+    ...getMultiSelectValues('cx_A05'),
+    ...getMultiSelectValues('ind_03c_manual'),
+  ];
 
   // Veľkosť sa validuje proti známej množine — neznáma hodnota je to isté
   // ako chýbajúca, inak by sa dostala do benchmarkového lookupu a ticho
@@ -497,6 +518,7 @@ export function extractROIInputs(
     employeeCountBand,
     maturityLevel,
     manualProcesses: manualProcs.filter(p => p !== 'none'),
+    noManualProcesses: manualProcs.includes('none') && manualProcs.every(p => p === 'none'),
     invoicingVolumeBand: getMeasuredAnswerValue('cx_ROI03'),
     adminHeadcountBand: getMeasuredAnswerValue('cx_ROI02'),
     categoryScoreF,
