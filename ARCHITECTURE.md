@@ -1,8 +1,11 @@
 # digitalizuj.to — Technical Architecture
 
-> Verzia: 1.1-MVP (revízia; pôvodná 1.0-MVP z 2026-04-08)
-> Dátum: 2026-07-24
+> **Platí pre:** otázková banka `1.7` · scoring config `1.5` · benchmark dáta `2025-DII-v3` · overené 2026-08-06
 >
+> Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
+> Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),
+> takže revízia modelu bez prečítania dokumentácie zhodí build.
+> História zmien modelu: [`MODEL_VERSIONS.md`](MODEL_VERSIONS.md).
 > Rýchly prehľad s diagramami (Mermaid) je v [`README.md`](README.md#architektura) — tento dokument je hlbší technický detail (dátový model, výpočtové vzorce).
 
 ---

@@ -1,7 +1,11 @@
 # digitalizuj.to — Benchmark Specification
 
-> Verzia: 1.1-MVP  
-> Dátum: 2026-07-23 (revízia; pôvodná verzia 2026-04-08)  
+> **Platí pre:** benchmark dáta `2025-DII-v3` · scoring config `1.5` · overené 2026-08-06
+>
+> Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
+> Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),
+> takže revízia modelu bez prečítania dokumentácie zhodí build.
+> História zmien modelu: [`MODEL_VERSIONS.md`](MODEL_VERSIONS.md).
 > Benchmark dataset: `2025-DII-v3` (Eurostat isoc_e_dii, prieskum 2025)
 
 ---

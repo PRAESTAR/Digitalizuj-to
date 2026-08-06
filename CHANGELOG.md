@@ -8,6 +8,27 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Dokumentácia prestala klamať o sebe (6. 8. 2026)
+
+- **Štyri špecifikácie existovali v dvoch rozídených kópiách.**
+  `config/model/` je balík pre editorov modelu — ľudí, ktorí do TypeScriptu
+  nevidia. Kópie sa udržiavali ručne a `SCORING_SPEC.md` sa rozišla
+  o **355 riadkov**: opisovala model **spred 4. 8. 2026** — plochý priemer DII,
+  `pureBinary`, nemerané skóre fabrikované na nulu. Teda presne to správanie,
+  ktoré scoring v1.5 odstránil. Kópie sa odteraz generujú
+  (`npm run docs:sync`) a build kontroluje zhodu (validátor #15).
+- **Dekoratívne verzie dokumentov nahradila overiteľná pečiatka.** Každý spec
+  mal vlastné číslo (1.1-MVP, 2.0, 2.1…), ktoré nikto spoľahlivo nezvyšoval —
+  všetky boli z júla, hoci sa dokumenty odvtedy viackrát prepísali. Číslo,
+  ktoré vyzerá autoritatívne a drží ho ruka, je horšie než žiadne: čitateľ mu
+  verí. Namiesto neho je pečiatka **„Platí pre"** s verziami zdrojov, ktoré
+  dokument opisuje — a tie validátor overuje (#16). Revízia modelu bez
+  prečítania dokumentácie odteraz zhodí build.
+- **Nový `MODEL_VERSIONS.md`** — história zmien modelu s dopadom na
+  **porovnateľnosť** výsledkov (zachovaná / posunutá / prerušená). `CHANGELOG`
+  popisuje funkcie pre používateľa; toto je otázka, ktorú si kladie človek
+  pozerajúci neskôr na dáta: sú výsledky spred zmeny ešte porovnateľné?
+
 ### Scoring parametre v konfigurácii, nie v kóde (6. 8. 2026)
 
 - **Posledné natvrdo písané prahy sú v configu.** Pásma DII na škále 0–12

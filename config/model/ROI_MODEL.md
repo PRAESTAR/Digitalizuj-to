@@ -1,7 +1,16 @@
+<!--
+  KÓPIA — needituj. Zdrojom pravdy je /ROI_MODEL.md v koreni repozitára.
+  Túto kópiu vyrába `npm run docs:sync` a build kontroluje zhodu
+  (validate-model.mjs #15). Zmeny rob v koreni.
+-->
 # digitalizuj.to — ROI & Business Impact Model
 
-> Verzia: 1.1-MVP  
-> Dátum: 2026-07-23 (revízia; pôvodná verzia 2026-04-08)  
+> **Platí pre:** otázková banka `1.7` · scoring config `1.5` · overené 2026-08-06
+>
+> Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
+> Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),
+> takže revízia modelu bez prečítania dokumentácie zhodí build.
+> História zmien modelu: [`MODEL_VERSIONS.md`](MODEL_VERSIONS.md).
 > Mzdové kotvy: Eurostat lc_lci_lev 2025 + ŠÚ SR 2025/2026 (viď §7)
 
 ---
@@ -455,3 +464,50 @@ tromi defaultmi. Väzbu teraz nesie `processKeyFromAnswerValue`:
 Frekvencie, časy, automatizovateľnosť a chybovosť týchto troch sú z §2.2;
 hodnoty pre mikrofirmy a `reworkMinutesPerError`/`exceptionRate` sú expertný
 odhad odvodený pomerom, ktorý držia ostatné záznamy (micro ≈ 0,4 × small).
+
+
+### Nezistená zrelosť procesov
+
+`maturityLevel` je `number | null`. `null` znamená, že sa zrelosť nezistila —
+otázka `ind_03`/`cx_A01` bola preskočená, zodpovedaná „Neviem", alebo mala
+hodnotu **mimo domény 0–4**.
+
+Posledný prípad je dôvod, prečo validácia vznikla: `parseInt` sám prijme aj
+`9` alebo `−3` a taká hodnota neskončila chybou, ale tichým nezmyslom —
+firma na „úrovni 9" spadla na fallback 0,65 (teda úroveň 1), dostala rizikovosť
+„nízke" a medzeru 0 %.
+
+Pri `null` sa počíta s `assumedMaturityLevel = 2` (stredná úroveň: najnižšia
+by úsporu nafúkla na 90 % ručnej práce, najvyššia by ju zmazala na 5 %) a
+predpoklad sa **prizná** — disclaimerom, príznakom `inputAssumptions.maturityAssumed`
+a zastropovanou dôveryhodnosťou na 0,3, rovnako ako pri neuvedenej veľkosti firmy.
+
+
+### Dve brány scenárov: pripravenosť a zámer
+
+Zobrazenie optimistického scenára gatuje **prísnejšia z dvoch nezávislých
+brán**:
+
+| Brána | Zdroj | Čo meria |
+|---|---|---|
+| governance | ORS kategória F | či firma zmenu vie zorganizovať |
+| zámer investovať | `ind_16_intent` / `cx_F07_intent` (0–10) | či to vôbec chce |
+
+Do 6. 8. 2026 existovala len prvá a slúžila ako zástupný ukazovateľ oboch. To
+bola tichá chyba: **governance je kapacita, nie vôľa.** Firma s výbornou
+organizáciou a nulovou chuťou investovať nezrealizuje nič — a dostávala
+optimistický scenár.
+
+Prahy zámeru (`investmentIntentGates`): 8+ z 10 je jasné „áno", 5+ otvorenosť
+bez záväzku, pod 5 už respondent hovorí skôr „nie".
+
+**Prečo minimum, nie priemer.** Silná stránka by kryla slabú, hoci úsporu
+obmedzuje práve tá slabá. Odhodlaná firma bez organizačnej pripravenosti
+nedosiahne plný potenciál rovnako ako pripravená firma bez chuti.
+
+**Nezistený zámer bránu neposúva ani jedným smerom** — nevedomosť nie je dôkaz
+o nechuti, rovnaká politika ako pri rizikách. Nezmeraná governance je naopak
+prísnejšia než akýkoľvek zámer: bez nej sa pripravenosť nedá doložiť vôbec.
+
+Text dôvodu ukazuje na tú bránu, ktorá scenár skutočne obmedzila — inak by
+firma dostala radu opravovať niečo, čo má v poriadku.

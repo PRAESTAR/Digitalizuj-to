@@ -6,6 +6,16 @@ Tento priečinok obsahuje **všetky konfiguračné súbory** modelu hodnotenia d
 
 ## Obsah priečinka
 
+> **Pozn. k .md súborom:** `METHODOLOGY`, `SCORING_SPEC`, `BENCHMARK_SPEC`,
+> `ROI_MODEL` a `RECOMMENDATION_RULES` sú **kópie** dokumentov z koreňa
+> repozitára — needituj ich tu. Do 6. 8. 2026 sa udržiavali ručne a rozišli
+> sa: `SCORING_SPEC.md` o 355 riadkov a opisovala model spred 4. 8. 2026
+> (plochý priemer DII, `pureBinary`, nemerané fabrikované na nulu), teda
+> správanie, ktoré scoring v1.5 odstránil. Presne tí ľudia, pre ktorých je
+> tento priečinok určený, tak čítali opis modelu, ktorý už neexistoval.
+> Kópie vyrába `npm run docs:sync` a build kontroluje zhodu (validátor #15).
+> `QUESTION_BANK_GUIDE.md` sa naopak píše priamo tu — v koreni nie je.
+
 > **Pozn. k `scoringConfig.json`:** je to **generovaný pohľad** na
 > `data/scoringConfig.ts`, nie vstup — runtime ho nečíta. Do 6. 8. 2026 sa
 > udržiaval ručne a rozišiel sa: chýbalo v ňom 20 exportov a štyri kľúče mali

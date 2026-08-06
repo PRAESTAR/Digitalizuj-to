@@ -13,7 +13,9 @@
     "db:compile": "node scripts/db/compile.mjs --check",
     "model:pull": "node scripts/db/pull.mjs",
     "test": "vitest run",
-    "config:sync": "node scripts/sync-model-config.mjs"
+    "config:sync": "node scripts/sync-model-config.mjs",
+    "docs:sync": "node scripts/sync-model-docs.mjs",
+    "model:sync": "npm run config:sync && npm run docs:sync"
   },
   "dependencies": {
     "@types/qrcode": "^1.5.6",

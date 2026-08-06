@@ -1,7 +1,11 @@
 # digitalizuj.to — ROI & Business Impact Model
 
-> Verzia: 1.1-MVP  
-> Dátum: 2026-07-23 (revízia; pôvodná verzia 2026-04-08)  
+> **Platí pre:** otázková banka `1.7` · scoring config `1.5` · overené 2026-08-06
+>
+> Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
+> Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),
+> takže revízia modelu bez prečítania dokumentácie zhodí build.
+> História zmien modelu: [`MODEL_VERSIONS.md`](MODEL_VERSIONS.md).
 > Mzdové kotvy: Eurostat lc_lci_lev 2025 + ŠÚ SR 2025/2026 (viď §7)
 
 ---

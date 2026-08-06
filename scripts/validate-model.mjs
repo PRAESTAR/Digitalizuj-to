@@ -353,6 +353,70 @@ try {
   errors.push('kontrola zrkadla scoringConfigu zlyhala: ' + e.message);
 }
 
+// --- 15: kópie špecifikácií v config/model ---------------------------------
+// `config/model/` je balík pre editorov modelu — ľudí, ktorí do TypeScriptu
+// nevidia. Kópie sa udržiavali ručne a rozišli sa: SCORING_SPEC o 355 riadkov,
+// a opisovala MODEL SPRED 4. 8. 2026 (plochý priemer DII, pureBinary, nemerané
+// fabrikované na nulu) — teda správanie, ktoré scoring v1.5 odstránil. Presne
+// tí ľudia, pre ktorých ten priečinok je, čítali opis modelu, čo už neexistuje.
+try {
+  const docs = await import('./sync-model-docs.mjs');
+  for (const name of docs.MIRRORED_DOCS) {
+    if (docs.expectedCopy(name) !== docs.actualCopy(name)) {
+      errors.push(
+        'config/model/' + name + ' sa rozchádza s koreňovou verziou — spusti `npm run docs:sync`'
+      );
+    }
+  }
+} catch (e) {
+  errors.push('kontrola kópií špecifikácií zlyhala: ' + e.message);
+}
+
+// --- 16: pečiatky verzií v špecifikáciách ----------------------------------
+// Každý spec mal vlastné dekoratívne číslo verzie (1.1-MVP, 2.0, 2.1…), ktoré
+// nikto spoľahlivo nezvyšoval — všetky boli z júla, hoci sa dokumenty odvtedy
+// viackrát prepísali. Číslo, ktoré vyzerá autoritatívne a drží ho ruka, je
+// horšie než žiadne: čitateľ mu verí. Nahradila ho pečiatka „Platí pre",
+// ktorá uvádza verzie ZDROJOV — a tie sa dajú overiť. Revízia modelu bez
+// prečítania dokumentácie tak zhodí build.
+const SPEC_SOURCES = {
+  bank: bank.version,
+  scoring: (scoringSrc.match(/version: '([^']+)'/) || [])[1],
+  bench: bench.version,
+};
+const SPEC_LABELS = {
+  bank: 'otázková banka',
+  scoring: 'scoring config',
+  bench: 'benchmark dáta',
+};
+const SPEC_FILES = {
+  'METHODOLOGY.md': ['bank', 'scoring', 'bench'],
+  'SCORING_SPEC.md': ['bank', 'scoring'],
+  'BENCHMARK_SPEC.md': ['bench', 'scoring'],
+  'ROI_MODEL.md': ['bank', 'scoring'],
+  'RECOMMENDATION_RULES.md': ['bank', 'scoring'],
+  'ARCHITECTURE.md': ['bank', 'scoring', 'bench'],
+  'MODEL_VERSIONS.md': ['bank', 'scoring', 'bench'],
+};
+for (const [file, sources] of Object.entries(SPEC_FILES)) {
+  let head;
+  try { head = readFileSync(file, 'utf8').split(String.fromCharCode(10)).slice(0, 12).join(' '); }
+  catch { errors.push(file + ": súbor chýba, hoci má niesť pečiatku verzie"); continue; }
+
+  if (!head.includes('**Platí pre:**')) {
+    errors.push(file + ': chýba pečiatka "Platí pre" — dokument musí uvádzať verzie zdrojov, ktoré opisuje');
+    continue;
+  }
+  for (const s of sources) {
+    const want = SPEC_LABELS[s] + ' `' + SPEC_SOURCES[s] + '`';
+    if (!head.includes(want)) {
+      errors.push(
+        file + ': pečiatka neuvádza ' + want + ' — model sa posunul, dokument nie. Skontroluj obsah a uprav pečiatku.'
+      );
+    }
+  }
+}
+
 // --- výstup -----------------------------------------------------------------
 const scaleCounts = {};
 for (const q of all) if (q.scale) scaleCounts[q.scale] = (scaleCounts[q.scale] ?? 0) + 1;

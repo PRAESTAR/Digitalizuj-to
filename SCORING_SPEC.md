@@ -1,8 +1,11 @@
 # digitalizuj.to — Scoring Specification
 
-> Verzia: 2.1 (scoring v1.5 — per-indikátorové DII, nemerané ≠ 0, ORS smerovanie podľa maps_to_score)
-> Dátum: 2026-08-04 (predchádzajúca revízia 2.0: 2026-07-24)
+> **Platí pre:** otázková banka `1.7` · scoring config `1.5` · overené 2026-08-06
 >
+> Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
+> Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),
+> takže revízia modelu bez prečítania dokumentácie zhodí build.
+> História zmien modelu: [`MODEL_VERSIONS.md`](MODEL_VERSIONS.md).
 > **Prečo revízia:** Verzia 2.0 dokumentovala vtedajšie aproximácie (plochý priemer DII, nezmerané = 0). Scoring v1.5 obe odstránil: DII je per-indikátorová agregácia cez `data/diiIndicators.json` a nemeraný stav je všade explicitné N/A (`null` + `measured`). Dokument opisuje presne to, čo kód počíta — zostávajúce vedomé nepresnosti sú explicitne označené, nie skryté.
 
 ---

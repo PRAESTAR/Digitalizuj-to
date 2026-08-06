@@ -1,8 +1,16 @@
+<!--
+  KÓPIA — needituj. Zdrojom pravdy je /RECOMMENDATION_RULES.md v koreni repozitára.
+  Túto kópiu vyrába `npm run docs:sync` a build kontroluje zhodu
+  (validate-model.mjs #15). Zmeny rob v koreni.
+-->
 # digitalizuj.to — Recommendation Rules
 
-> Verzia: 2.0 (prepísané podľa reálnej implementácie pre release 1.0.0; nahrádza 1.0-MVP)
-> Dátum: 2026-07-24
+> **Platí pre:** otázková banka `1.7` · scoring config `1.5` · overené 2026-08-06
 >
+> Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
+> Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),
+> takže revízia modelu bez prečítania dokumentácie zhodí build.
+> História zmien modelu: [`MODEL_VERSIONS.md`](MODEL_VERSIONS.md).
 > **Prečo revízia:** Pôvodná verzia 1.0-MVP popisovala plánované pravidlá (answer-level podmienky ako `invoicing == "manual"`, kategórie C/D, `benchmark_note` s konkrétnymi percentami), ktoré `engines/recommendationEngine.ts` nikdy neimplementoval. Tento dokument teraz opisuje **presne to, čo kód reálne robí** — vrátane medzier, ktoré zostávajú otvorené (označené nižšie a v `IMPROVEMENT_CHECKLIST.md`).
 
 ---
