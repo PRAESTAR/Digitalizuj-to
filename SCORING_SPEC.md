@@ -516,10 +516,26 @@ Parametre v `data/scoringConfig.ts` (**zdroj pravdy**). `config/model/scoringCon
   riskThresholds: [15, 35, 60],
   securityPenaltyThreshold: 30,
   securityPenaltyMaxFactor: 0.30,
-  unknownAnswerExclusionThreshold: 0.50,
+  unknownAnswerExclusionThreshold: 0.50,   // podiel „Neviem" → confidence 'low'
+  unknownAnswerMediumThreshold: 0.25,      // ten istý podiel → 'medium'
+  diiTotalIndicators: 12,                  // DII v3/2025; v4 zmení počet aj mapovanie
+  diiLevelCutoffs: [3, 6, 9],              // score12 <= cutoff → pásmo
+  diiConfidenceMinIndicators: { high: 10, medium: 6 },
+  aiConfidenceMinAnswers: 2,               // minimum odpovedí pre AI confidence 'medium'
+  pilotCriteria: { … },                    // kritériá prijatia pilotu
 }
 ```
 
 `aiReadinessThresholds` (`[25, 55, 80]`) a `aiReadinessLabels` sú definované samostatne v tom istom súbore.
 
-Hardcoded hodnoty, ktoré **nie sú** v konfigurácii (známa medzera): DII level cutoffs (3/6/9), binárny prah 50, medium-confidence cutoff 0.25, TDRI pásma [15,35,60] sú duplicitne aj natvrdo v `riskEngine.ts` popri `scoringConfig.riskThresholds`.
+Hardcoded hodnoty, ktoré **nie sú** v konfigurácii (zvyšná medzera, stav 6. 8. 2026):
+
+- **binárny prah 50** pri proxy riadkoch DII mapovania,
+- **TDRI pásma [15, 35, 60]** sú duplicitne aj natvrdo v `riskEngine.ts` popri `scoringConfig.riskThresholds`,
+- **pásma percentilu DII** v `benchmarkEngine.ts` (`DII_BANDS`) opakujú tie isté hranice ako `diiLevelCutoffs`, len posunuté o pol bodu kvôli korekcii spojitosti.
+
+> **Zmena 6. 8. 2026.** Tento odsek dovtedy uvádzal aj DII level cutoffs (3/6/9)
+> a medium-confidence cutoff 0,25 — obe sú odvtedy v konfigurácii
+> (`diiLevelCutoffs`, `unknownAnswerMediumThreshold`). Veta ostala nezmenená
+> pri commite, ktorý ich presunul, takže špecifikácia chvíľu posielala čitateľa
+> hľadať ich do enginu, kde už neboli.
