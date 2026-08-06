@@ -39,8 +39,8 @@ const initialState: AssessmentState = {
 // Actions
 type Action =
   | { type: 'START_QUIZ'; quizType: AssessmentType }
-  | { type: 'SUBMIT_ANSWER'; questionId: string; value: string | string[]; isUnknown: boolean }
-  | { type: 'COMPLETE_QUIZ' }
+  | { type: 'SUBMIT_ANSWER'; questionId: string; value: string | string[]; isUnknown: boolean; market: Market }
+  | { type: 'COMPLETE_QUIZ'; market: Market }
   | { type: 'RESET' };
 
 function reducer(state: AssessmentState, action: Action): AssessmentState {
@@ -136,7 +136,7 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
       if (!currentQuestion) {
         newAssessment.status = 'completed';
         newAssessment.completedAt = new Date().toISOString();
-        newAssessment.result = computeResult(newAssessment, state.questions);
+        newAssessment.result = computeResult(newAssessment, state.questions, action.market);
       }
 
       return {
@@ -153,7 +153,7 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
         ...state.assessment,
         status: 'completed',
         completedAt: new Date().toISOString(),
-        result: computeResult(state.assessment, state.questions),
+        result: computeResult(state.assessment, state.questions, action.market),
       };
       return { ...state, assessment: completed, currentQuestion: null };
     }
@@ -167,15 +167,21 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
 }
 
 /**
- * Aktívny trh referenčných čísel (SK/CZ/EU27), nastavovaný providerom podľa
- * jazykovej mutácie. Modulová premenná namiesto pretláčania cez action
- * payload: reducer je v tomto module, appka je statická per-locale (trh sa
- * mení len s prepnutím jazyka = plný re-render providera) a výpočet
- * výsledku číta hodnotu v momente dokončenia kvízu.
+ * Trh referenčných čísel (SK/CZ/EU27) sa odovzdáva v akcii, nie cez modulovú
+ * premennú.
+ *
+ * Dovtedy tu bolo `let activeMarket`, ktoré provider prepisoval PRIAMO POČAS
+ * RENDERU. To je nebezpečné aj mimo súbežného renderovania: React smie render
+ * zahodiť alebo zopakovať, ale zápis do modulovej premennej prežije — hodnota
+ * potom pochádza z renderu, ktorý sa nikdy nezobrazil. Zároveň je to jediná
+ * inštancia na celý modul, takže dva providery (alebo dva jazyky v jednom
+ * procese pri generovaní statického exportu) si ju prepisujú navzájom.
+ *
+ * Parameter v akcii to rieši bez ďalšieho stavu: provider pozná locale
+ * v momente dispatchu a reducer dostane presne tú hodnotu, ktorá k danému
+ * dokončeniu kvízu patrí.
  */
-let activeMarket: Market = 'SK';
-
-function computeResult(assessment: Assessment, questions: Question[]): ResultSnapshot {
+function computeResult(assessment: Assessment, questions: Question[], market: Market): ResultSnapshot {
   const { answers, respondent, riskFlags } = assessment;
 
   const dii = calculateDII(answers, questions);
@@ -191,7 +197,7 @@ function computeResult(assessment: Assessment, questions: Question[]): ResultSna
     dii, ors,
     respondent.sector || 'other',
     respondent.employeeCountBand || 'small',
-    activeMarket
+    market
   );
 
   const recommendations = generateRecommendations(answers, questions, ors, tdri, dii, aiReadiness);
@@ -230,21 +236,25 @@ const AssessmentContext = createContext<AssessmentContextValue | null>(null);
 
 export function AssessmentProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  // Trh referencnych cisel sleduje jazykovu mutaciu (sk->SK, cs->CZ, en->EU27).
+  // Trh referenčných čísel sleduje jazykovú mutáciu (sk→SK, cs→CZ, en→EU27).
+  // Odvodzuje sa počas renderu, ale nikam sa nezapisuje — do reducera ide
+  // až v payloade akcie.
   const locale = useLocale();
-  activeMarket = marketForLocale(locale);
+  const market = marketForLocale(locale);
 
   const startQuiz = useCallback((type: AssessmentType) => {
     dispatch({ type: 'START_QUIZ', quizType: type });
   }, []);
 
   const submitAnswer = useCallback((questionId: string, value: string | string[], isUnknown = false) => {
-    dispatch({ type: 'SUBMIT_ANSWER', questionId, value, isUnknown });
-  }, []);
+    // Trh ide v akcii aj sem: posledná odpoveď kvíz automaticky dokončí,
+    // takže tento dispatch tiež spúšťa výpočet výsledku.
+    dispatch({ type: 'SUBMIT_ANSWER', questionId, value, isUnknown, market });
+  }, [market]);
 
   const completeQuiz = useCallback(() => {
-    dispatch({ type: 'COMPLETE_QUIZ' });
-  }, []);
+    dispatch({ type: 'COMPLETE_QUIZ', market });
+  }, [market]);
 
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });

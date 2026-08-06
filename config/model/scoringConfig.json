@@ -1,19 +1,25 @@
 {
-  "_comment": "Konfigurácia scoringového modelu digitalizuj.to — editovateľná verzia",
-  "_version": "1.5",
-  "_last_updated": "2026-08-04",
-  "_diiMethodologyVersion": "DII v3 (Eurostat isoc_e_dii, prieskum 2025)",
-
-  "categoryWeights": {
-    "_comment": "Váhy kategórií ODRM (musia dať v súčte 1.00)",
-    "A": 0.20,
-    "B": 0.20,
-    "C": 0.15,
-    "D": 0.15,
-    "E": 0.20,
-    "F": 0.10
+  "_comment": "GENEROVANÝ SÚBOR — needituj. Zdrojom pravdy je data/scoringConfig.ts; tento pohľad z neho vyrába `npm run config:sync` a build ho kontroluje (validate-model.mjs #14). Ručná zmena tu NEZMENÍ správanie aplikácie.",
+  "_generatedFrom": "data/scoringConfig.ts",
+  "adminAgendaShareOfFte": 0.6,
+  "adminFteFromBand": {
+    "1_3": 2,
+    "4_10": 7,
+    "11_30": 20,
+    "30_plus": 40
   },
-
+  "aiReadinessLabels": {
+    "ziadna": "Bez využitia AI",
+    "experimentalna": "Experimentálne využitie AI",
+    "pokrocila": "Pokročilé využitie AI",
+    "strategicka": "AI ako súčasť stratégie"
+  },
+  "aiReadinessThresholds": [
+    25,
+    55,
+    80
+  ],
+  "assumedMaturityLevel": 2,
   "categoryNames": {
     "A": "Procesy a digitalizácia práce",
     "B": "Systémy a integrácie",
@@ -22,231 +28,317 @@
     "E": "Bezpečnosť a technologický dlh",
     "F": "Governance a ľudia"
   },
-
-  "maturityThresholds": {
-    "_comment": "Hranice pre maturity level (ORS skóre -> level 0-4)",
-    "thresholds": [20, 40, 60, 80],
-    "labels": {
-      "0": "Digitálny nováčik",
-      "1": "Začiatočník",
-      "2": "Rozvíjajúci sa",
-      "3": "Pokročilý",
-      "4": "Digitálny líder"
-    }
-  },
-
-  "riskThresholds": {
-    "_comment": "Hranice pre TDRI risk level (TDRI skóre -> level)",
-    "thresholds": [15, 35, 60],
-    "labels": {
-      "low": "Dobre riadené",
-      "medium": "Vyžaduje pozornosť",
-      "high": "Vyžaduje okamžitú akciu",
-      "critical": "Ohrozenie prevádzky"
-    }
-  },
-
+  "defaultHourlyCostEur": 30.8,
   "diiLevelLabels": {
-    "_comment": "Popisky pre DII úrovne (0-12 škála)",
     "very_low": "Veľmi nízka digitálna intenzita",
     "low": "Nízka digitálna intenzita",
     "high": "Vysoká digitálna intenzita",
     "very_high": "Veľmi vysoká digitálna intenzita"
   },
-
-  "securityPenalty": {
-    "_comment": "Ak kategória E < threshold, ORS sa penalizuje (max -30%)",
-    "threshold": 30,
-    "maxFactor": 0.30
+  "governanceScenarioGates": {
+    "high": 75,
+    "standard": 50
   },
-
-  "unknownAnswerExclusionThreshold": {
-    "_comment": "Ak viac ako 50% odpovedí v kategórii = 'Neviem', kategória má nízku spoľahlivosť",
-    "value": 0.50
+  "investmentIntentGates": {
+    "high": 8,
+    "standard": 5
   },
-
-  "riskFactors": [
-    {
-      "id": "RF01",
-      "name": "Out-of-support core OS/DB",
-      "maxPenalty": 15,
-      "severity": "critical",
-      "description": "Hlavný operačný systém alebo databáza je mimo podpory (nedostáva bezpečnostné záplaty)"
-    },
-    {
-      "id": "RF02",
-      "name": "Chýbajúce zálohy core dát",
-      "maxPenalty": 15,
-      "severity": "critical",
-      "description": "Kritické firemné dáta nie sú zálohované"
-    },
-    {
-      "id": "RF03",
-      "name": "Zálohy existujú, ale netestované",
-      "maxPenalty": 8,
-      "severity": "high",
-      "description": "Zálohy existujú, ale nikdy nebola testovaná obnova z nich"
-    },
-    {
-      "id": "RF04",
-      "name": "Chýbajúci patch management",
-      "maxPenalty": 10,
-      "severity": "critical",
-      "description": "Systémy nie sú pravidelne aktualizované bezpečnostnými záplatami"
-    },
-    {
-      "id": "RF05",
-      "name": "Absencia MFA na kritických systémoch",
-      "maxPenalty": 10,
-      "severity": "critical",
-      "description": "Viacfaktorové overenie nie je nasadené na kritických systémoch"
-    },
-    {
-      "id": "RF06",
-      "name": "Single point of failure (infraštruktúra)",
-      "maxPenalty": 8,
-      "severity": "high",
-      "description": "Kritická infraštruktúra nemá redundanciu (napr. jeden server, jedno pripojenie)"
-    },
-    {
-      "id": "RF07",
-      "name": "Single point of failure (ľudia)",
-      "maxPenalty": 8,
-      "severity": "high",
-      "description": "Kritické znalosti a prístupy sú závislé na jednom človeku"
-    },
-    {
-      "id": "RF08",
-      "name": "Nezdokumentované/neowned systémy",
-      "maxPenalty": 5,
-      "severity": "medium",
-      "description": "Systémy bez dokumentácie alebo bez definovaného vlastníka"
-    },
-    {
-      "id": "RF09",
-      "name": "Žiadny BC/DR plán",
-      "maxPenalty": 7,
-      "severity": "high",
-      "description": "Neexistuje plán kontinuity podnikania a obnovy po havárii"
-    },
-    {
-      "id": "RF10",
-      "name": "Žiadny asset inventory",
-      "maxPenalty": 4,
-      "severity": "medium",
-      "description": "Firma nemá prehľad o svojich IT aktívach"
-    },
-    {
-      "id": "RF11",
-      "name": "Žiadne logovanie/monitoring",
-      "maxPenalty": 5,
-      "severity": "medium",
-      "description": "Žiadne logovanie bezpečnostných udalostí ani monitoring systémov"
-    },
-    {
-      "id": "RF12",
-      "name": "Out-of-support aplikácie (nie core)",
-      "maxPenalty": 5,
-      "severity": "medium",
-      "description": "Nekritické aplikácie sú mimo podpory"
-    },
-    {
-      "id": "RF13",
-      "name": "Nepripravenosť na povinnú e-fakturáciu (od 1.1.2027)",
-      "maxPenalty": 6,
-      "severity": "medium",
-      "description": "Firma ešte nepoužíva štruktúrovanú e-fakturáciu pred blížiacim sa termínom povinnosti (novela zákona o DPH, model Peppol)"
-    },
-    {
-      "id": "RF14",
-      "name": "Nepripravenosť na NIS2 (ak sa firmu týka)",
-      "maxPenalty": 6,
-      "severity": "medium",
-      "description": "Firma v sektore/veľkosti relevantnej pre NIS2 (zákon č. 366/2024 Z.z.) nemá zavedené základné opatrenia alebo si nie je istá, či sa jej zákon týka"
-    }
-  ],
-
-  "defaultHourlyCostEur": {
-    "_comment": "Hodinová cena práce sa už nepýta ako otázka (citlivý údaj) — vždy priemer IT/telekomunikačného sektora SR (NACE J). Zdroj: Eurostat lc_lci_lev 2025, SK, NACE J Informácie a komunikácia, celková cena práce vrátane odvodov zamestnávateľa. Kontrolný súčet: Trexima ISCP priemer IT profesií rádovo konzistentný.",
-    "value": 30.8
+  "invoicingVolumeFromBand": {
+    "low": 25,
+    "medium": 125,
+    "high": 350,
+    "very_high": 700
   },
-
+  "manualShareFromMaturity": {
+    "0": 0.9,
+    "1": 0.65,
+    "2": 0.4,
+    "3": 0.15,
+    "4": 0.05
+  },
+  "manualShareWhenSelfReportedManual": 0.85,
+  "maturityLabels": {
+    "0": "Digitálny nováčik",
+    "1": "Začiatočník",
+    "2": "Rozvíjajúci sa",
+    "3": "Pokročilý",
+    "4": "Digitálny líder"
+  },
   "processBenchmarks": {
-    "_comment": "Benchmark hodnoty pre ROI model — frekvencia, čas, automatizovateľnosť + error cost model (errorRate, reworkMinutes, exceptionRate)",
     "invoicing": {
-      "frequencyPerMonth": { "micro": 20, "small": 50, "medium": 200, "large": 500 },
+      "frequencyPerMonth": {
+        "micro": 20,
+        "small": 50,
+        "medium": 200,
+        "large": 500
+      },
       "timePerUnitMinutes": 15,
-      "automatableShare": 0.70,
+      "automatableShare": 0.7,
       "errorRate": 0.05,
       "reworkMinutesPerError": 25,
       "exceptionRate": 0.08
     },
     "reporting": {
-      "frequencyPerMonth": { "micro": 2, "small": 4, "medium": 12, "large": 30 },
+      "frequencyPerMonth": {
+        "micro": 2,
+        "small": 4,
+        "medium": 12,
+        "large": 30
+      },
       "timePerUnitMinutes": 60,
-      "automatableShare": 0.80,
+      "automatableShare": 0.8,
       "errorRate": 0.08,
       "reworkMinutesPerError": 45,
       "exceptionRate": 0.05
     },
     "approval_workflows": {
-      "frequencyPerMonth": { "micro": 10, "small": 20, "medium": 60, "large": 150 },
+      "frequencyPerMonth": {
+        "micro": 10,
+        "small": 20,
+        "medium": 60,
+        "large": 150
+      },
       "timePerUnitMinutes": 30,
       "automatableShare": 0.75,
       "errorRate": 0.02,
       "reworkMinutesPerError": 20,
-      "exceptionRate": 0.10
+      "exceptionRate": 0.1
     },
     "order_processing": {
-      "frequencyPerMonth": { "micro": 15, "small": 30, "medium": 150, "large": 400 },
+      "frequencyPerMonth": {
+        "micro": 15,
+        "small": 30,
+        "medium": 150,
+        "large": 400
+      },
       "timePerUnitMinutes": 20,
-      "automatableShare": 0.60,
+      "automatableShare": 0.6,
       "errorRate": 0.03,
       "reworkMinutesPerError": 30,
       "exceptionRate": 0.07
     },
     "hr_onboarding": {
-      "frequencyPerMonth": { "micro": 0.5, "small": 1, "medium": 4, "large": 10 },
+      "frequencyPerMonth": {
+        "micro": 0.5,
+        "small": 1,
+        "medium": 4,
+        "large": 10
+      },
       "timePerUnitMinutes": 480,
-      "automatableShare": 0.40,
-      "errorRate": 0.10,
+      "automatableShare": 0.4,
+      "errorRate": 0.1,
       "reworkMinutesPerError": 120,
       "exceptionRate": 0.15
+    },
+    "inventory_management": {
+      "frequencyPerMonth": {
+        "micro": 8,
+        "small": 20,
+        "medium": 100,
+        "large": 300
+      },
+      "timePerUnitMinutes": 10,
+      "automatableShare": 0.65,
+      "errorRate": 0.04,
+      "reworkMinutesPerError": 20,
+      "exceptionRate": 0.09
+    },
+    "field_service": {
+      "frequencyPerMonth": {
+        "micro": 16,
+        "small": 40,
+        "medium": 200,
+        "large": 600
+      },
+      "timePerUnitMinutes": 12,
+      "automatableShare": 0.35,
+      "errorRate": 0.05,
+      "reworkMinutesPerError": 25,
+      "exceptionRate": 0.12
+    },
+    "purchasing": {
+      "frequencyPerMonth": {
+        "micro": 6,
+        "small": 15,
+        "medium": 60,
+        "large": 180
+      },
+      "timePerUnitMinutes": 25,
+      "automatableShare": 0.55,
+      "errorRate": 0.04,
+      "reworkMinutesPerError": 30,
+      "exceptionRate": 0.08
     }
   },
-
-  "manualShareFromMaturity": {
-    "_comment": "Ak firma neodpovie priamo na podiel manuálnej práce, odvodí sa z maturity levelu kategórie A",
-    "0": 0.90,
-    "1": 0.65,
-    "2": 0.40,
-    "3": 0.15,
-    "4": 0.05
+  "processKeyFromAnswerValue": {
+    "invoicing": "invoicing",
+    "hr_onboarding": "hr_onboarding",
+    "reporting": "reporting",
+    "warehouse": "inventory_management",
+    "service": "field_service",
+    "purchasing": "purchasing"
   },
-
-  "realizationRates": {
-    "_comment": "Scenáre realizácie potenciálu pre ROI model",
-    "conservative": 0.40,
-    "mid": 0.65,
-    "optimistic": 0.85
-  },
-
-  "rampUpMonths": {
-    "_comment": "Krivky úspory: počet mesiacov lineárneho nábehu k plnému ročnému run-rate pre daný scenár (SavingsCurveChart). Zjednodušený ilustratívny predpoklad, nie empiricky kalibrovaná adopčná krivka.",
+  "rampUpMonthsByScenario": {
     "conservative": 9,
     "mid": 6,
     "optimistic": 3
   },
-
+  "realizationRates": {
+    "conservative": 0.4,
+    "mid": 0.65,
+    "optimistic": 0.85
+  },
+  "riskConfidenceMultipliers": {
+    "confirmed": 1,
+    "inferred_strong": 0.7,
+    "inferred_moderate": 0.35
+  },
+  "riskFactorDefinitions": [
+    {
+      "id": "RF01",
+      "name": "Out-of-support core OS/DB",
+      "maxPenalty": 15,
+      "severity": "critical"
+    },
+    {
+      "id": "RF02",
+      "name": "Chýbajúce zálohy core dát",
+      "maxPenalty": 15,
+      "severity": "critical"
+    },
+    {
+      "id": "RF03",
+      "name": "Zálohy existujú, ale netestované",
+      "maxPenalty": 8,
+      "severity": "high"
+    },
+    {
+      "id": "RF04",
+      "name": "Chýbajúci patch management",
+      "maxPenalty": 10,
+      "severity": "critical"
+    },
+    {
+      "id": "RF05",
+      "name": "Absencia MFA na kritických systémoch",
+      "maxPenalty": 10,
+      "severity": "critical"
+    },
+    {
+      "id": "RF06",
+      "name": "Single point of failure (infraštruktúra)",
+      "maxPenalty": 8,
+      "severity": "high"
+    },
+    {
+      "id": "RF07",
+      "name": "Single point of failure (ľudia)",
+      "maxPenalty": 8,
+      "severity": "high"
+    },
+    {
+      "id": "RF08",
+      "name": "Nezdokumentované/neowned systémy",
+      "maxPenalty": 5,
+      "severity": "medium"
+    },
+    {
+      "id": "RF09",
+      "name": "Žiadny BC/DR plán",
+      "maxPenalty": 7,
+      "severity": "high"
+    },
+    {
+      "id": "RF10",
+      "name": "Žiadny asset inventory",
+      "maxPenalty": 4,
+      "severity": "medium"
+    },
+    {
+      "id": "RF11",
+      "name": "Žiadne logovanie/monitoring",
+      "maxPenalty": 5,
+      "severity": "medium"
+    },
+    {
+      "id": "RF12",
+      "name": "Out-of-support aplikácie (nie core)",
+      "maxPenalty": 5,
+      "severity": "medium"
+    },
+    {
+      "id": "RF13",
+      "name": "Nepripravenosť na povinnú e-fakturáciu (od 1.1.2027)",
+      "maxPenalty": 6,
+      "severity": "medium"
+    },
+    {
+      "id": "RF14",
+      "name": "Nepripravenosť na NIS2 (ak sa firmu týka)",
+      "maxPenalty": 6,
+      "severity": "medium"
+    }
+  ],
+  "riskInferenceThresholds": [
+    30,
+    60
+  ],
+  "riskLevelLabels": {
+    "low": "Dobre riadené",
+    "medium": "Vyžaduje pozornosť",
+    "high": "Vyžaduje okamžitú akciu",
+    "critical": "Ohrozenie prevádzky"
+  },
+  "riskRecommendationGates": {
+    "immediate": 5,
+    "medium": 2.5
+  },
   "savingsProjectionHorizonMonths": 24,
-
-  "pilotAcceptanceCriteria": {
-    "_comment": "Akceptačné kritériá pre pilotný zber dát (psychometrická validácia)",
-    "cronbachAlphaMin": 0.80,
-    "completionRateMin": 0.85,
-    "unknownAnswerRateMax": 0.10,
-    "orsToCorrelationMin": 0.50,
-    "minPilotSampleSize": 200,
-    "itemDiscriminationMin": 0.30
-  }
+  "scoringConfig": {
+    "version": "1.5",
+    "diiMethodologyVersion": "DII v3 (Eurostat isoc_e_dii, prieskum 2025)",
+    "categoryWeights": {
+      "A": 0.2,
+      "B": 0.2,
+      "C": 0.15,
+      "D": 0.15,
+      "E": 0.2,
+      "F": 0.1
+    },
+    "maturityThresholds": [
+      20,
+      40,
+      60,
+      80
+    ],
+    "riskThresholds": [
+      15,
+      35,
+      60
+    ],
+    "securityPenaltyThreshold": 30,
+    "securityPenaltyMaxFactor": 0.3,
+    "unknownAnswerExclusionThreshold": 0.5,
+    "unknownAnswerMediumThreshold": 0.25,
+    "diiTotalIndicators": 12,
+    "diiLevelCutoffs": [
+      3,
+      6,
+      9
+    ],
+    "diiConfidenceMinIndicators": {
+      "high": 10,
+      "medium": 6
+    },
+    "aiConfidenceMinAnswers": 2,
+    "pilotCriteria": {
+      "cronbachAlphaMin": 0.8,
+      "completionRateMin": 0.85,
+      "unknownAnswerRateMax": 0.1,
+      "orsToCorrelationMin": 0.5,
+      "minPilotSampleSize": 200,
+      "itemDiscriminationMin": 0.3
+    }
+  },
+  "workingHoursPerFteYear": 1700
 }

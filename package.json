@@ -12,7 +12,8 @@
     "db:import": "node scripts/db/import.mjs",
     "db:compile": "node scripts/db/compile.mjs --check",
     "model:pull": "node scripts/db/pull.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "config:sync": "node scripts/sync-model-config.mjs"
   },
   "dependencies": {
     "@types/qrcode": "^1.5.6",

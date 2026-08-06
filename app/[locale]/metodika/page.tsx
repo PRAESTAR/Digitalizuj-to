@@ -122,7 +122,7 @@ export default async function MethodologyPage({
             (19 otázok, 6–8 minút) alebo komplexnú (50–58 otázok podľa vetvy
             adaptívneho branchingu, 15–20 minút — 6 hodnotených modulov A–F
             plus úvodné, ROI a DII otázky). Pri hodnotiacich otázkach je
-            možnosť „Neviem", ktorá sa do skóre nezapočítava. Výstupom je
+            možnosť &bdquo;Neviem&ldquo;, ktorá sa do skóre nezapočítava. Výstupom je
             päť nezávislých ukazovateľov:
           </p>
           <div className="overflow-x-auto rounded-2xl border border-black/5 bg-white">

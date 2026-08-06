@@ -331,6 +331,28 @@ for (const q of all) {
   }
 }
 
+// --- 14: zrkadlo scoring configu -------------------------------------------
+// `config/model/scoringConfig.json` je GENEROVANÝ pohľad na
+// `data/scoringConfig.ts`. Dovtedy sa udržiaval ručne a rozišiel sa: chýbalo
+// v ňom 20 exportov a štyri kľúče mali iné názvy než v kóde. Nikto to
+// nekontroloval, hoci README ho označoval ako editovateľný — kto tam zmenil
+// prah, nezmenil nič. Rovnaká ochrana ako pri benchmarkData (#9).
+try {
+  const { loadScoringConfig, toMirror, MIRROR_PATH } = await import('./model-config.mjs');
+  // Porovnáva sa OBSAH, nie bajty: git na Windows prepisuje konce riadkov,
+  // takže textové porovnanie by hlásilo rozdiel aj pri zhodnom súbore
+  // (rovnaký prístup ako pri zrkadle benchmarkData v kontrole #9).
+  const expected = toMirror(await loadScoringConfig());
+  const actual = JSON.parse(readFileSync(MIRROR_PATH, 'utf8'));
+  if (JSON.stringify(expected) !== JSON.stringify(actual)) {
+    errors.push(
+      'config/model/scoringConfig.json sa rozchádza s data/scoringConfig.ts — spusti `npm run config:sync`'
+    );
+  }
+} catch (e) {
+  errors.push('kontrola zrkadla scoringConfigu zlyhala: ' + e.message);
+}
+
 // --- výstup -----------------------------------------------------------------
 const scaleCounts = {};
 for (const q of all) if (q.scale) scaleCounts[q.scale] = (scaleCounts[q.scale] ?? 0) + 1;

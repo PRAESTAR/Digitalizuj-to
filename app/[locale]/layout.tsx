@@ -310,6 +310,14 @@ export default async function LocaleLayout({
             lokálne nespustí ani meranie.
             SRI (`integrity`) tu zámerne NIE JE: dodávateľ skript priebežne
             mení a hash by pri prvej ich aktualizácii zhodil zber súhlasu. */}
+        {/* Zámerne SYNCHRÓNNY, napriek pravidlu `no-sync-scripts`.
+            Skript blokuje cookies, kým používateľ nedá súhlas — musí teda
+            bežať skôr než čokoľvek, čo by ich mohlo nastaviť. S `async` by
+            sa poradie prestalo dať zaručiť a merací kód by mohol vystreliť
+            pred súhlasom, čo je regresia voči GDPR, nie optimalizácia.
+            Cena je blokujúci request na začiatku načítania; to je vedomý
+            kompromis, ktorý sa nedá odstrániť bez zmeny poskytovateľa. */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script
           id="cookieyes"
           src="https://cdn-cookieyes.com/client_data/af08152e82680b3cb39ae1711a14ff62/script.js"

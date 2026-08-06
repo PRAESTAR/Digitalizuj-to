@@ -117,10 +117,11 @@ export function calculateDII(
   const measuredIndicators = indicators.filter(i => i.status !== 'unmeasured').length;
   const metIndicators = indicators.filter(i => i.status === 'met').length;
 
-  // Confidence z pokrytia indikátorov (nie otázok): ≥10 = high, ≥6 = medium,
-  // ≥1 = low; 0 meraných = nemerané DII (žiadne skóre, žiadne percentily).
+  // Confidence z pokrytia indikátorov (nie otázok); prahy v scoringConfig.
+  // 0 meraných = nemerané DII (žiadne skóre, žiadne percentily).
+  const { high: cHigh, medium: cMedium } = scoringConfig.diiConfidenceMinIndicators;
   const confidence: DIIScore['confidence'] =
-    measuredIndicators >= 10 ? 'high' : measuredIndicators >= 6 ? 'medium' : 'low';
+    measuredIndicators >= cHigh ? 'high' : measuredIndicators >= cMedium ? 'medium' : 'low';
 
   if (measuredIndicators === 0) {
     return {
@@ -137,7 +138,8 @@ export function calculateDII(
     };
   }
 
-  const score12 = Math.round((metIndicators / measuredIndicators) * 12);
+  const TOTAL = scoringConfig.diiTotalIndicators;
+  const score12 = Math.round((metIndicators / measuredIndicators) * TOTAL);
 
   // Jemná metrika 0–100: priemer len cez platné odpovede NAMAPOVANÝCH otázok
   // (vylúčené 'dii' otázky mimo v3 sa nepriemerujú).
@@ -150,23 +152,24 @@ export function calculateDII(
     ? Math.round((mappedAnswers.reduce((sum, a) => sum + a.score, 0) / mappedAnswers.length) * 10) / 10
     : null;
 
+  const [lvl1, lvl2, lvl3] = scoringConfig.diiLevelCutoffs;
   let level: NonNullable<DIIScore['level']>;
-  if (score12 <= 3) level = 'very_low';
-  else if (score12 <= 6) level = 'low';
-  else if (score12 <= 9) level = 'high';
+  if (score12 <= lvl1) level = 'very_low';
+  else if (score12 <= lvl2) level = 'low';
+  else if (score12 <= lvl3) level = 'high';
   else level = 'very_high';
 
   // Nemeraný indikátor môže byť splnený aj nesplnený. Skutočný počet preto
   // leží medzi „všetky nemerané nesplnené" (= metIndicators) a „všetky
   // splnené" (= metIndicators + nemerané). Extrapolovaný bod vždy padne
   // dovnútra: z m ≤ k a k ≤ 12 vyplýva 12m/k ≤ m + 12 − k.
-  const unmeasured = 12 - measuredIndicators;
+  const unmeasured = TOTAL - measuredIndicators;
   const band: ConfidenceBand = {
     lower: metIndicators,
     upper: metIndicators + unmeasured,
     reasonSk: unmeasured === 0
-      ? 'Všetkých 12 indikátorov je zmeraných — rozsah je jediná hodnota.'
-      : `${unmeasured} z 12 indikátorov dotazník nezisťoval, takže skutočný počet leží v tomto rozsahu.`,
+      ? `Všetkých ${TOTAL} indikátorov je zmeraných — rozsah je jediná hodnota.`
+      : `${unmeasured} z ${TOTAL} indikátorov dotazník nezisťoval, takže skutočný počet leží v tomto rozsahu.`,
   };
 
   return {
@@ -240,7 +243,7 @@ export function calculateORS(
 
     let confidence: CategoryScore['confidence'];
     if (unknownRatio > scoringConfig.unknownAnswerExclusionThreshold) confidence = 'low';
-    else if (unknownRatio > 0.25) confidence = 'medium';
+    else if (unknownRatio > scoringConfig.unknownAnswerMediumThreshold) confidence = 'medium';
     else confidence = 'high';
 
     // Citlivosť sa počíta len z položiek, ktoré kategóriu naozaj sýtia —

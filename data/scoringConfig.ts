@@ -16,6 +16,14 @@ export const scoringConfig: ScoringConfig = {
   securityPenaltyThreshold: 30,
   securityPenaltyMaxFactor: 0.30,
   unknownAnswerExclusionThreshold: 0.50,
+  unknownAnswerMediumThreshold: 0.25,
+  // DII v3/2025 má 12 indikátorov. Pri prechode na v4 (prieskum december
+  // 2026) sa zmení počet aj mapovanie — hodnota tu je preto, aby sa nemusela
+  // hľadať po engine a aby bolo pri revízii zjavné, čo všetko na nej visí.
+  diiTotalIndicators: 12,
+  diiLevelCutoffs: [3, 6, 9],
+  diiConfidenceMinIndicators: { high: 10, medium: 6 },
+  aiConfidenceMinAnswers: 2,
   pilotCriteria: {
     cronbachAlphaMin: 0.80,
     completionRateMin: 0.85,

@@ -6,11 +6,18 @@ Tento priečinok obsahuje **všetky konfiguračné súbory** modelu hodnotenia d
 
 ## Obsah priečinka
 
+> **Pozn. k `scoringConfig.json`:** je to **generovaný pohľad** na
+> `data/scoringConfig.ts`, nie vstup — runtime ho nečíta. Do 6. 8. 2026 sa
+> udržiaval ručne a rozišiel sa: chýbalo v ňom 20 exportov a štyri kľúče mali
+> iné názvy než v kóde. Kto tam zmenil prah, nezmenil nič. Regeneruje ho
+> `npm run config:sync` a build kontroluje zhodu (validátor #14).
+> Scoring parametre sa menia v `data/scoringConfig.ts`.
+
 | Súbor | Účel | Editovateľný? |
 |-------|------|---------------|
 | `QUESTION_BANK_GUIDE.md` | Pokyny na editovanie matice otázok | Referenčný dokument |
 | `questionBank.json` | Matica otázok (indikatívny + komplexný kvíz) | **ÁNO** |
-| `scoringConfig.json` | Scoring parametre (váhy, prahy, risk faktory, ROI benchmarky) | **ÁNO** |
+| `scoringConfig.json` | Scoring parametre (váhy, prahy, risk faktory, ROI benchmarky) | **NIE — generovaný** |
 | `benchmarkData.json` | Benchmark dáta (krajiny, sektory, veľkosti) | **ÁNO** |
 | `METHODOLOGY.md` | Metodika merania (DII + ODRM model) | Referenčný dokument |
 | `SCORING_SPEC.md` | Špecifikácia scoringu (výpočty, vzorce) | Referenčný dokument |

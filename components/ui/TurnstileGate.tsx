@@ -39,8 +39,15 @@ export default function TurnstileGate({ open, action, onVerified, onCancel }: Pr
   const [phase, setPhase] = useState<Phase>('loading');
   // Ref, nie state: callback z Turnstile žije mimo React cyklu a musí vidieť
   // aktuálnu hodnotu bez toho, aby si vynútil pretvorenie widgetu.
+  //
+  // Aktualizácia patrí do efektu, nie do renderu: React smie render zahodiť
+  // alebo zopakovať, ale zápis do refu prežije — ref by potom držal callback
+  // z renderu, ktorý sa nikdy nezobrazil. Efekt beží až po commite, takže
+  // hodnota vždy zodpovedá tomu, čo je naozaj na obrazovke.
   const onVerifiedRef = useRef(onVerified);
-  onVerifiedRef.current = onVerified;
+  useEffect(() => {
+    onVerifiedRef.current = onVerified;
+  }, [onVerified]);
 
   const cleanup = useCallback(() => {
     if (widgetIdRef.current && window.turnstile) {
@@ -60,6 +67,17 @@ export default function TurnstileGate({ open, action, onVerified, onCancel }: Pr
     }
 
     let cancelled = false;
+    // Reset fázy pri každom otvorení — brána sa môže otvoriť znova po chybe
+    // alebo po zrušení a musí začať od načítavania.
+    //
+    // React Compiler tu právom hlási kaskádový render: správne by to bolo
+    // buď remountom cez `key`, alebo vzorom „úprava stavu pri zmene propu"
+    // s pomocným `prevOpen`. Oboje je ale zásah do stavového automatu
+    // komponentu, ktorý stráži vstup do kvízu a ktorého tok sa v tomto
+    // prostredí nedá odskúšať (Turnstile sa overuje ručne na produkcii).
+    // Meniť ho naslepo je horšie než jeden render navyše — vedený ako bod
+    // v IMPROVEMENT_CHECKLIST.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPhase('loading');
 
     loadTurnstile()

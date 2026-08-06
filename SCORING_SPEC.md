@@ -505,7 +505,7 @@ Pásmo nevzniká z parametra `assessmentType`, ale zo skutočného zloženia zod
 
 ## 11. Konfigurácia
 
-Parametre v `data/scoringConfig.ts` (zdroj pravdy) / `config/model/scoringConfig.json` (editovateľná kópia — treba manuálne synchronizovať):
+Parametre v `data/scoringConfig.ts` (**zdroj pravdy**). `config/model/scoringConfig.json` je z neho **generovaný pohľad** pre editorov modelu — runtime ho nečíta a ručná zmena v ňom nič nezmení; regeneruje sa cez `npm run config:sync` a build kontroluje zhodu (validátor #14):
 
 ```ts
 {

@@ -557,6 +557,24 @@ export interface ScoringConfig {
   riskThresholds: [number, number, number];
   securityPenaltyThreshold: number;
   securityPenaltyMaxFactor: number;
+  /**
+   * Podiel „Neviem" na položených otázkach, nad ktorým je spoľahlivosť
+   * kategórie `low`. Názov je historický — nič sa nevyraďuje, len klesá
+   * confidence; skutočné vyradenie robí `measured` (SCORING_SPEC §3.1).
+   */
   unknownAnswerExclusionThreshold: number;
+  /** Ten istý podiel pre stupeň `medium`. Musí byť nižší než predchádzajúci. */
+  unknownAnswerMediumThreshold: number;
+  /** Koľko indikátorov má DII v3/2025 celkovo. Zmena verzie DII zmení aj toto. */
+  diiTotalIndicators: number;
+  /**
+   * Horné hranice pásiem DII na škále 0–12: `score12 <= cutoff` → pásmo.
+   * Presne tri prahy pre štyri pásma (very_low/low/high/very_high).
+   */
+  diiLevelCutoffs: [number, number, number];
+  /** Najmenší počet meraných indikátorov pre daný stupeň spoľahlivosti DII. */
+  diiConfidenceMinIndicators: { high: number; medium: number };
+  /** Najmenší počet zodpovedaných AI otázok pre spoľahlivosť `medium`. */
+  aiConfidenceMinAnswers: number;
   pilotCriteria: PilotAcceptanceCriteria;
 }

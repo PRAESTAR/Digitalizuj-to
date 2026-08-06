@@ -1,5 +1,5 @@
 import type { Answer, Question, AIReadinessScore } from '@/types';
-import { aiReadinessThresholds, aiReadinessLabels } from '@/data/scoringConfig';
+import { aiReadinessThresholds, aiReadinessLabels, scoringConfig } from '@/data/scoringConfig';
 
 /**
  * Calculate the AI & Automatizácia Readiness index.
@@ -51,7 +51,9 @@ export function calculateAIReadiness(
   else level = 'strategicka';
 
   const confidence: AIReadinessScore['confidence'] =
-    aiAnswers.length >= aiQuestions.length ? 'high' : aiAnswers.length >= 2 ? 'medium' : 'low';
+    aiAnswers.length >= aiQuestions.length
+      ? 'high'
+      : aiAnswers.length >= scoringConfig.aiConfidenceMinAnswers ? 'medium' : 'low';
 
   return {
     score,

@@ -8,6 +8,34 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Scoring parametre v konfigurácii, nie v kóde (6. 8. 2026)
+
+- **Posledné natvrdo písané prahy sú v configu.** Pásma DII na škále 0–12
+  (3/6/9), počet indikátorov (12), prahy spoľahlivosti DII (≥10 / ≥6 meraných),
+  hranica `medium` pri podiele „Neviem" (0,25) a minimum odpovedí pre
+  spoľahlivosť AI indexu (2). Pri prechode DII na v4 (prieskum december 2026)
+  sa nebude musieť prehľadávať engine.
+- **Zrkadlo configu bolo tichá fikcia.** `config/model/scoringConfig.json`
+  README označoval ako „editovateľný: ÁNO", ale **runtime ho nečíta** a bolo
+  rozídené: chýbalo v ňom 20 exportov (celá TDRI vrstva, ROI pásma, prahy AI
+  aj scenárov) a štyri kľúče mali iné názvy než v kóde. Nikto to
+  nekontroloval. Kto tam zmenil prah, nezmenil nič. Odteraz sa **generuje**
+  z `data/scoringConfig.ts` (`npm run config:sync`, 26 kľúčov namiesto 15)
+  a build kontroluje zhodu — validátor #14, overený negatívnym testom.
+  README aj SCORING_SPEC to hovoria rovno.
+- **Štyri chyby lintra, ktoré prechádzali buildom, sú preč.** Dve boli reálne:
+  - `AssessmentContext` prepisoval **modulovú premennú počas renderu**
+    (`activeMarket`). React smie render zahodiť alebo zopakovať, ale zápis
+    prežije — hodnota potom pochádza z renderu, ktorý sa nikdy nezobrazil,
+    a dva providery si ju prepisujú navzájom. Trh sa odteraz odovzdáva
+    v payloade akcie, globálna premenná zmizla.
+  - `TurnstileGate` zapisoval do **refu počas renderu**; aktualizácia je
+    v efekte, takže ref vždy zodpovedá tomu, čo je naozaj na obrazovke.
+  Zvyšné dve sú vedomé výnimky s odôvodnením priamo v kóde: synchrónny
+  CookieYes skript (s `async` by merací kód mohol vystreliť pred súhlasom —
+  regresia voči GDPR) a reset fázy v Turnstile bráne, ktorej stavový automat
+  sa v tomto prostredí nedá odskúšať. Druhá je vedená ako bod v checkliste.
+
 ### Referenčná vzorka priznáva, čím je (6. 8. 2026)
 
 - **Vzorka tvrdila pokrytie, ktoré nástroj nevie dosiahnuť.** Všetkých 50
