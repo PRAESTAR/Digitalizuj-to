@@ -245,3 +245,23 @@ Každý benchmark výstup musí obsahovať:
 - Regionálne benchmarky (SK kraje).
 - Časové trendy (medziročné porovnanie).
 - Peer group matching (firmy podobnej veľkosti a sektora).
+
+
+## Referenčná vzorka je modelovaná
+
+`data/peerData.ts` obsahuje 50 profilov naprieč 8 sektormi a 4 veľkostnými
+pásmami. **Žiadny nepredstavuje reálnu firmu** — rozloženie skóre je kalibrované
+na distribúcie Eurostat DII 2025 (isoc_e_dii) pre Slovensko, ale samotné profily
+sú modelované. Slúžia na orientáciu, kým nepribudne dosť skutočných hodnotení.
+
+Percentily v `PeerComparisonPanel` sa teda počítajú voči modelovanej populácii,
+nie meranej. UI to musí priznávať; texty sú v `peersPanel.intro` a
+`peersPanel.anonBody`.
+
+**Pokrytie DII (oprava 6. 8. 2026).** Každý profil mal `diiMeasured: 12`, hoci
+komplexný kvíz pokrýva najviac 10 indikátorov a indikatívny 8 — vzorka tvrdila
+stav, ktorý nástroj vyprodukovať nevie, a respondentov výsledok tým pôsobil
+neistejšie než referencia. Profily majú odteraz dosiahnuteľné pokrytie
+(39× 10/12, 11× 8/12) a `diiScore12` prepočítané vzorcom enginu
+`round(met / measured × 12)`. Stráži to `data/peerData.test.ts`, ktorý
+pokrytie počíta priamo z banky.

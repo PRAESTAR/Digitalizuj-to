@@ -8,6 +8,30 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Referenčná vzorka priznáva, čím je (6. 8. 2026)
+
+- **Vzorka tvrdila pokrytie, ktoré nástroj nevie dosiahnuť.** Všetkých 50
+  profilov malo `diiMeasured: 12`, hoci komplexný kvíz pokrýva najviac **10**
+  z 12 indikátorov DII a indikatívny **8**. Vzorka teda nikdy nevznikla
+  z modelu. Dôsledok bol vidieť priamo vo výsledku: respondent mal „7/12 ·
+  odhad z 10 meraných" a vedľa toho porovnávaciu skupinu s plným pokrytím —
+  vlastný výsledok tak pôsobil neistejšie než referencia, čo je artefakt
+  vzorky, nie zistenie o firme. Každý profil má odteraz dvojicu
+  (merané, splnené), ktorá je reálne dosiahnuteľná, a `diiScore12` je z nej
+  prepočítané tým istým vzorcom ako v engine. **Kalibrovaná distribúcia sa
+  zachovala presne** — 11 profilov zodpovedá indikatívnej vetve (8/12),
+  39 komplexnej (10/12) a žiadna hodnota skóre sa meniť nemusela.
+- **Texty prestali vzorku vydávať za merané firmy.** „Anonymizované výsledky
+  firiem" a „žiadne identifikačné údaje firiem" sa čítajú tak, že existujú
+  reálne podniky, ktorých totožnosť chránime. Žiadne neexistujú. Panel pri
+  výsledku, stránka `/peers` aj snapshot na `/r/{hash}` teraz hovoria
+  o **modelovanej referenčnej vzorke** kalibrovanej na Eurostat DII 2025,
+  ktorá slúži na orientáciu, kým nepribudne dosť reálnych hodnotení.
+  (Dlhý popis na `/peers` to priznával už predtým — viditeľné texty nie.)
+- **Test to stráži do budúcna.** `data/peerData.test.ts` počíta skutočné
+  pokrytie priamo z otázkovej banky, takže sa rozbije aj vtedy, keď sa
+  pokrytie zmení revíziou otázok a vzorka za ním zaostane.
+
 ### Škála 0–10, zámer investovať a spätná väzba (6. 8. 2026)
 
 - **Nový typ otázky `likert_11`** — škála 0–10 s textovými kotvami. Prešiel som

@@ -34,7 +34,7 @@ const COVERAGE_TO = COMPLETED_DATES[COMPLETED_DATES.length - 1].slice(0, 10);
  */
 export const metadata: Metadata = {
   title: 'Benchmark digitálnej zrelosti firiem',
-  description: `Referenčná vzorka ${PEER_DATA.length} anonymizovaných profilov digitálnej zrelosti podľa sektora a veľkosti firmy: DII skóre, prevádzková zrelosť, index rizík a odhad úspor.`,
+  description: `Modelovaná referenčná vzorka ${PEER_DATA.length} profilov digitálnej zrelosti podľa sektora a veľkosti firmy (nie reálne firmy): DII skóre, prevádzková zrelosť, index rizík a odhad úspor.`,
   keywords: [
     'benchmark digitálnej zrelosti',
     'digitálna zrelosť slovenských firiem',
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     type: 'website',
     url: '/sk/peers',
     title: 'Benchmark digitálnej zrelosti firiem',
-    description: `Referenčná vzorka ${PEER_DATA.length} anonymizovaných profilov digitálnej zrelosti naprieč ${SECTORS.length} sektormi a 4 veľkostnými kategóriami.`,
+    description: `Modelovaná referenčná vzorka ${PEER_DATA.length} profilov digitálnej zrelosti naprieč ${SECTORS.length} sektormi a 4 veľkostnými kategóriami — nie zber reálnych odpovedí.`,
     // Explicitne: podstránka openGraph objekt NAHRÁDZA (nie merguje),
     // takže bez tohto by prišla o obrázok z file-konvencie v [locale].
     images: ['/sk/opengraph-image'],
@@ -82,7 +82,7 @@ const datasetSchema = {
   // @id, takže sa dataset deduplikuje na jednu entitu.
   '@id': `${SITE_URL}/sk/peers#dataset`,
   name: 'Benchmark digitálnej zrelosti slovenských MSP — referenčná vzorka',
-  description: `Referenčná vzorka ${PEER_DATA.length} anonymizovaných profilov digitálnej zrelosti malých a stredných podnikov na Slovensku, rozložená naprieč ${SECTORS.length} sektormi a 4 veľkostnými kategóriami (mikro, malé, stredné, veľké). Pre každý profil: DII-Compatible Score (0–100 a 0–12 podľa 12 indikátorov DII v3/2025), Operational Readiness Score (0–100) vrátane 6 čiastkových kategórií, Technical Debt & Risk Index (0–100) a Business Impact Potential v EUR ročne. Ide o deterministickú testovaciu vzorku kalibrovanú na distribúcie Eurostat DII 2025 (ISOC_E_DII) pre Slovensko — nie o zber reálnych odpovedí; žiadna konkrétna firma nie je reprezentovaná.`,
+  description: `Modelovaná referenčná vzorka ${PEER_DATA.length} profilov digitálnej zrelosti malých a stredných podnikov na Slovensku, rozložená naprieč ${SECTORS.length} sektormi a 4 veľkostnými kategóriami (mikro, malé, stredné, veľké). Pre každý profil: DII-Compatible Score (0–100 a 0–12 podľa 12 indikátorov DII v3/2025), Operational Readiness Score (0–100) vrátane 6 čiastkových kategórií, Technical Debt & Risk Index (0–100) a Business Impact Potential v EUR ročne. Ide o deterministickú testovaciu vzorku kalibrovanú na distribúcie Eurostat DII 2025 (ISOC_E_DII) pre Slovensko — nie o zber reálnych odpovedí; žiadna konkrétna firma nie je reprezentovaná.`,
   url: `${SITE_URL}/sk/peers`,
   inLanguage: 'sk-SK',
   isAccessibleForFree: true,
@@ -162,7 +162,7 @@ export default function PeersPage() {
             pri 288 px dostupných — menšia mobilná veľkosť + break-words je
             jediné, čo udrží nadpis vnútri viewportu. */}
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#1d1d1f] tracking-tight mb-2 break-words">
-          Benchmark digitálnej zrelosti &mdash; {PEER_DATA.length} anonymizovaných profilov
+          Benchmark digitálnej zrelosti &mdash; {PEER_DATA.length} modelovaných profilov
         </h1>
         <p className="text-[#6e6e73] max-w-3xl leading-relaxed">
           Testovacia vzorka 50 firiem naprieč {SECTORS.length} sektormi a 4 veľkostnými
