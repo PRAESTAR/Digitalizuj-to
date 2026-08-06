@@ -87,12 +87,29 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
       const newSkipped = new Set(state.assessment.skippedQuestions);
       const newRiskFlags = new Set(state.assessment.riskFlags);
 
-      // Evaluate branching
-      if (!action.isUnknown) {
-        const branchResult = evaluateBranching(question, answer);
-        branchResult.skip.forEach(id => newSkipped.add(id));
-        branchResult.riskFlags.forEach(id => newRiskFlags.add(id));
-        // 'include' targets are NOT skipped (they stay in the question list)
+      // Vetvenie sa vyhodnocuje aj pri „Neviem" — pravidlo si samo určuje,
+      // či sa vtedy uplatní (on_unknown). Predtým sa preskakovalo celé, takže
+      // respondent, ktorý priznal nevedomosť, dostal najviac otázok.
+      const branchResult = evaluateBranching(question, answer);
+      branchResult.riskFlags.forEach(id => newRiskFlags.add(id));
+      // 'include' targets are NOT skipped (they stay in the question list)
+
+      // Preskočená otázka sa materializuje ako syntetická odpoveď s
+      // `wasSkipped`. Bez toho sa nedalo odlíšiť „Neviem" od „nikdy sme sa
+      // nespýtali" — obe vyzerali ako chýbajúca odpoveď a miešali sa do
+      // ukazovateľa spoľahlivosti kategórie.
+      for (const { target, reason } of branchResult.skip) {
+        if (newSkipped.has(target) || newAnswers.some(a => a.questionId === target)) continue;
+        newSkipped.add(target);
+        newAnswers.push({
+          questionId: target,
+          value: '',
+          score: 0,
+          isUnknown: false,
+          wasSkipped: true,
+          skipReason: `${question.id}: ${reason}`,
+          timestamp: new Date().toISOString(),
+        });
       }
 
       // Update respondent from meta questions

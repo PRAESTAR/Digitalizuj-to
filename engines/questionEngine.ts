@@ -54,7 +54,10 @@ export function getProgress(
   skippedIds: Set<string>
 ): { current: number; total: number; percentage: number } {
   const answerable = questions.filter(q => !skippedIds.has(q.id));
-  const answered = answers.length;
+  // Preskočené otázky sa od 5. 8. 2026 materializujú ako syntetické odpovede
+  // (aby sa dalo odlíšiť „Neviem" od „nepoložené"), takže sa do počítadla
+  // nesmú rátať — inak by ukazovateľ skákal dopredu pri každom vetvení.
+  const answered = answers.filter(a => !a.wasSkipped).length;
   const total = answerable.length;
   return {
     current: answered,
@@ -70,24 +73,37 @@ export function getProgress(
 export function evaluateBranching(
   question: Question,
   answer: Answer
-): { skip: string[]; include: string[]; riskFlags: string[] } {
-  const result = { skip: [] as string[], include: [] as string[], riskFlags: [] as string[] };
+): { skip: { target: string; reason: string }[]; include: string[]; riskFlags: string[] } {
+  const result = {
+    skip: [] as { target: string; reason: string }[],
+    include: [] as string[],
+    riskFlags: [] as string[],
+  };
 
   for (const rule of question.branching_rules) {
-    if (evaluateCondition(rule.condition, answer)) {
-      const targets = Array.isArray(rule.target) ? rule.target : [rule.target];
+    // Pri „Neviem" sa pravidlo vyhodnotí len vtedy, keď to samo deklaruje.
+    // Podmienka sa nad prázdnou hodnotou NEVYHODNOCUJE — akcia sa vykoná
+    // priamo, inak by sa single_choice a multi_select správali rôzne
+    // (prázdny reťazec vs. prázdne pole).
+    const applies = answer.isUnknown
+      ? rule.on_unknown === 'apply'
+      : evaluateCondition(rule.condition, answer);
+    if (!applies) continue;
 
-      switch (rule.action) {
-        case 'skip':
-          result.skip.push(...targets);
-          break;
-        case 'include':
-          result.include.push(...targets);
-          break;
-        case 'flag_risk':
-          result.riskFlags.push(...targets);
-          break;
-      }
+    const targets = Array.isArray(rule.target) ? rule.target : [rule.target];
+
+    switch (rule.action) {
+      case 'skip':
+        for (const t of targets) result.skip.push({ target: t, reason: rule.reason });
+        break;
+      case 'include':
+        result.include.push(...targets);
+        break;
+      case 'flag_risk':
+        // Riziko sa pri „Neviem" nepriznáva ani vtedy, keď pravidlo deklaruje
+        // `apply` — nevedomosť nie je dôkaz o probléme (viď SCORING_SPEC §5.3).
+        if (!answer.isUnknown) result.riskFlags.push(...targets);
+        break;
     }
   }
 
@@ -156,8 +172,16 @@ function evaluateCondition(condition: string, answer: Answer): boolean {
  */
 export function calculateAnswerScore(question: Question, value: string | string[]): number {
   if (question.question_type === 'multi_select' && Array.isArray(value)) {
-    if (question.scoring_note?.includes('Invertované')) {
-      // Inverted scoring: more selected = lower score
+    // Invertované skórovanie: čím viac vybraných, tým nižšie skóre.
+    // Režim sa deklaruje poľom `scoring_mode`. Predtým sa detegoval podľa
+    // výskytu slova „Invertované" v `scoring_note` — prozaickej poznámke pre
+    // ľudí, ktorá je v DB obyčajný TEXT. Preformulovanie alebo preklad tej
+    // vety by ticho prepli otázku na štandardné sčítanie záporných hodnôt,
+    // teda skóre 0 pre všetkých. Reťazec sa naďalej akceptuje kvôli starším
+    // kompilátom, ktoré pole ešte nemajú.
+    const isInverted =
+      question.scoring_mode === 'inverted' || question.scoring_note?.includes('Invertované');
+    if (isInverted) {
       const totalNeg = (question.options || [])
         .filter(o => value.includes(o.value))
         .reduce((sum, o) => sum + o.score, 0);

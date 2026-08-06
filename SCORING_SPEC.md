@@ -105,12 +105,25 @@ catAnswers   = answers na catQuestions, vylúčené isUnknown/wasSkipped
 measured = catAnswers.length > 0
 catScore = measured ? Σ(answer.score × question.weight) / Σ(question.weight) : null
 
-unknownRatio = 1 − catAnswers.length / catQuestions.length   // 1 ak catQuestions je prázdne
+// Spoľahlivosť z toho, čo sa respondenta REÁLNE spýtalo.
+askedCount   = odpovede na otázky kategórie, vylúčené wasSkipped
+unknownCount = z nich tie s isUnknown
+unknownRatio = askedCount > 0 ? unknownCount / askedCount : 1
+
 confidence:
   unknownRatio > 0.50 (scoringConfig.unknownAnswerExclusionThreshold) → 'low'
   unknownRatio > 0.25 (natvrdo v kóde)                                → 'medium'
   inak                                                                 → 'high'
 ```
+
+
+> **Oprava 5. 8. 2026.** Menovateľom bol počet VŠETKÝCH otázok kategórie, takže
+> sa doň rátali aj otázky preskočené vetvením a tie, ku ktorým sa respondent
+> vôbec nedostal. Adaptívny kvíz tým sám znižoval spoľahlivosť: firma, ktorá
+> odpovedala na všetko, čo dostala, mohla mať `low` len preto, že jej vetvenie
+> polovicu otázok odfiltrovalo. Preskočené otázky sa odteraz zapisujú medzi
+> odpovede s príznakom `wasSkipped` a dôvodom, takže sa dá odlíšiť „Neviem"
+> od „nikdy sme sa nespýtali".
 
 **Nemerané ≠ 0:** kategória bez jedinej platnej odpovede má `measured: false`, `score: null`, `contribution: null` a do celkového ORS **nevstupuje** (viď §3.2). Pozn.: `unknownAnswerExclusionThreshold` napriek názvu nič "neexcluduje" — len znižuje confidence; skutočné vyradenie robí `measured`.
 

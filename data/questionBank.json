@@ -1217,7 +1217,8 @@
               "manual_processes"
             ],
             "tooltip": "Vyberte všetky, ktoré sú stále prevažne manuálne.",
-            "allow_unknown": true
+            "allow_unknown": true,
+            "scoring_mode": "inverted"
           },
           {
             "id": "cx_A06_ai_automation",

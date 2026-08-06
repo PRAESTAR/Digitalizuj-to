@@ -132,7 +132,8 @@ interface Question {
   options?: QuestionOption[];
   bands?: NumericBand[];       // pole existuje v type systéme, ale UI ho nečíta — nepoužívané
   max_score?: number;
-  scoring_note?: string;       // magic string "Invertované" prepína multi_select scoring
+  scoring_note?: string;       // prozaická poznámka pre ľudí, kód ju nečíta
+  scoring_mode?: 'standard' | 'inverted';  // 'inverted' = multi_select so zápornými hodnotami (cx_A05)
   branching_rules: BranchingRule[];
   evidence_type: string;
   maps_to_score: string[];
@@ -169,6 +170,11 @@ interface BranchingRule {
   action: 'skip' | 'include' | 'flag_risk';
   target: string | string[];
   reason: string;
+  // Čo robiť, keď respondent odpovie „Neviem". 'apply' akciu vykoná priamo —
+  // NEVYHODNOCUJE podmienku nad prázdnou hodnotou, lebo single_choice
+  // (prázdny reťazec) a multi_select (prázdne pole) by dopadli rôzne.
+  // Rizikový príznak sa pri „Neviem" nepriznáva ani s 'apply'.
+  on_unknown?: 'ignore' | 'apply';   // default 'ignore'
 }
 
 // ScoreDimension

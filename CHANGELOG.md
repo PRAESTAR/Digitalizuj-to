@@ -18,9 +18,9 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
   zrušená, takže by sa najcitlivejšia časť dát uchovávala bez účelu.
   `localStorage` zostáva ako prvá, okamžitá vrstva. Zápis ide cez
   `api/result-save.php` (strop 512 kB, kontrola tvaru hashu aj UUID, 20 zápisov
-  z IP za hodinu, idempotencia), čítanie cez `api/result.php`, ktorý **zámerne
-  vracia len anonymizovaný súhrn** — odpovede sú pre administráciu, nie pre
-  každého, komu sa odkaz prepošle.
+  z IP za hodinu, idempotencia), čítanie cez `api/result.php`. Uložený
+  záznam neobsahuje ani IČO, ani kontakt — z odkazu sa firma identifikovať
+  nedá.
 - **Zmena sľubu o súkromí.** Web na štyroch miestach tvrdil, že sa nič
   neodosiela na server (vrátane FAQ, ktorá šla aj do štruktúrovaných dát pre
   Google). Texty sú prepísané v sk/en/cs tak, aby zodpovedali skutočnosti:
@@ -66,6 +66,34 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
   Eurostat dáta a expertné odhady; sektorové a veľkostné mediány dovtedy
   vyzerali rovnako dôveryhodne ako meraná distribúcia.
 
+### Kvíz a meranie — P1 opravy (5. 8. 2026)
+
+- **„Neviem" prestalo obchádzať vetvenie.** Odpoveď „Neviem" preskočila
+  vyhodnotenie všetkých branching pravidiel, takže respondent, ktorý priznal
+  nevedomosť, dostal **najviac** otázok — pri type infraštruktúry sa mu
+  nepreskočila serverová ani cloudová vetva. Každé pravidlo si teraz politiku
+  určuje samo poľom `on_unknown` (`ignore` / `apply`). `apply` znamená
+  „vykonaj akciu", nie „vyhodnoť podmienku nad prázdnou hodnotou" — inak by sa
+  jednovýberové a viacvýberové otázky správali rôzne. Rizikový príznak sa pri
+  „Neviem" nepriznáva ani s `apply`: nevedomosť nie je dôkaz o probléme.
+- **Preskočené otázky sa už nerátajú proti respondentovi.** Spoľahlivosť
+  kategórie sa počítala z počtu *všetkých* otázok kategórie, takže adaptívny
+  kvíz sám znižoval dôveryhodnosť vlastného výsledku — firma, ktorá odpovedala
+  na všetko, čo dostala, mohla mať `low`, lebo jej vetvenie polovicu otázok
+  odfiltrovalo. Menovateľom je odteraz to, čo sa reálne spýtalo. Preskočené
+  otázky sa zapisujú s príznakom a dôvodom, takže sa dá odlíšiť „Neviem" od
+  „nikdy sme sa nespýtali"; ukazovateľ postupu ich už nepočíta ani do
+  čitateľa, ani do menovateľa.
+- **Invertované skórovanie je explicitné pole**, nie slovo v poznámke.
+  `cx_A05` (koľko procesov robíte ručne) sa rozpoznávala podľa výskytu slova
+  „Invertované" v prozaickom komentári pre ľudí. Preklad alebo preformulovanie
+  tej vety by otázku ticho prepli na štandardný súčet záporných hodnôt, teda
+  skóre 0 pre všetkých. Nové `scoring_mode` je v banke, DB schéme aj importe.
+- **Build kontroluje branching podmienky.** Preklep v podmienke sa dovtedy
+  prejavil jediným spôsobom: pravidlo mlčky nikdy nezabralo. Kontrola #12
+  overuje, že podmienka je pre parser zrozumiteľná, sedí s typom otázky
+  (`value` vs. `selected`) a odkazuje na hodnotu, ktorú otázka ponúka.
+
 ### Ostatné
 
 - **Reklamný slot** nesie skutočnú kreatívu s meraním zobrazení aj kliknutí
@@ -105,9 +133,10 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
   scenár s ramp-up 9/6/3 mesiacov na 24-mesačnom horizonte. Hodinová cena
   práce 30,8 €/h (Eurostat `lc_lci_lev` 2025, NACE J), dotazník sa na mzdy
   nepýta.
-- **Validátor modelu v builde** — 8 tried integritných kontrol (vrátane
-  úplnosti a vyhodnotiteľnosti DII mapovania); pri prvom behu odhalil
-  odpojený rizikový faktor RF08.
+- **Validátor modelu v builde** — 12 tried integritných kontrol (vrátane
+  úplnosti a vyhodnotiteľnosti DII mapovania, zrkadlenia benchmarkov,
+  referenčnej integrity a zrozumiteľnosti branching podmienok); pri prvom
+  behu odhalil odpojený rizikový faktor RF08.
 
 ### Výsledky a zdieľanie
 

@@ -91,7 +91,11 @@ CREATE TABLE questions (
   allow_unknown   TINYINT(1)   NOT NULL,
   scale           VARCHAR(20)  NULL,                  -- len single_choice
   scale_rationale TEXT         NULL,
-  scoring_note    TEXT         NULL,                  -- nesie aj signál invertovaného skórovania (cx_A05)
+  scoring_note    TEXT         NULL,                  -- prozaická poznámka pre autora, nie signál pre engine
+  -- Explicitný režim skórovania. Predtým sa invertovanie detegovalo podľa
+  -- výskytu slova „Invertované" v scoring_note — preklad tej vety by ticho
+  -- prepol otázku na štandardný výpočet, teda skóre 0 pre všetkých.
+  scoring_mode    ENUM('standard','inverted') NOT NULL DEFAULT 'standard',
   CONSTRAINT fk_q_quiz   FOREIGN KEY (quiz_code) REFERENCES quizzes(code),
   CONSTRAINT fk_q_module FOREIGN KEY (module_id) REFERENCES modules(id),
   -- trieda 6 validátora: neštandardná škála musí mať zdôvodnenie
@@ -164,6 +168,9 @@ CREATE TABLE branching_rules (
   operator        ENUM('equals','not_equals','any_of','none_includes','count_lte') NOT NULL,
   action          ENUM('skip','flag_risk') NOT NULL,
   reason          TEXT        NOT NULL,
+  -- 'apply' = pri odpovedi Neviem vykonaj akciu, ako keby podmienka platila.
+  -- Bez toho Neviem obchadzalo vsetky pravidla a respondent dostal najviac otazok.
+  on_unknown      ENUM('ignore','apply') NOT NULL DEFAULT 'ignore',
   target_is_array TINYINT(1)  NOT NULL,   -- JSON má target ako string ALEBO pole — kompilát to musí vrátiť rovnako
   CONSTRAINT fk_br_question FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -81,7 +81,8 @@ Poradie otázok v poli/module **je funkčné** — `questionEngine.getNextQuesti
 | `weight` | number | áno | Váha otázky v rámci kategórie (default `1.0`, meta otázky majú `0`). |
 | `options` | array | pre single/multi | `{ value, label, score }`. `score` je číslo, typicky 0–100. |
 | `max_score` | number | pre multi_select | Súčet, voči ktorému sa normalizuje `multi_select` skóre (viď 4.2). |
-| `scoring_note` | string | nie | Ak reťazec obsahuje slovo **`"Invertované"`**, `questionEngine` prepne `multi_select` na invertovaný scoring (viď 4.3). Toto je jediný spôsob, ako invertovaný mód zapnúť — nie je tam explicitné boolean pole. |
+| `scoring_note` | string | nie | Prozaická poznámka pre autora. Engine ju **nečíta** — od 5. 8. 2026 rozhoduje pole `scoring_mode`. |
+| `scoring_mode` | string | nie | `"standard"` (default) alebo `"inverted"` — invertovaný scoring pre `multi_select` (viď 4.3). Predtým sa režim detegoval podľa výskytu slova „Invertované" v `scoring_note`, takže jej preformulovanie alebo preklad ticho menili spôsob výpočtu. |
 | `branching_rules` | array | áno (môže byť `[]`) | Pole pravidiel — **nie** `branching` objekt. Presná štruktúra v sekcii 5. |
 | `evidence_type` | string | áno | `"direct"` alebo `"self_assessment"` — informačné, kód ho nevyhodnocuje. |
 | `maps_to_score` | **string[]** | áno (môže byť `[]`) | **Pole**, nie jeden string. Otázka môže prispievať do viacerých vecí naraz — napr. `["ors_D", "dii"]`. Hodnoty: `"ors_A"`..`"ors_F"` (kategória ORS), `"dii"` (DII bucket), `"ai_readiness"` (AI & Automatizácia Readiness), `"benchmark_sector"` / `"benchmark_size"` (meta otázky, ktoré nastavujú `respondent.sector`/`employeeCountBand` — číta ich priamo `AssessmentContext`, nie scoring engine). |
@@ -134,7 +135,7 @@ Nastavte `score` jednotlivých možností tak, aby ich súčet zodpovedal `max_s
 
 ### 4.3 Multi select (invertovaný režim)
 
-Zapína sa tým, že `scoring_note` obsahuje text `"Invertované"` (magický reťazec, presné znenie ostatného textu je jedno). V tomto režime majú možnosti **záporné** `score` hodnoty a platí:
+Zapína sa poľom **`scoring_mode: "inverted"`**. V tomto režime majú možnosti **záporné** `score` hodnoty a platí:
 
 ```
 skóre = max(0, 100 + súčet score vybraných možností)
@@ -207,6 +208,34 @@ Pravidlo sa vyhodnotí **hneď po zodpovedaní tejto otázky** a `target` (strin
 - Po úprave branchingu prejdite kvíz ručne v prehliadači (`npm run dev`) — statická validácia gramatiky podmienok zatiaľ neexistuje.
 
 ---
+
+
+### 5.4 Správanie pri odpovedi „Neviem" — `on_unknown`
+
+Voliteľné pole pravidla, hodnoty `ignore` (default) alebo `apply`.
+
+| Hodnota | Čo sa stane pri „Neviem" |
+|---|---|
+| `ignore` (default) | Pravidlo sa nevyhodnotí — doterajšie správanie. |
+| `apply` | Akcia sa **vykoná**, ako keby podmienka platila. |
+
+`apply` **nevyhodnocuje podmienku nad prázdnou hodnotou** — a je to zámer.
+Pri `single_choice` je hodnota prázdny reťazec, takže by nezabrala nikdy;
+pri `multi_select` je prázdne pole, takže napríklad `selected_count <= 1` by
+zabrala náhodou. Explicitná akcia je jediný spôsob, ako sa oba typy otázok
+správajú rovnako.
+
+**Rizikové príznaky (`flag_risk`) sa pri „Neviem" nepriznávajú ani s `apply`** —
+nevedomosť nie je dôkaz o probléme (viď SCORING_SPEC §5.3).
+
+Kedy to použiť: keď odpoveď „Neviem" fakticky znamená, že nadväzujúca otázka
+nemá zmysel. Bez tohto poľa dostal respondent, ktorý priznal nevedomosť,
+NAJVIAC otázok — pri type infraštruktúry sa mu nepreskočila ani serverová,
+ani cloudová vetva.
+
+Preskočené otázky sa od 5. 8. 2026 zapisujú medzi odpovede s príznakom
+`wasSkipped` a dôvodom, takže sa dá odlíšiť „Neviem" od „nikdy sme sa
+nespýtali". Ukazovateľ spoľahlivosti kategórie počíta len z položených otázok.
 
 ## 6. `maps_to_score` — kam otázka prispieva
 

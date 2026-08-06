@@ -28,11 +28,11 @@ const mysql = require('mysql2/promise');
 
 const QUESTION_KEYS = new Set([
   'id', 'category', 'dimension', 'question_sk', 'question_type', 'weight',
-  'options', 'max_score', 'scoring_note', 'branching_rules', 'evidence_type',
+  'options', 'max_score', 'scoring_note', 'scoring_mode', 'branching_rules', 'evidence_type',
   'maps_to_score', 'maps_to_risk', 'maps_to_roi_model', 'tooltip',
   'allow_unknown', 'scale', 'scale_rationale',
 ]);
-const RULE_KEYS = new Set(['condition', 'action', 'target', 'reason']);
+const RULE_KEYS = new Set(['condition', 'action', 'target', 'reason', 'on_unknown']);
 const OPTION_KEYS = new Set(['value', 'label', 'score']);
 
 function assertKeys(obj, allowed, ctx) {

@@ -243,6 +243,57 @@ for (const v of optionValues('benchmark_size')) {
   }
 }
 
+// --- 12: branching podmienky sú pre parser zrozumiteľné ----------------------
+// engines/questionEngine.ts pri nerozpoznanej syntaxi ticho vráti false, takže
+// preklep v podmienke sa neprejaví chybou — len pravidlo mlčky nikdy nezaberie.
+// Tieto vzory musia zostať v zhode s `evaluateCondition`.
+const CONDITION_PATTERNS = [
+  /^value\s*==\s*'[^']+'$/,
+  /^value\s*!=\s*'[^']+'$/,
+  /^value\s*==\s*'[^']+'(\s*\|\|\s*value\s*==\s*'[^']+')+$/,
+  /^selected_count\s*(<=|>=|<|>|==)\s*\d+$/,
+  /^selected\.includes\('[^']+'\)$/,
+  /^!selected\.includes\('[^']+'\)$/,
+];
+
+/** Hodnoty, ktoré podmienka porovnáva — na overenie, že v otázke existujú. */
+const valuesInCondition = (c) => [...c.matchAll(/'([^']+)'/g)].map((m) => m[1]);
+
+for (const q of all) {
+  for (const rule of q.branching_rules ?? []) {
+    const cond = rule.condition;
+    if (typeof cond !== 'string' || cond.trim() === '') {
+      errors.push(`${q.id}: branching pravidlo bez podmienky`);
+      continue;
+    }
+    if (!CONDITION_PATTERNS.some((re) => re.test(cond.trim()))) {
+      errors.push(`${q.id}: podmienku "${cond}" parser nepozná — pravidlo sa nikdy nespustí`);
+      continue;
+    }
+    // Podmienka nad multi_select otázkou musí používať selected*, nad
+    // single_choice zasa value — inak sa vyhodnotí vždy ako false.
+    const usesSelected = cond.includes('selected');
+    if (q.question_type === 'multi_select' && !usesSelected) {
+      errors.push(`${q.id}: multi_select otázka má podmienku "${cond}" nad \`value\` — pre pole sa nikdy nesplní`);
+    }
+    if (q.question_type === 'single_choice' && usesSelected) {
+      errors.push(`${q.id}: single_choice otázka má podmienku "${cond}" nad \`selected\` — pre reťazec sa nikdy nesplní`);
+    }
+    // Porovnávaná hodnota musí byť medzi možnosťami otázky.
+    if (/value|selected\.includes/.test(cond)) {
+      const opts = new Set((q.options ?? []).map((o) => o.value ?? o.id));
+      for (const v of valuesInCondition(cond)) {
+        if (!opts.has(v)) {
+          errors.push(`${q.id}: podmienka odkazuje na hodnotu "${v}", ktorú otázka neponúka`);
+        }
+      }
+    }
+    if (rule.on_unknown !== undefined && !['ignore', 'apply'].includes(rule.on_unknown)) {
+      errors.push(`${q.id}: on_unknown musí byť 'ignore' alebo 'apply', nie "${rule.on_unknown}"`);
+    }
+  }
+}
+
 // --- výstup -----------------------------------------------------------------
 const scaleCounts = {};
 for (const q of all) if (q.scale) scaleCounts[q.scale] = (scaleCounts[q.scale] ?? 0) + 1;

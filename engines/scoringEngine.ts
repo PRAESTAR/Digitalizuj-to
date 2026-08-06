@@ -155,9 +155,17 @@ export function calculateORS(
 
     const measured = catAnswers.length > 0 && totalWeight > 0;
     const catScore = measured ? score / totalWeight : null;
-    const unknownRatio = catQuestions.length > 0
-      ? 1 - catAnswers.length / catQuestions.length
-      : 1;
+
+    // Spoľahlivosť sa počíta z toho, čo sa respondenta REÁLNE spýtalo:
+    // podiel „Neviem" na položených otázkach. Preskočené vetvením a otázky,
+    // ku ktorým sa nedostal, sa nerátajú — nie sú to jeho nevedomosti.
+    // Predtým bol menovateľ počet všetkých otázok kategórie, takže adaptívne
+    // vetvenie samo znižovalo spoľahlivosť, hoci respondent odpovedal na
+    // všetko, čo dostal.
+    const catAnswerRecords = answers.filter(a => catQuestions.some(q => q.id === a.questionId));
+    const unknownCount = catAnswerRecords.filter(a => a.isUnknown).length;
+    const askedCount = catAnswerRecords.filter(a => !a.wasSkipped).length;
+    const unknownRatio = askedCount > 0 ? unknownCount / askedCount : 1;
 
     let confidence: CategoryScore['confidence'];
     if (unknownRatio > scoringConfig.unknownAnswerExclusionThreshold) confidence = 'low';

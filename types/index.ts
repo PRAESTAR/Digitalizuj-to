@@ -30,6 +30,20 @@ export interface BranchingRule {
   action: 'skip' | 'include' | 'flag_risk';
   target: string | string[];
   reason: string;
+  /**
+   * Čo robiť, keď respondent odpovie „Neviem".
+   *
+   * `ignore` (default, doterajšie správanie) — pravidlo sa nevyhodnotí.
+   * `apply` — akcia sa vykoná, ako keby podmienka platila. POZOR: NIE je to
+   * „vyhodnoť podmienku nad prázdnou hodnotou" — pri single_choice je hodnota
+   * `''`, takže by nezabrala nikdy, kým pri multi_select je `[]`, takže
+   * napr. `selected_count <= 1` by zabrala náhodou. Explicitná akcia je
+   * jediný spôsob, ako sa oba typy otázok správajú rovnako.
+   *
+   * Bez tohto poľa „Neviem" obchádzalo všetky pravidlá vrátane skipov, takže
+   * respondent, ktorý priznal nevedomosť, dostal NAJVIAC otázok.
+   */
+  on_unknown?: 'ignore' | 'apply';
 }
 
 export interface Question {
@@ -43,6 +57,13 @@ export interface Question {
   bands?: NumericBand[];
   max_score?: number;
   scoring_note?: string;
+  /**
+   * Ako sa skóruje multi_select. `inverted` = čím viac vybraných, tým nižšie
+   * skóre (možnosti majú záporné hodnoty). Explicitné pole nahrádza detekciu
+   * podľa textu v `scoring_note`, ktorý je prozaická poznámka pre ľudí —
+   * jej preformulovanie alebo preklad ticho menili spôsob výpočtu.
+   */
+  scoring_mode?: 'standard' | 'inverted';
   branching_rules: BranchingRule[];
   evidence_type: string;
   maps_to_score: string[];
