@@ -28,6 +28,7 @@ import type { PeerSnapshot, ResultSnapshot, Respondent, AssessmentType } from '@
 const SAVE_ENDPOINT = '/api/result-save.php';
 const LOAD_ENDPOINT = '/api/result.php';
 const DELETE_ENDPOINT = '/api/result-delete.php';
+const FEEDBACK_ENDPOINT = '/api/feedback.php';
 
 /**
  * Retenčná lehota v mesiacoch — musí sedieť s `RETENTION_MONTHS`
@@ -142,6 +143,32 @@ export async function loadResultFromServer(hash: string): Promise<PeerSnapshot |
  * hlási len vtedy, keď sa výmaz naozaj nepodaril, aby sme používateľovi
  * netvrdili niečo, čo nie je pravda.
  */
+/**
+ * Uloží hodnotenie testu (0–10) k výsledku. Zapisuje sa k existujúcemu
+ * riadku, aby sa dala spätná väzba porovnať so skóre, ktoré ju vyvolala.
+ *
+ * Nula je platná odpoveď, nie chýbajúca hodnota — volajúci ju musí vedieť
+ * poslať, takže sa kontroluje rozsah, nie pravdivosť.
+ */
+export async function sendFeedbackToServer(hash: string, score: number): Promise<boolean> {
+  if (!Number.isInteger(score) || score < 0 || score > 10) return false;
+  try {
+    const res = await fetch(FEEDBACK_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hash, score }),
+      credentials: 'omit',
+      // Hodnotenie sa často klikne tesne pred zavretím karty.
+      keepalive: true,
+    });
+    if (!res.ok) return false;
+    const data: unknown = await res.json();
+    return typeof data === 'object' && data !== null && (data as { ok?: boolean }).ok === true;
+  } catch {
+    return false;
+  }
+}
+
 export async function deleteResultFromServer(hash: string): Promise<boolean> {
   try {
     const res = await fetch(DELETE_ENDPOINT, {

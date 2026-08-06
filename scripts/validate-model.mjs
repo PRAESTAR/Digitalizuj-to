@@ -88,7 +88,7 @@ for (const rf of [...referenced, ...triggered]) {
 // --- 5 + 6: škály -----------------------------------------------------------
 const linear = (n) => Array.from({ length: n }, (_, i) => Math.round((i * 100) / (n - 1)));
 for (const q of all) {
-  if (q.question_type !== 'single_choice' || !q.options) continue;
+  if (!['single_choice', 'likert_11'].includes(q.question_type) || !q.options) continue;
   const scores = q.options.map((o) => o.score);
   const scale = q.scale;
 
@@ -106,6 +106,14 @@ for (const q of all) {
   } else if (['categorical', 'descending', 'custom'].includes(scale)) {
     if (!q.scale_rationale) {
       errors.push(`${q.id}: škála "${scale}" je odchýlka od štandardu a musí mať "scale_rationale"`);
+    }
+  } else if (scale === 'likert-11') {
+    // 11 stupňov s lineárnym bodovaním 0/10/…/100. Rovnaká logika ako
+    // linear-N, len s vlastným názvom, aby sa dala fencovať v kontrole #13.
+    if (q.options.length !== 11) {
+      errors.push(`${q.id}: scale je likert-11, ale otázka má ${q.options.length} možností`);
+    } else if (scores.join('/') !== linear(11).join('/')) {
+      errors.push(`${q.id}: scale je likert-11, ale bodovanie [${scores.join('/')}] nezodpovedá [${linear(11).join('/')}]`);
     }
   } else if (scale !== 'meta') {
     errors.push(`${q.id}: neznáma hodnota scale "${scale}"`);
@@ -291,6 +299,35 @@ for (const q of all) {
     if (rule.on_unknown !== undefined && !['ignore', 'apply'].includes(rule.on_unknown)) {
       errors.push(`${q.id}: on_unknown musí byť 'ignore' alebo 'apply', nie "${rule.on_unknown}"`);
     }
+  }
+}
+
+// --- 13: fence na škálu 0–10 ------------------------------------------------
+// Typ `likert_11` je vyhradený pre subjektívny úsudok o budúcnosti (zámer,
+// ochota, pravdepodobnosť). Zvyšok banky stojí na behaviorálne ukotvených
+// možnostiach — tie dajú dvom firmám s rovnakou praxou rovnakú odpoveď, holé
+// číslo taký referenčný bod nemá. Bez tejto kontroly by sa z typu časom stal
+// lenivý default a banka by sa zosunula z doloženej evidencie na pocit.
+for (const q of all) {
+  const isLikert = q.question_type === 'likert_11';
+  if (isLikert !== (q.scale === 'likert-11')) {
+    errors.push(`${q.id}: question_type "${q.question_type}" a scale "${q.scale}" si odporujú — likert_11 a likert-11 idú vždy spolu`);
+  }
+  if (!isLikert) continue;
+
+  if (!q.anchor_low_sk || !q.anchor_high_sk) {
+    errors.push(`${q.id}: škála 0–10 musí mať obe kotvy (anchor_low_sk, anchor_high_sk) — bez nich je to číselník bez významu`);
+  }
+  if (q.evidence_type !== 'self_assessment') {
+    errors.push(`${q.id}: škála 0–10 meria subjektívny úsudok, takže evidence_type musí byť 'self_assessment', nie '${q.evidence_type}'`);
+  }
+  if ((q.maps_to_score ?? []).includes('dii')) {
+    errors.push(`${q.id}: škála 0–10 nesmie sýtiť DII — premenné Eurostatu sú binárne fakty, sebahodnotenie na ne odpovedať nevie`);
+  }
+  // Do ORS smie prispieť len vedome: skóre z nej je názor, nie zistený stav.
+  const orsTags = (q.maps_to_score ?? []).filter((t) => t.startsWith('ors_'));
+  if (orsTags.length > 0 && !q.likert_ors_rationale) {
+    errors.push(`${q.id}: škála 0–10 sýti ${orsTags.join(', ')} — doplň "likert_ors_rationale" so zdôvodnením, prečo je názor prípustný vstup do skóre zrelosti`);
   }
 }
 

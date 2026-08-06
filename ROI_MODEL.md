@@ -472,3 +472,33 @@ Pri `null` sa počíta s `assumedMaturityLevel = 2` (stredná úroveň: najniž�
 by úsporu nafúkla na 90 % ručnej práce, najvyššia by ju zmazala na 5 %) a
 predpoklad sa **prizná** — disclaimerom, príznakom `inputAssumptions.maturityAssumed`
 a zastropovanou dôveryhodnosťou na 0,3, rovnako ako pri neuvedenej veľkosti firmy.
+
+
+### Dve brány scenárov: pripravenosť a zámer
+
+Zobrazenie optimistického scenára gatuje **prísnejšia z dvoch nezávislých
+brán**:
+
+| Brána | Zdroj | Čo meria |
+|---|---|---|
+| governance | ORS kategória F | či firma zmenu vie zorganizovať |
+| zámer investovať | `ind_16_intent` / `cx_F07_intent` (0–10) | či to vôbec chce |
+
+Do 6. 8. 2026 existovala len prvá a slúžila ako zástupný ukazovateľ oboch. To
+bola tichá chyba: **governance je kapacita, nie vôľa.** Firma s výbornou
+organizáciou a nulovou chuťou investovať nezrealizuje nič — a dostávala
+optimistický scenár.
+
+Prahy zámeru (`investmentIntentGates`): 8+ z 10 je jasné „áno", 5+ otvorenosť
+bez záväzku, pod 5 už respondent hovorí skôr „nie".
+
+**Prečo minimum, nie priemer.** Silná stránka by kryla slabú, hoci úsporu
+obmedzuje práve tá slabá. Odhodlaná firma bez organizačnej pripravenosti
+nedosiahne plný potenciál rovnako ako pripravená firma bez chuti.
+
+**Nezistený zámer bránu neposúva ani jedným smerom** — nevedomosť nie je dôkaz
+o nechuti, rovnaká politika ako pri rizikách. Nezmeraná governance je naopak
+prísnejšia než akýkoľvek zámer: bez nej sa pripravenosť nedá doložiť vôbec.
+
+Text dôvodu ukazuje na tú bránu, ktorá scenár skutočne obmedzila — inak by
+firma dostala radu opravovať niečo, čo má v poriadku.

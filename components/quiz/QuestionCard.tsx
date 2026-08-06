@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { Question } from '@/types';
+import LikertScale from './LikertScale';
 
 interface QuestionCardProps {
   question: Question;
@@ -101,6 +102,18 @@ export default function QuestionCard({ question, onSubmit }: QuestionCardProps) 
           )}
         </div>
 
+        {question.question_type === 'likert_11' ? (
+          // Škála 0–10 sa vykresľuje ako spojitá os, nie ako 11 riadkov —
+          // zoznam by z nej spravil obyčajný výber a stratil by sa význam
+          // vzdialenosti medzi stupňami.
+          <LikertScale
+            value={selected === '' ? null : Number(selected)}
+            onChange={(v) => setSelected(String(v))}
+            anchorLow={question.anchor_low_sk ?? '0'}
+            anchorHigh={question.anchor_high_sk ?? '10'}
+            ariaLabel={question.question_sk}
+          />
+        ) : (
         <div className="space-y-2.5 stagger-children">
           {question.options?.map((option) => {
             const isMulti = question.question_type === 'multi_select';
@@ -140,6 +153,7 @@ export default function QuestionCard({ question, onSubmit }: QuestionCardProps) 
             );
           })}
         </div>
+        )}
 
         {/* flex-col-reverse drží primárne CTA hore aj v stĺpcovom režime — vedľa
             seba sa obe tlačidlá pri 320 px a zväčšenom texte nezmestili a

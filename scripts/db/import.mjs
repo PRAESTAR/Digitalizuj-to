@@ -29,11 +29,22 @@ const mysql = require('mysql2/promise');
 const QUESTION_KEYS = new Set([
   'id', 'category', 'dimension', 'question_sk', 'question_type', 'weight',
   'options', 'max_score', 'scoring_note', 'scoring_mode', 'branching_rules', 'evidence_type',
+  'anchor_low_sk', 'anchor_high_sk', 'likert_ors_rationale',
   'maps_to_score', 'maps_to_risk', 'maps_to_roi_model', 'tooltip',
   'allow_unknown', 'scale', 'scale_rationale',
 ]);
 const RULE_KEYS = new Set(['condition', 'action', 'target', 'reason', 'on_unknown']);
 const OPTION_KEYS = new Set(['value', 'label', 'score']);
+
+/**
+ * Typy otázok, ktoré pozná DB schéma (ENUM `questions.question_type`).
+ *
+ * Kontroluje sa tu, lebo MariaDB v neprísnom režime neznámu hodnotu ENUM-u
+ * NEODMIETNE — uloží prázdny reťazec. Otázka potom v databáze existuje bez
+ * typu, import prejde bez chyby a rozbije sa až najbližší publish. Presne to
+ * sa stalo pri zavedení `likert_11` 6. 8. 2026.
+ */
+const ALLOWED_TYPES = new Set(['single_choice', 'multi_select', 'likert_11']);
 
 function assertKeys(obj, allowed, ctx) {
   for (const k of Object.keys(obj)) {
@@ -111,13 +122,21 @@ async function main() {
   let nQ = 0, nOpt = 0, nRule = 0;
   async function importQuestion(q, quizCode, moduleId, position) {
     assertKeys(q, QUESTION_KEYS, `otázke ${q.id}`);
+    if (!ALLOWED_TYPES.has(q.question_type)) {
+      throw new Error(
+        `${q.id}: typ "${q.question_type}" nie je v ENUM-e questions.question_type — ` +
+        'doplň ho do db/schema.sql aj sem, inak ho MariaDB uloží ako prázdny reťazec bez chyby.'
+      );
+    }
     await conn.query(
       `INSERT INTO questions (id, quiz_code, module_id, position, category, dimension, question_type,
-         weight, max_score, evidence_type, allow_unknown, scale, scale_rationale, scoring_note)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         weight, max_score, evidence_type, allow_unknown, scale, scale_rationale, scoring_note,
+         anchor_low_sk, anchor_high_sk, likert_ors_rationale)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [q.id, quizCode, moduleId, position, q.category, q.dimension, q.question_type,
         q.weight, q.max_score ?? null, q.evidence_type, q.allow_unknown ? 1 : 0,
-        q.scale ?? null, q.scale_rationale ?? null, q.scoring_note ?? null]);
+        q.scale ?? null, q.scale_rationale ?? null, q.scoring_note ?? null,
+        q.anchor_low_sk ?? null, q.anchor_high_sk ?? null, q.likert_ors_rationale ?? null]);
     await conn.query('INSERT INTO question_i18n (question_id, locale, text, tooltip) VALUES (?,?,?,?)',
       [q.id, 'sk', q.question_sk, q.tooltip]);
 

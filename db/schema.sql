@@ -84,13 +84,24 @@ CREATE TABLE questions (
   position        INT          NOT NULL,              -- poradie v rámci kvízu/modulu
   category        VARCHAR(20)  NOT NULL,
   dimension       VARCHAR(80)  NOT NULL,
-  question_type   ENUM('single_choice','multi_select') NOT NULL,
+  -- POZOR: rozšírenie tohto ENUM-u je povinné pri každom novom type otázky.
+  -- MariaDB v neprísnom režime neznámu hodnotu NEODMIETNE — uloží prázdny
+  -- reťazec. Otázka potom v DB existuje bez typu a najbližší publish ju
+  -- skompiluje rozbitú. Import to od 6. 8. 2026 kontroluje sám (ALLOWED_TYPES).
+  question_type   ENUM('single_choice','multi_select','likert_11') NOT NULL,
   weight          DECIMAL(4,2) NOT NULL,
   max_score       INT          NULL,                  -- len multi_select
   evidence_type   VARCHAR(40)  NOT NULL,
   allow_unknown   TINYINT(1)   NOT NULL,
-  scale           VARCHAR(20)  NULL,                  -- len single_choice
+  scale           VARCHAR(20)  NULL,                  -- single_choice a likert_11
   scale_rationale TEXT         NULL,
+  -- Kotvy krajných bodov škály 0–10 (typ likert_11). Bez nich je pásik len
+  -- číselník bez významu — respondent nevie, ktorý koniec je „dobrý".
+  anchor_low_sk   VARCHAR(80)  NULL,
+  anchor_high_sk  VARCHAR(80)  NULL,
+  -- Zdôvodnenie, prečo smie subjektívna škála vstupovať do ORS. Vyžaduje ho
+  -- validátor (kontrola #13): skóre z 0–10 je názor, nie zistený stav.
+  likert_ors_rationale TEXT    NULL,
   scoring_note    TEXT         NULL,                  -- prozaická poznámka pre autora, nie signál pre engine
   -- Explicitný režim skórovania. Predtým sa invertovanie detegovalo podľa
   -- výskytu slova „Invertované" v scoring_note — preklad tej vety by ticho
@@ -244,6 +255,14 @@ CREATE TABLE IF NOT EXISTS assessment_results (
   tdri_score          DECIMAL(5,1) NULL,
   ai_score            DECIMAL(5,1) NULL,
   business_impact_eur INT          NULL,
+
+  -- Odporúčanie testu na škále 0–10, vypĺňané až PO zobrazení výsledku.
+  -- NULL = respondent sa nevyjadril; nula je platná odpoveď, takže sa od
+  -- nevyplneného musí dať odlíšiť. Drží sa pri výsledku (nie vo vlastnej
+  -- tabuľke), aby sa dala spätná väzba porovnať so skóre, ktoré ju vyvolalo.
+  nps_score           TINYINT UNSIGNED NULL,
+  nps_at              DATETIME     NULL,
+
   model_version       VARCHAR(64)  NULL,
 
   -- Plný ResultSnapshot, odpovede po otázkach a firmografia respondenta.

@@ -7,6 +7,26 @@
 export type QuestionType =
   | 'single_choice'
   | 'multi_select'
+  /**
+   * Škála 0–10 s textovými kotvami na oboch koncoch.
+   *
+   * Vyhradená pre SUBJEKTÍVNY ÚSUDOK O BUDÚCNOSTI — zámer, ochota,
+   * pravdepodobnosť. Zvyšok banky používa behaviorálne ukotvené možnosti
+   * („Máme zdokumentovaný postup obnovy"), lebo tie dajú dvom firmám
+   * s rovnakou praxou rovnakú odpoveď. Holé číslo taký referenčný bod nemá,
+   * takže na merateľný stav je HORŠIE než ukotvená možnosť. Použiteľné je
+   * len tam, kde meraná vec sama JE subjektívna pravdepodobnosť a ukotviť
+   * sa nedá.
+   *
+   * Obmedzenie vynucuje validátor (kontrola #13), nie len dokumentácia —
+   * inak by sa z typu časom stal lenivý default a banka by sa zosunula
+   * z doloženej evidencie na pocitový dotazník.
+   *
+   * Technicky je to 11 možností so skóre 0/10/…/100, takže scoring, DB
+   * schéma ani import nepotrebujú vlastnú vetvu — mení sa len vykreslenie
+   * a pravidlá validátora.
+   */
+  | 'likert_11'
   | 'yes_no'
   | 'numeric_input'
   | 'numeric_bands'
@@ -56,6 +76,13 @@ export interface Question {
   options?: QuestionOption[];
   bands?: NumericBand[];
   max_score?: number;
+  /**
+   * Textové kotvy krajných bodov škály `likert_11`. Bez nich je 0–10 len
+   * číselník bez významu — respondent nevie, ktorý koniec je „dobrý".
+   * Validátor ich pri tomto type vyžaduje.
+   */
+  anchor_low_sk?: string;
+  anchor_high_sk?: string;
   scoring_note?: string;
   /**
    * Ako sa skóruje multi_select. `inverted` = čím viac vybraných, tým nižšie

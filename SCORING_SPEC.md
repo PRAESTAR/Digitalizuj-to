@@ -313,10 +313,34 @@ Detailná špecifikácia (vzorce, scenáre, confidence, zdroje hodinovej ceny pr
 | Typ otázky | Normalizácia |
 |------------|-------------|
 | `single_choice` | Priamo `option.score` (0–100), žiadna ďalšia transformácia. |
+| `likert_11` | Rovnako ako `single_choice` — 11 možností so skóre 0/10/…/100. Vlastnú vetvu vo výpočte NEMÁ; líši sa len vykreslením a pravidlami validátora (§7.4). |
 | `multi_select` (normálny) | `min(100, round(Σ vybraných option.score / max_score × 100))`. |
 | `multi_select` (invertovaný, `scoring_mode: "inverted"`) | `max(0, 100 + Σ vybraných option.score)` — možnosti majú záporné skóre. |
 
 Typy `numeric_input`, `numeric_bands`, `conditional_matrix` spomínané v pôvodnej dokumentácii **nie sú implementované** — `QuestionCard.tsx` podporuje výhradne `single_choice` a `multi_select`.
+
+### 7.1b Kedy smie byť otázka škálou 0–10
+
+Typ `likert_11` je **vyhradený pre subjektívny úsudok o budúcnosti** — zámer,
+ochota, pravdepodobnosť. Zvyšok banky stojí na behaviorálne ukotvených
+možnostiach („Máme zdokumentovaný postup obnovy"), lebo tie dajú dvom firmám
+s rovnakou praxou rovnakú odpoveď. Holé číslo taký referenčný bod nemá: dve
+firmy s identickými zálohami dajú 3 a 8 podľa toho, aká je ktorá sebakritická.
+**Na merateľný stav je preto škála 0–10 horšia než ukotvená možnosť.**
+
+Použiteľná je len tam, kde meraná vec sama JE subjektívna pravdepodobnosť
+a ukotviť sa nedá. Dnes je taká otázka jedna: zámer investovať
+(`ind_16_intent`, `cx_F07_intent`).
+
+Obmedzenie vynucuje **validátor (kontrola #13)**, nie len tento text — inak by
+sa z typu časom stal lenivý default a banka by sa zosunula z doloženej
+evidencie na pocitový dotazník. Kontrola vyžaduje:
+
+- `question_type: 'likert_11'` a `scale: 'likert-11'` vždy spolu,
+- obe kotvy (`anchor_low_sk`, `anchor_high_sk`) — bez nich je to číselník bez významu,
+- `evidence_type: 'self_assessment'`,
+- **žiadne sýtenie DII** — premenné Eurostatu sú binárne fakty, sebahodnotenie na ne odpovedať nevie,
+- pri sýtení ktorejkoľvek ORS kategórie navyše písomné `likert_ors_rationale`.
 
 ### 7.2 Váha a mapovanie otázky
 

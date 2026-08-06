@@ -8,6 +8,7 @@ import { saveResultToServer } from '@/lib/resultStore';
 import { toPeerSnapshot } from '@/lib/snapshotMapper';
 import QRCodeCard from './QRCodeCard';
 import DeleteResultButton from './DeleteResultButton';
+import FeedbackPanel from './FeedbackPanel';
 
 interface Props {
   result: ResultSnapshot;
@@ -91,6 +92,10 @@ export default function PermanentLinkPanel({
   return (
     <div className="space-y-3">
       <QRCodeCard url={url} hash={hash} />
+      {/* Hodnotenie patrí sem, nie na /r/{hash}: tu si používateľ výsledok
+          práve prečítal. Na permanentnom odkaze by sa dalo klikať opakovane
+          a z čísla by sa stal šum. */}
+      <FeedbackPanel hash={hash} />
       {/* Výmaz patrí sem, nie len na /r/{hash}: toto je prvá a často jediná
           obrazovka, kde sa používateľ dozvie, že sa výsledok vôbec uložil. */}
       <div className="px-4 sm:px-6 lg:px-8">

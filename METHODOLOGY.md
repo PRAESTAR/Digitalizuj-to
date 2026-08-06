@@ -371,8 +371,8 @@ Dotazník sa **nepýta** na hodinovú cenu práce vo firme — je to citlivý ú
 
 ### 7.1 Dva režimy
 
-1. **Indikatívny kvíz** (18 otázok): Rýchly screening. Výsledok = orientačné skóre + rozhodnutie či pokračovať.
-2. **Komplexný kvíz** (57 otázok v banke, reálne 49–57 podľa vetvenia): Hlbšia diagnostika rozdelená do modulov.
+1. **Indikatívny kvíz** (19 otázok): Rýchly screening. Výsledok = orientačné skóre + rozhodnutie či pokračovať.
+2. **Komplexný kvíz** (58 otázok v banke, reálne 50–58 podľa vetvenia): Hlbšia diagnostika rozdelená do modulov.
 
 ### 7.2 Branching princípy
 
@@ -448,8 +448,8 @@ Používame **statické benchmark hodnoty** odvodené z verejných Eurostat dát
 **Dilema:** Viac otázok = presnejšie meranie, ale nižšia completion rate.
 
 **Rozhodnutie:** 
-- Indikatívny kvíz (18 otázok) = nízka záťaž, nižšia presnosť.
-- Komplexný kvíz (49–57 otázok) = vyššia záťaž, vyššia presnosť.
+- Indikatívny kvíz (19 otázok) = nízka záťaž, nižšia presnosť.
+- Komplexný kvíz (50–58 otázok) = vyššia záťaž, vyššia presnosť.
 - Branching znižuje reálny počet otázok.
 
 ### 9.4 DII mapovanie nie je 1:1
@@ -544,6 +544,7 @@ Tabuľka je generovaná zo zdrojov pravdy (questionBank + diiIndicators) — pri
 | `ind_13` | indikatívny | F | ors_F | — |
 | `ind_14` | indikatívny | F | ors_F, ors_E | — |
 | `ind_15_ai` | indikatívny | dii | dii, ai_readiness | DII12 |
+| `ind_16_intent` | indikatívny | F | — | — |
 | `cx_01` | komplexný | meta | benchmark_sector | — |
 | `cx_02` | komplexný | meta | benchmark_size | — |
 | `cx_03` | komplexný | meta | — | — |
@@ -593,6 +594,7 @@ Tabuľka je generovaná zo zdrojov pravdy (questionBank + diiIndicators) — pri
 | `cx_F05` | komplexný | F | ors_F | — |
 | `cx_F06` | komplexný | F | ors_F, ors_E | — |
 | `cx_F07_ai_governance` | komplexný | F | ors_F, ai_readiness | — |
+| `cx_F07_intent` | komplexný | F | — | — |
 | `cx_ROI02` | komplexný | meta | — | — |
 | `cx_ROI03` | komplexný | meta | — | — |
 | `cx_DII01` | komplexný | dii | dii | DII3 |

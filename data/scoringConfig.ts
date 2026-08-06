@@ -286,6 +286,21 @@ export const manualShareWhenSelfReportedManual = 0.85;
 export const governanceScenarioGates = { high: 75, standard: 50 };
 
 /**
+ * Prahy zámeru investovať (škála 0–10 z `ind_16_intent`/`cx_F07_intent`).
+ *
+ * Governance meria KAPACITU realizovať, zámer meria VÔĽU. Sú to nezávislé
+ * podmienky a úsporu obmedzuje tá slabšia — firma s výbornou governance
+ * a nulovou chuťou investovať nezrealizuje nič, rovnako ako odhodlaná firma
+ * bez organizačnej pripravenosti. Výsledná brána je preto **prísnejšia
+ * z oboch**, nie ich priemer.
+ *
+ * Hodnoty: 8+ z 10 je jasné „áno" (horná tretina škály), 5+ je otvorenosť
+ * bez záväzku, pod 5 už respondent hovorí skôr „nie" — a vtedy nemá zmysel
+ * ukazovať mu scenár, ktorý predpokladá plnú realizáciu.
+ */
+export const investmentIntentGates = { high: 8, standard: 5 };
+
+/**
  * Zrelosť, s ktorou sa počíta, keď ju dotazník nezistil (otázka preskočená,
  * „Neviem", alebo hodnota mimo domény 0–4).
  *

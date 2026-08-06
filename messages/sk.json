@@ -30,13 +30,13 @@
     "q1": "Čo je digitálna zrelosť firmy?",
     "a1": "Digitálna zrelosť je miera, do akej firma využíva digitálne nástroje a procesy na zefektívnenie prevádzky, rozhodovania a zákazníckej skúsenosti. Meria sa na niekoľkých osiach: procesy, systémy, dáta, infraštruktúra, bezpečnosť a governance.",
     "q2": "Ako funguje hodnotenie na digitalizuj.to?",
-    "a2": "Vyplníte adaptívny dotazník (18 otázok pre rýchly screening alebo 49–57 pre komplexnú diagnostiku). Na základe odpovedí dostanete DII-Compatible skóre, Operational Readiness skóre, AI & Automatizácia Readiness, Technical Debt & Risk Index a Business Impact Potential s odhadom úspor v hodinách, MD a EUR.",
+    "a2": "Vyplníte adaptívny dotazník (19 otázok pre rýchly screening alebo 50–58 pre komplexnú diagnostiku). Na základe odpovedí dostanete DII-Compatible skóre, Operational Readiness skóre, AI & Automatizácia Readiness, Technical Debt & Risk Index a Business Impact Potential s odhadom úspor v hodinách, MD a EUR.",
     "q3": "Čo je DII (Digital Intensity Index)?",
     "a3": "DII je oficiálny ukazovateľ digitálnej intenzity firiem, ktorý zbiera Eurostat naprieč EÚ. Skóruje adopciu 12 digitálnych technológií a pomáha porovnávať firmy voči benchmarku EÚ.",
     "q4": "Odosielajú sa moje odpovede niekam?",
     "a4": "Čiastočne — po dokončení diagnostiky. Vaše jednotlivé odpovede zostávajú výlučne vo vašom prehliadači a na server sa neodosielajú. Ukladá sa len hotový výsledok (vypočítané skóre a odporúčania), aby ste ho vedeli otvoriť aj neskôr a na inom zariadení cez permanentný odkaz alebo QR kód. Neukladá sa meno ani e-mail — výsledok je dostupný len cez 64-znakový náhodný kód, ktorý sa nedá uhádnuť. Návštevnosť sa meria cez Google Analytics až po vašom súhlase a obsah odpovedí sa do merania nedostane nikdy. Uložený výsledok sa automaticky maže po 24 mesiacoch a kedykoľvek si ho môžete zmazať sami tlačidlom pri permanentnom odkaze.",
     "q5": "Koľko trvá hodnotenie?",
-    "a5": "Indikatívny kvíz trvá 6–8 minút (18 otázok). Komplexná diagnostika trvá 18–25 minút (49–57 otázok s adaptívnym branchingom).",
+    "a5": "Indikatívny kvíz trvá 6–8 minút (19 otázok). Komplexná diagnostika trvá 18–25 minút (50–58 otázok s adaptívnym branchingom).",
     "q6": "Čo je povinná e-fakturácia od 1. 1. 2027?",
     "a6": "Od 1. januára 2027 zavádza Slovensko povinnú B2B elektronickú fakturáciu cez sieť Peppol podľa normy EN 16931. Test preveruje, či je vaša fakturácia na prechod pripravená, a nepripravenosť započítava do indexu rizík.",
     "q7": "Koho sa týka NIS2 a zákon č. 366/2024 Z. z.?",
@@ -77,7 +77,7 @@
       "title": "Indikatívny kvíz",
       "duration": "6–8 minút",
       "description": "Rýchly screening digitálnej zrelosti. Orientačný výsledok s hlavnými odporúčaniami.",
-      "bullet1": "Max. 18 otázok",
+      "bullet1": "Max. 19 otázok",
       "bullet2": "Orientačné skóre digitalizácie",
       "bullet3": "Identifikácia hlavných rizík",
       "cta": "Začať screening"
@@ -338,5 +338,12 @@
     "aboveAvg": "Nadpriemer",
     "belowAvg": "Pod priemer",
     "bottom25": "Spodných 25 %"
+  },
+  "feedback": {
+    "title": "Ako sa vám tento test pozdával?",
+    "subtitle": "Nakoľko pravdepodobne by ste ho odporučili kolegovi alebo inej firme?",
+    "anchorLow": "Vôbec neodporučím",
+    "anchorHigh": "Určite odporučím",
+    "thanks": "Ďakujeme — pomáha nám to test zlepšovať."
   }
 }

@@ -30,13 +30,13 @@
     "q1": "What is company digital maturity?",
     "a1": "Digital maturity is the extent to which a company uses digital tools and processes to streamline operations, decision-making and customer experience. It is measured along several axes: processes, systems, data, infrastructure, security and governance.",
     "q2": "How does the assessment on digitalizuj.to work?",
-    "a2": "You fill in an adaptive questionnaire (18 questions for a quick screening or 49–57 for the comprehensive assessment). Based on your answers you get a DII-Compatible score, Operational Readiness score, AI & Automation Readiness, Technical Debt & Risk Index and Business Impact Potential with savings estimated in hours, person-days and EUR.",
+    "a2": "You fill in an adaptive questionnaire (19 questions for a quick screening or 50–58 for the comprehensive assessment). Based on your answers you get a DII-Compatible score, Operational Readiness score, AI & Automation Readiness, Technical Debt & Risk Index and Business Impact Potential with savings estimated in hours, person-days and EUR.",
     "q3": "What is the DII (Digital Intensity Index)?",
     "a3": "The DII is the official indicator of enterprise digital intensity collected by Eurostat across the EU. It scores the adoption of 12 digital technologies and enables comparison against the EU benchmark.",
     "q4": "Are my answers sent anywhere?",
     "a4": "Partly — once you finish the assessment. Your individual answers stay in your browser and are never sent to the server. Only the finished result (calculated scores and recommendations) is stored, so you can open it later and on another device via the permanent link or QR code. No name or e-mail is stored — the result is reachable only through a random 64-character code that cannot be guessed. Traffic is measured via Google Analytics only after your consent, and the content of your answers never enters that measurement. A stored result is deleted automatically after 24 months, and you can delete it yourself at any time using the button next to the permanent link.",
     "q5": "How long does the assessment take?",
-    "a5": "The indicative quiz takes 6–8 minutes (18 questions). The comprehensive assessment takes 18–25 minutes (49–57 questions with adaptive branching).",
+    "a5": "The indicative quiz takes 6–8 minutes (19 questions). The comprehensive assessment takes 18–25 minutes (50–58 questions with adaptive branching).",
     "q6": "What is the mandatory e-invoicing requirement from 1 January 2027?",
     "a6": "From 1 January 2027 Slovakia introduces mandatory B2B electronic invoicing via the Peppol network under the EN 16931 standard. The test checks whether your invoicing is ready for the transition and counts unpreparedness into the risk index.",
     "q7": "Who is affected by NIS2 and Act No. 366/2024 Coll.?",
@@ -77,7 +77,7 @@
       "title": "Indicative quiz",
       "duration": "6–8 minutes",
       "description": "A quick screening of digital maturity. An indicative result with the main recommendations.",
-      "bullet1": "Max. 18 questions",
+      "bullet1": "Max. 19 questions",
       "bullet2": "Indicative digitalisation score",
       "bullet3": "Identification of the main risks",
       "cta": "Start screening"
@@ -338,5 +338,12 @@
     "aboveAvg": "Above average",
     "belowAvg": "Below average",
     "bottom25": "Bottom 25 %"
+  },
+  "feedback": {
+    "title": "How was this assessment for you?",
+    "subtitle": "How likely are you to recommend it to a colleague or another company?",
+    "anchorLow": "Not at all likely",
+    "anchorHigh": "Extremely likely",
+    "thanks": "Thank you — this helps us improve the assessment."
   }
 }

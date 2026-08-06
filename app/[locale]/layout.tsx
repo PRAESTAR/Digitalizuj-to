@@ -250,7 +250,7 @@ function buildJsonLd(locale: Locale, description: string) {
           'Technical Debt & Risk Index — 14 rizikových faktorov vrátane e-fakturácie 2027 a NIS2',
           'Business Impact Potential — odhad ročných úspor v hodinách, MD a EUR (3 scenáre)',
           'Prioritizované odporúčania v 3-fázovej roadmape',
-          'Adaptívny dotazník s branching logikou (18 alebo 49–57 otázok)',
+          'Adaptívny dotazník s branching logikou (19 alebo 50–58 otázok)',
           'Odpovede aj výpočet výlučne v prehliadači — bez registrácie a bez odosielania odpovedí na server',
         ],
         isBasedOn: [

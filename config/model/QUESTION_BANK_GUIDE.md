@@ -36,8 +36,8 @@ Súbor `questionBank.json` má dve hlavné sekcie:
 }
 ```
 
-- **Indikatívny kvíz** — plochý zoznam v `indicative_quiz.questions` (žiadne moduly). Aktuálne **18 otázok**.
-- **Komplexný kvíz** — otázky sú rozdelené do `complex_quiz.modules[].questions`. `questionEngine.getQuizQuestions('complex')` ich sploští do jedného poľa v poradí modulov (`module_meta`, `module_A`...`module_F`, `module_ROI`, `module_DII`). Aktuálne **57 otázok** definovaných naprieč 9 modulmi; keďže vetvenie je od verzie 1.4-MVP reálne podmienené (viď sekcia 5.2), konkrétny respondent reálne uvidí typicky **49–57** z nich — presný počet po úprave otázok si vždy overte priamo v súbore.
+- **Indikatívny kvíz** — plochý zoznam v `indicative_quiz.questions` (žiadne moduly). Aktuálne **19 otázok**.
+- **Komplexný kvíz** — otázky sú rozdelené do `complex_quiz.modules[].questions`. `questionEngine.getQuizQuestions('complex')` ich sploští do jedného poľa v poradí modulov (`module_meta`, `module_A`...`module_F`, `module_ROI`, `module_DII`). Aktuálne **58 otázok** definovaných naprieč 9 modulmi; keďže vetvenie je od verzie 1.4-MVP reálne podmienené (viď sekcia 5.2), konkrétny respondent reálne uvidí typicky **50–58** z nich — presný počet po úprave otázok si vždy overte priamo v súbore.
 
 Poradie otázok v poli/module **je funkčné** — `questionEngine.getNextQuestion()` vracia prvú nezodpovedanú, nepreskočenú otázku v tomto poradí (lineárne skenovanie, nie prioritizácia podľa ID).
 
@@ -364,3 +364,36 @@ vyriešené a druhé nie, musia si vybrať, čo zamlčia. Pri rozdeľovaní plat
 4. **Hodnoty možností sa nemenia, ak ich niekto vyhľadáva.**
    `ind_03c_manual` používa tie isté hodnoty ako `cx_A05`, lebo benchmarky
    procesov sa hľadajú podľa nich.
+
+### Škála 0–10 (`likert_11`)
+
+Vyhradená pre **subjektívny úsudok o budúcnosti** — zámer, ochota,
+pravdepodobnosť. Nie pre stav, ktorý sa dá pozorovať.
+
+Zvyšok banky používa behaviorálne ukotvené možnosti a to je jej hlavná
+prednosť: dve firmy s rovnakou praxou vyberú rovnakú možnosť, lebo majú
+spoločný referenčný bod. Holé číslo ho nemá — dve firmy s identickými zálohami
+dajú 3 a 8 podľa toho, aká je ktorá sebakritická. Konverzia existujúcej otázky
+na 0–10 by teda model **zhoršila**, nie zlepšila.
+
+Tvar otázky:
+
+```json
+{
+  "question_type": "likert_11",
+  "scale": "likert-11",
+  "options": [ { "value": "0", "label": "0", "score": 0 }, … 11 stupňov … ],
+  "anchor_low_sk": "Nepravdepodobné",
+  "anchor_high_sk": "Veľmi pravdepodobné",
+  "evidence_type": "self_assessment"
+}
+```
+
+Validátor (kontrola #13) vyžaduje obe kotvy, `self_assessment`, zákaz DII
+a pri sýtení ORS aj písomné `likert_ors_rationale`.
+
+**Pri pridávaní akéhokoľvek nového typu otázky treba rozšíriť aj ENUM
+`questions.question_type` v `db/schema.sql`.** MariaDB v neprísnom režime
+neznámu hodnotu neodmietne — uloží prázdny reťazec, import zbehne bez chyby
+a rozbije sa až najbližší publish. Presne to sa stalo pri zavedení
+`likert_11`; import si to odvtedy kontroluje sám (`ALLOWED_TYPES`).

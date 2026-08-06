@@ -1,12 +1,12 @@
 {
-  "version": "1.6",
+  "version": "1.7",
   "model_name": "Adaptívny model DAP",
   "last_updated": "2026-08-06",
   "indicative_quiz": {
     "id": "indicative_v1",
     "name": "Indikatívny kvíz",
-    "description": "Rýchly screening digitálnej zrelosti (max 18 otázok)",
-    "max_questions": 18,
+    "description": "Rýchly screening digitálnej zrelosti (max 19 otázok)",
+    "max_questions": 19,
     "questions": [
       {
         "id": "ind_01",
@@ -942,13 +942,90 @@
         "tooltip": "Vrátane chatbotov, AI agentov (napr. automatizované AI workflow), prediktívnych modelov, generatívnej AI. Toto je zároveň oficiálny DII indikátor (Eurostat).",
         "allow_unknown": true,
         "scale": "linear-4"
+      },
+      {
+        "id": "ind_16_intent",
+        "category": "F",
+        "dimension": "investment_intent",
+        "question_sk": "Aká je pravdepodobnosť, že v najbližších 12 mesiacoch investujete do digitalizácie?",
+        "question_type": "likert_11",
+        "weight": 0,
+        "options": [
+          {
+            "value": "0",
+            "label": "0",
+            "score": 0
+          },
+          {
+            "value": "1",
+            "label": "1",
+            "score": 10
+          },
+          {
+            "value": "2",
+            "label": "2",
+            "score": 20
+          },
+          {
+            "value": "3",
+            "label": "3",
+            "score": 30
+          },
+          {
+            "value": "4",
+            "label": "4",
+            "score": 40
+          },
+          {
+            "value": "5",
+            "label": "5",
+            "score": 50
+          },
+          {
+            "value": "6",
+            "label": "6",
+            "score": 60
+          },
+          {
+            "value": "7",
+            "label": "7",
+            "score": 70
+          },
+          {
+            "value": "8",
+            "label": "8",
+            "score": 80
+          },
+          {
+            "value": "9",
+            "label": "9",
+            "score": 90
+          },
+          {
+            "value": "10",
+            "label": "10",
+            "score": 100
+          }
+        ],
+        "anchor_low_sk": "Nepravdepodobné",
+        "anchor_high_sk": "Veľmi pravdepodobné",
+        "branching_rules": [],
+        "evidence_type": "self_assessment",
+        "maps_to_score": [],
+        "maps_to_risk": [],
+        "maps_to_roi_model": [
+          "investment_intent"
+        ],
+        "tooltip": "Ide o váš odhad, nie o záväzok. Pomáha nám odhadnúť, ktorý scenár úspory je pre vás realistický.",
+        "allow_unknown": true,
+        "scale": "likert-11"
       }
     ]
   },
   "complex_quiz": {
     "id": "complex_v1",
     "name": "Komplexný kvíz",
-    "description": "Hlbšia diagnostika digitálnej zrelosti (49–57 otázok, adaptívne)",
+    "description": "Hlbšia diagnostika digitálnej zrelosti (50–58 otázok, adaptívne)",
     "modules": [
       {
         "id": "module_meta",
@@ -3361,6 +3438,83 @@
             "tooltip": "AI politika = jasné pravidlá, čo sa smie robiť s firemnými/zákazníckymi dátami pri použití AI nástrojov. Súvisí aj s EU AI Act (nariadenie EÚ 2024/1689) — fázovo účinný 2025–2027, klasifikuje AI systémy podľa rizika a ukladá povinnosti transparentnosti.",
             "allow_unknown": true,
             "scale": "linear-4"
+          },
+          {
+            "id": "cx_F07_intent",
+            "category": "F",
+            "dimension": "investment_intent",
+            "question_sk": "Aká je pravdepodobnosť, že v najbližších 12 mesiacoch investujete do digitalizácie?",
+            "question_type": "likert_11",
+            "weight": 0,
+            "options": [
+              {
+                "value": "0",
+                "label": "0",
+                "score": 0
+              },
+              {
+                "value": "1",
+                "label": "1",
+                "score": 10
+              },
+              {
+                "value": "2",
+                "label": "2",
+                "score": 20
+              },
+              {
+                "value": "3",
+                "label": "3",
+                "score": 30
+              },
+              {
+                "value": "4",
+                "label": "4",
+                "score": 40
+              },
+              {
+                "value": "5",
+                "label": "5",
+                "score": 50
+              },
+              {
+                "value": "6",
+                "label": "6",
+                "score": 60
+              },
+              {
+                "value": "7",
+                "label": "7",
+                "score": 70
+              },
+              {
+                "value": "8",
+                "label": "8",
+                "score": 80
+              },
+              {
+                "value": "9",
+                "label": "9",
+                "score": 90
+              },
+              {
+                "value": "10",
+                "label": "10",
+                "score": 100
+              }
+            ],
+            "anchor_low_sk": "Nepravdepodobné",
+            "anchor_high_sk": "Veľmi pravdepodobné",
+            "branching_rules": [],
+            "evidence_type": "self_assessment",
+            "maps_to_score": [],
+            "maps_to_risk": [],
+            "maps_to_roi_model": [
+              "investment_intent"
+            ],
+            "tooltip": "Ide o váš odhad, nie o záväzok. Pomáha nám odhadnúť, ktorý scenár úspory je pre vás realistický.",
+            "allow_unknown": true,
+            "scale": "likert-11"
           }
         ]
       },

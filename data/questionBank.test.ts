@@ -98,6 +98,39 @@ describe('nové otázky', () => {
   });
 });
 
+describe('škála 0–10 je vyhradená pre subjektívny úsudok', () => {
+  // Zvyšok banky stojí na behaviorálne ukotvených možnostiach — tie dajú dvom
+  // firmám s rovnakou praxou rovnakú odpoveď. Holé číslo taký referenčný bod
+  // nemá, takže na merateľný stav je HORŠIE než ukotvená možnosť. Validátor to
+  // stráži pri builde, tento test aj v CI bez validátora.
+  const likert = all.filter((q) => q.question_type === 'likert_11');
+
+  test('existuje aspoň jedna a všetky sú self_assessment', () => {
+    expect(likert.length).toBeGreaterThan(0);
+    for (const q of likert) expect(q.evidence_type).toBe('self_assessment');
+  });
+
+  test('má presne 11 stupňov s lineárnym bodovaním 0…100', () => {
+    for (const q of likert) {
+      const scores = (q.options ?? []).map((o) => o.score);
+      expect(scores).toEqual([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]);
+    }
+  });
+
+  test('nikdy nesýti DII — premenné Eurostatu sú binárne fakty', () => {
+    for (const q of likert) expect(q.maps_to_score).not.toContain('dii');
+  });
+
+  test('zámer investovať je mimo ORS — skóre hovorí o stave, nie o ochote', () => {
+    for (const id of ['ind_16_intent', 'cx_F07_intent']) {
+      const q = byId(id);
+      expect(q.weight).toBe(0);
+      expect(q.maps_to_score).toEqual([]);
+      expect(q.maps_to_roi_model).toContain('investment_intent');
+    }
+  });
+});
+
 describe('dĺžka kvízov', () => {
   // Indikatívny kvíz je vstup do lievika — jeho dĺžka rozhoduje o tom,
   // koľko ľudí diagnostiku vôbec dokončí. Strop je vedomé rozhodnutie,

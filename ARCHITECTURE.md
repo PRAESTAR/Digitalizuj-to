@@ -27,6 +27,7 @@
 - **Výsledky diagnostiky** sa od 5. 8. 2026 ukladajú do tabuľky `assessment_results` ako agregáty (odpovede po otázkach nie); `localStorage` zostáva ako prvá, okamžitá vrstva. Dovtedy výsledok neopustil prehliadač, takže permanentný odkaz fungoval len na jednom zariadení.
   - `api/result-save.php` — zápis (strop 512 kB, tvar hashu aj UUID, 20 zápisov z IP za hodinu, idempotencia cez unique kľúč). Po odoslaní odpovede spúšťa **retenčný prune**: mazanie riadkov starších než `RETENTION_MONTHS` (24) v dávkach po 200. Hosting nemá cron ani MariaDB EVENT, takže mazanie visí na prevádzke — lehota je „najviac 24 mesiacov od posledného zápisu", nie presne 24.
   - `api/result.php` — čítanie podľa hashu, vracia anonymizovaný snapshot.
+  - `api/feedback.php` — hodnotenie testu (0–10) k existujúcemu výsledku. Zapisuje sa k riadku výsledku, nie do vlastnej tabuľky, aby sa dala spätná väzba porovnať so skóre, ktoré ju vyvolalo.
   - `api/result-delete.php` — výmaz na žiadosť. Autorizáciou je znalosť hashu, rovnako ako pri čítaní: 64 hex znakov sa uhádnuť nedá. Vedomý dôsledok — komu odkaz prepošlete, ten výsledok môže aj zmazať; silnejšia autorizácia by znamenala účty, čo je pre anonymnú diagnostiku horší kompromis.
 - **Scoring a benchmark dáta** zostávajú v repe (`data/*.json` + typované wrappery), lebo sú súčasťou verzovaného modelu, nie používateľských dát.
 
@@ -146,9 +147,15 @@ interface Question {
   allow_unknown: boolean;
 }
 
-// Iba tieto dva typy sú implementované v QuestionCard.tsx.
+// Iba tieto tri typy sú implementované v QuestionCard.tsx.
 // 'yes_no', 'numeric_input', 'numeric_bands', 'maturity_scale' NIE SÚ podporené v UI.
-type QuestionType = 'single_choice' | 'multi_select';
+//
+// 'likert_11' je škála 0–10 s textovými kotvami, vyhradená pre subjektívny
+// úsudok o budúcnosti (zámer, ochota, pravdepodobnosť). Technicky je to 11
+// možností so skóre 0/10/…/100, takže scoring ani DB nepotrebujú vlastnú
+// vetvu — mení sa len vykreslenie (LikertScale.tsx) a pravidlá validátora.
+// Obmedzenie vynucuje validátor (kontrola #13), viď SCORING_SPEC §7.1b.
+type QuestionType = 'single_choice' | 'multi_select' | 'likert_11';
 
 interface QuestionOption {
   value: string;

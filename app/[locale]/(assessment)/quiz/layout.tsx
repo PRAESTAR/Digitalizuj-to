@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Test digitálnej zrelosti — adaptívny dotazník',
   description:
-    'Adaptívny dotazník digitálnej zrelosti: 18 otázok (6–8 min) alebo 49–57 otázok (18–25 min). Odpovede zostávajú vo vašom prehliadači.',
+    'Adaptívny dotazník digitálnej zrelosti: 19 otázok (6–8 min) alebo 50–58 otázok (18–25 min). Odpovede zostávajú vo vašom prehliadači.',
   // Prázdny objekt PRERUŠUJE dedenie alternates z layoutu — bez neho by
   // noindex stránka zdedila canonical na homepage aj celý hreflang cluster
   // (dedenie metadát je per-kľúč; podstránka bez vlastného alternates

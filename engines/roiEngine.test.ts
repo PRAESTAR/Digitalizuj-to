@@ -46,7 +46,7 @@ describe('extractROIInputs — manuálne procesy', () => {
   test('deklarované „žiadny ručný proces" nedostane úsporu z predpokladaných procesov', () => {
     const base = {
       employeeCountBand: 'small', maturityLevel: 1,
-      invoicingVolumeBand: 'medium', adminHeadcountBand: '4_10', categoryScoreF: 60,
+      invoicingVolumeBand: 'medium', adminHeadcountBand: '4_10', categoryScoreF: 60, investmentIntent: null,
     };
     const ziadny = calculateBusinessImpact([], [], {
       ...base, manualProcesses: [], noManualProcesses: true,
@@ -128,7 +128,7 @@ describe('extractROIInputs — ostatné vstupy', () => {
   test('predpokladaná zrelosť sa prizná disclaimerom a stropom dôveryhodnosti', () => {
     const base = {
       employeeCountBand: 'small', manualProcesses: ['invoicing'], noManualProcesses: false,
-      invoicingVolumeBand: 'medium', adminHeadcountBand: '4_10', categoryScoreF: 60,
+      invoicingVolumeBand: 'medium', adminHeadcountBand: '4_10', categoryScoreF: 60, investmentIntent: null,
     };
     const zistena = calculateBusinessImpact([], [], { ...base, maturityLevel: 2 });
     const nezistena = calculateBusinessImpact([], [], { ...base, maturityLevel: null });
@@ -170,7 +170,7 @@ describe('calculateBusinessImpact — voľba procesov', () => {
     maturityLevel: 1,
     invoicingVolumeBand: 'medium',
     adminHeadcountBand: '4_10',
-    categoryScoreF: 60,
+    categoryScoreF: 60, investmentIntent: null,
   };
 
   test('bez self-reported procesov počíta s 3 defaultnými benchmark procesmi', () => {
@@ -235,7 +235,7 @@ describe('calculateBusinessImpact — self-reported vstupy menia výsledok', () 
     maturityLevel: 1,
     manualProcesses: ['invoicing'], noManualProcesses: false,
     adminHeadcountBand: null,
-    categoryScoreF: 60,
+    categoryScoreF: 60, investmentIntent: null,
   };
 
   test('objem fakturácie hýbe úsporou — dve firmy už nedostanú to isté', () => {
@@ -283,7 +283,7 @@ describe('calculateBusinessImpact — chýbajúca veľkosť firmy', () => {
     manualProcesses: [], noManualProcesses: false,
     invoicingVolumeBand: null,
     adminHeadcountBand: null,
-    categoryScoreF: 80,
+    categoryScoreF: 80, investmentIntent: null,
   };
 
   test('počíta sa ďalej, ale priznane', () => {
@@ -304,6 +304,7 @@ describe('calculateBusinessImpact — politika scenárov podľa governance', () 
     manualProcesses: [], noManualProcesses: false,
     invoicingVolumeBand: null,
     adminHeadcountBand: null,
+    investmentIntent: null,
   };
 
   test('vysoká governance odomkne optimistický scenár', () => {
@@ -325,5 +326,54 @@ describe('calculateBusinessImpact — politika scenárov podľa governance', () 
     expect(i.displayPolicy!.gate).toBe('unmeasured');
     expect(i.displayPolicy!.governanceScoreF).toBeNull();
     expect(i.displayPolicy!.visibleScenarios).not.toContain('optimistic');
+  });
+});
+
+describe('calculateBusinessImpact — zámer investovať je druhá brána', () => {
+  // Governance meria KAPACITU realizovať, zámer VÔĽU. Sú nezávislé a úsporu
+  // obmedzuje tá slabšia — do 6. 8. 2026 existovala len governance a slúžila
+  // ako zástupný ukazovateľ oboch, takže firma s výbornou organizáciou
+  // a nulovou chuťou investovať dostávala optimistický scenár.
+  const base = {
+    employeeCountBand: 'small', maturityLevel: 1,
+    manualProcesses: [], noManualProcesses: false,
+    invoicingVolumeBand: null, adminHeadcountBand: null,
+  };
+
+  test('nízky zámer skryje optimistický scenár aj pri výbornej governance', () => {
+    const i = calculateBusinessImpact([], [], { ...base, categoryScoreF: 90, investmentIntent: 2 });
+    expect(i.displayPolicy!.gate).toBe('restricted');
+    expect(i.displayPolicy!.visibleScenarios).not.toContain('optimistic');
+    // Dôvod musí ukázať na zámer, nie na governance — inak by firma dostala
+    // radu opravovať niečo, čo má v poriadku.
+    expect(i.displayPolicy!.reasonSk).toContain('zámer investovať 2/10');
+  });
+
+  test('vysoký zámer neprebije slabú governance — platí prísnejšia brána', () => {
+    const i = calculateBusinessImpact([], [], { ...base, categoryScoreF: 20, investmentIntent: 10 });
+    expect(i.displayPolicy!.gate).toBe('restricted');
+    expect(i.displayPolicy!.visibleScenarios).not.toContain('optimistic');
+    expect(i.displayPolicy!.reasonSk).toContain('organizačná pripravenosť');
+  });
+
+  test('vysoká governance aj vysoký zámer odomknú optimistický scenár', () => {
+    const i = calculateBusinessImpact([], [], { ...base, categoryScoreF: 85, investmentIntent: 9 });
+    expect(i.displayPolicy!.gate).toBe('high');
+    expect(i.displayPolicy!.visibleScenarios).toContain('optimistic');
+  });
+
+  test('nezistený zámer bránu neposúva ani jedným smerom', () => {
+    // Nevedomosť nie je dôkaz o nechuti — rovnaká politika ako pri rizikách.
+    const bez = calculateBusinessImpact([], [], { ...base, categoryScoreF: 85, investmentIntent: null });
+    const s = calculateBusinessImpact([], [], { ...base, categoryScoreF: 85, investmentIntent: 9 });
+    expect(bez.displayPolicy!.gate).toBe(s.displayPolicy!.gate);
+  });
+
+  test('zámer mimo rozsahu 0–10 sa neberie do úvahy', () => {
+    const inputs = extractROIInputs([answer('cx_F07_intent', '11')], [], 0);
+    expect(inputs.investmentIntent).toBeNull();
+    expect(extractROIInputs([answer('cx_F07_intent', '7')], [], 0).investmentIntent).toBe(7);
+    // Nula je platná odpoveď („určite nie"), nie chýbajúca hodnota.
+    expect(extractROIInputs([answer('ind_16_intent', '0')], [], 0).investmentIntent).toBe(0);
   });
 });

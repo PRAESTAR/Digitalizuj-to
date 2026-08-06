@@ -11,6 +11,7 @@ import {
   workingHoursPerFteYear,
   adminAgendaShareOfFte,
   governanceScenarioGates,
+  investmentIntentGates,
   realizationRates,
   rampUpMonthsByScenario,
   savingsProjectionHorizonMonths,
@@ -45,16 +46,34 @@ interface ROIInputs {
   adminHeadcountBand: string | null;
   /** null = kategória F (governance) nemeraná — disclaimer sa nevyhodnocuje. */
   categoryScoreF: number | null;
+  /**
+   * Zámer investovať 0–10. `null` = otázka nezodpovedaná alebo „Neviem" —
+   * bránu vtedy neposúva ani jedným smerom, nevedomosť nie je dôkaz o nechuti.
+   */
+  investmentIntent: number | null;
 }
 
 /**
- * Politika zobrazenia scenárov podľa meranej governance (ROI_MODEL §5.3).
- * Bez doloženej organizačnej pripravenosti sa optimistický scenár nezobrazuje —
- * doteraz sa k nemu len pridával disclaimer, ktorý číslo nijako nekrotil.
+ * Politika zobrazenia scenárov (ROI_MODEL §5.3).
+ *
+ * Skladá sa z DVOCH nezávislých brán a platí tá prísnejšia:
+ *
+ *  - **governance** (ORS kategória F) — či firma vie zmenu zorganizovať,
+ *  - **zámer investovať** (0–10) — či to vôbec chce.
+ *
+ * Do 6. 8. 2026 existovala len prvá a slúžila ako zástupný ukazovateľ oboch.
+ * To bola tichá chyba: governance je kapacita, nie vôľa. Firma s výbornou
+ * organizáciou a nulovou chuťou investovať nezrealizuje nič — a dostávala
+ * optimistický scenár. Rovnako odhodlaná firma bez pripravenosti ho dostane
+ * len vtedy, ak obstojí aj v governance.
+ *
+ * Priemerovať brány by bolo horšie než ich minimum: silná stránka by kryla
+ * slabú, hoci úsporu obmedzuje práve tá slabá.
  */
 function resolveScenarioPolicy(
   f: number | null,
-  sizeBandAssumed: boolean
+  sizeBandAssumed: boolean,
+  intent: number | null
 ): ScenarioDisplayPolicy {
   if (sizeBandAssumed) {
     return {
@@ -66,6 +85,8 @@ function resolveScenarioPolicy(
         'Veľkosť firmy nebola uvedená, takže objemy procesov stoja na predpoklade — optimistický scenár by predstieral presnosť, ktorú vstupy nemajú.',
     };
   }
+  // Nezmeraná governance je prísnejšia než akýkoľvek zámer — bez nej sa
+  // organizačná pripravenosť nedá doložiť vôbec.
   if (f === null) {
     return {
       gate: 'unmeasured',
@@ -76,30 +97,48 @@ function resolveScenarioPolicy(
         'Governance (kategória F) nebola zmeraná — optimistický scenár sa nezobrazuje, pretože organizačnú pripravenosť nevieme doložiť.',
     };
   }
-  if (f >= governanceScenarioGates.high) {
+
+  const govGate: ScenarioDisplayPolicy['gate'] =
+    f >= governanceScenarioGates.high ? 'high'
+      : f >= governanceScenarioGates.standard ? 'standard'
+        : 'restricted';
+
+  // Nezistený zámer bránu neposúva ani jedným smerom — nevedomosť nie je
+  // dôkaz o nechuti, rovnako ako pri rizikách.
+  const intentGate: ScenarioDisplayPolicy['gate'] | null =
+    intent === null ? null
+      : intent >= investmentIntentGates.high ? 'high'
+        : intent >= investmentIntentGates.standard ? 'standard'
+          : 'restricted';
+
+  const RANK = { restricted: 0, standard: 1, high: 2 } as const;
+  const gate = intentGate !== null && RANK[intentGate] < RANK[govGate] ? intentGate : govGate;
+  const limitedByIntent = intentGate !== null && RANK[intentGate] < RANK[govGate];
+
+  const govText = `organizačná pripravenosť (F ${Math.round(f)}/100)`;
+  const intentText = intent !== null ? `zámer investovať ${intent}/10` : null;
+
+  if (gate === 'restricted') {
     return {
-      gate: 'high',
-      recommendedScenario: 'mid',
-      visibleScenarios: ['conservative', 'mid', 'optimistic'],
+      gate,
+      recommendedScenario: 'conservative',
+      visibleScenarios: ['conservative', 'mid'],
       governanceScoreF: f,
-      reasonSk: `Vysoká organizačná pripravenosť (F ${Math.round(f)}/100) — firma má reálnu šancu dosiahnuť aj optimistický scenár.`,
+      reasonSk: limitedByIntent
+        ? `Nízky ${intentText} znižuje pravdepodobnosť, že sa potenciál naozaj zrealizuje — optimistický scenár sa preto nezobrazuje, hoci ${govText} by ho pripúšťala.`
+        : `Nízka ${govText} znižuje pravdepodobnosť realizácie plného potenciálu — optimistický scenár sa preto nezobrazuje.`,
     };
   }
-  if (f >= governanceScenarioGates.standard) {
-    return {
-      gate: 'standard',
-      recommendedScenario: 'mid',
-      visibleScenarios: ['conservative', 'mid', 'optimistic'],
-      governanceScoreF: f,
-      reasonSk: `Priemerná organizačná pripravenosť (F ${Math.round(f)}/100) — realistický scenár je primeraný odhad.`,
-    };
-  }
+
+  const detail = intentText ? `${govText} a ${intentText}` : govText;
   return {
-    gate: 'restricted',
-    recommendedScenario: 'conservative',
-    visibleScenarios: ['conservative', 'mid'],
+    gate,
+    recommendedScenario: 'mid',
+    visibleScenarios: ['conservative', 'mid', 'optimistic'],
     governanceScoreF: f,
-    reasonSk: `Nízka organizačná pripravenosť (F ${Math.round(f)}/100) znižuje pravdepodobnosť realizácie plného potenciálu — optimistický scenár sa preto nezobrazuje.`,
+    reasonSk: gate === 'high'
+      ? `Vysoká pripravenosť aj odhodlanie — ${detail}. Firma má reálnu šancu dosiahnuť aj optimistický scenár.`
+      : `Priemerná pripravenosť — ${detail}. Realistický scenár je primeraný odhad.`,
   };
 }
 
@@ -303,7 +342,7 @@ export function calculateBusinessImpact(
   const gapPercentage = Math.max(0, Math.round((1 - maturityLevel / 4) * 100));
 
   // Politika zobrazenia scenárov podľa meranej governance a známosti veľkosti.
-  const displayPolicy = resolveScenarioPolicy(inputs.categoryScoreF, sizeBandAssumed);
+  const displayPolicy = resolveScenarioPolicy(inputs.categoryScoreF, sizeBandAssumed, inputs.investmentIntent);
   const governanceNote = displayPolicy.gate === 'standard' || displayPolicy.gate === 'high'
     ? ''
     : displayPolicy.reasonSk;
@@ -540,9 +579,16 @@ export function extractROIInputs(
   const rawSize = getMeasuredAnswerValue('ind_02') ?? getMeasuredAnswerValue('cx_02');
   const employeeCountBand = rawSize && KNOWN_SIZE_BANDS.includes(rawSize) ? rawSize : null;
 
+  // Zámer investovať — validuje sa proti rozsahu 0–10 rovnako ako zrelosť.
+  const intentRaw = getMeasuredAnswerValue('cx_F07_intent') ?? getMeasuredAnswerValue('ind_16_intent');
+  const intentParsed = intentRaw !== null ? parseInt(intentRaw, 10) : NaN;
+  const investmentIntent =
+    Number.isInteger(intentParsed) && intentParsed >= 0 && intentParsed <= 10 ? intentParsed : null;
+
   return {
     employeeCountBand,
     maturityLevel,
+    investmentIntent,
     manualProcesses: manualProcs.filter(p => p !== 'none'),
     noManualProcesses: manualProcs.includes('none') && manualProcs.every(p => p === 'none'),
     invoicingVolumeBand: getMeasuredAnswerValue('cx_ROI03'),

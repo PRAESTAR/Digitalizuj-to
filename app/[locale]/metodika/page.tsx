@@ -119,7 +119,7 @@ export default async function MethodologyPage({
           </h2>
           <p className="text-sm text-[#6e6e73] leading-relaxed mb-4">
             Používateľ si vyberie jednu z dvoch diagnostík: indikatívnu
-            (18 otázok, 6–8 minút) alebo komplexnú (49–57 otázok podľa vetvy
+            (19 otázok, 6–8 minút) alebo komplexnú (50–58 otázok podľa vetvy
             adaptívneho branchingu, 15–20 minút — 6 hodnotených modulov A–F
             plus úvodné, ROI a DII otázky). Pri hodnotiacich otázkach je
             možnosť „Neviem", ktorá sa do skóre nezapočítava. Výstupom je

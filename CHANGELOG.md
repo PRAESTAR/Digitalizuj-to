@@ -8,6 +8,40 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Škála 0–10, zámer investovať a spätná väzba (6. 8. 2026)
+
+- **Nový typ otázky `likert_11`** — škála 0–10 s textovými kotvami. Prešiel som
+  všetkých 75 otázok a **ani jedna nie je vhodná na konverziu**: každá bodovaná
+  otázka v banke má behaviorálne ukotvené možnosti („Máme zdokumentovaný postup
+  obnovy"), a to je jej hlavná prednosť — dve firmy s rovnakou praxou vyberú
+  rovnakú možnosť. Holé číslo taký referenčný bod nemá. Typ je preto
+  **vyhradený pre subjektívny úsudok o budúcnosti** a obmedzenie vynucuje
+  validátor (kontrola #13), nie len dokumentácia: inak by sa z neho stal lenivý
+  default a banka by sa zosunula z doloženej evidencie na pocitový dotazník.
+- **Zámer investovať** (`ind_16_intent`, `cx_F07_intent`) — jediné miesto, kde
+  je 0–10 lepšia než ukotvené možnosti, lebo meraná vec **sama je** subjektívna
+  pravdepodobnosť. Banka dovtedy merala schopnosť všade a ochotu nikde.
+  Zámerne **mimo ORS** (váha 0): skóre hovorí o súčasnom stave a ochota
+  investovať ho nemení.
+- **ROI má dve brány namiesto jednej.** Optimistický scenár sa dovtedy púšťal
+  podľa governance skóre, ktoré slúžilo ako zástupný ukazovateľ pripravenosti
+  aj vôle. To bola tichá chyba: governance je kapacita, nie vôľa — firma
+  s výbornou organizáciou a nulovou chuťou investovať nezrealizuje nič a
+  scenár dostávala. Platí **prísnejšia z brán**, nie priemer: silná stránka by
+  inak kryla slabú, hoci úsporu obmedzuje práve tá slabá. Text dôvodu ukazuje
+  na tú bránu, ktorá scenár naozaj obmedzila.
+- **Hodnotenie testu (0–10) po výsledku** — prvý spätnoväzbový kanál, ktorý
+  produkt má. Ukladá sa k existujúcemu riadku výsledku, nie do vlastnej
+  tabuľky, aby sa dalo porovnať so skóre, ktoré ho vyvolalo. Odosiela sa hneď
+  po kliknutí, bez potvrdzovacieho tlačidla.
+- **Opravená tichá strata dát v importe.** `questions.question_type` je ENUM
+  a MariaDB v neprísnom režime neznámu hodnotu **neodmietne — uloží prázdny
+  reťazec**. Obe nové otázky tak pri prvom importe skončili v databáze bez
+  typu, import zbehol bez chyby a rozbil by sa až najbližší publish. ENUM je
+  rozšírený a import si zoznam povolených typov odteraz kontroluje sám.
+  Overené negatívnym testom.
+- **Dĺžka kvízov:** indikatívny 18 → 19, komplexný 57 → 58 otázok.
+
 ### Presnosť výpočtu (6. 8. 2026)
 
 - **Zaokrúhľuje sa až zobrazenie.** ORS prechádzal tromi zaokrúhleniami za
