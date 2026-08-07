@@ -21,6 +21,8 @@
  *     nesedí s vlastnou distribúciou, ORS mimo rozsahu)
  * 11. benchmarkData: sektor/veľkosť voliteľná v kvíze nemá referenčný záznam
  *     (inak sa respondentovi ticho zobrazí „benchmark nedostupný")
+ * 18. verejný changelog (`app/[locale]/changelog/page.tsx`) zaostal za bankou —
+ *     revízia modelu bez záznamu pre firmy, ktoré si chcú overiť, čím sa meria
  * 17. veľkostné kotvy (`size_anchors`): strop odkazuje na možnosť, ktorú
  *     otázka ponúka, klesá s veľkosťou firmy, nesedí na maxime a nesmie byť
  *     na otázke sýtiacej DII (Eurostat premenné sa merajú pre všetkých rovnako)
@@ -504,6 +506,44 @@ for (const q of all) {
   for (const band of Object.keys(q.size_anchors?.ceilings ?? {})) {
     if (SIZE_BANDS.includes(band) && !sizeOptionValues.has(band)) {
       errors.push(`${q.id}: kotva pre pásmo "${band}", ktoré otázka na veľkosť firmy neponúka`);
+    }
+  }
+}
+
+// --- 18: verejný changelog nesmie zaostať za modelom ------------------------
+// Stránka /changelog má vlastný kuratovaný zoznam vydaní — zámerne NIE je
+// generovaná z CHANGELOG.md, lebo hovorí inému publiku (firmám o meraní, nie
+// vývojárovi o kóde). Cena za to je drift a ten sa aj stal: dva dni ukazovala
+// 5. augusta, hoci sa medzitým zmenila banka, výpočet DII aj skórovanie.
+// Firma, ktorá si chce overiť, čím sa meria, tam videla neaktuálny stav.
+//
+// Kontroluje sa DÁTUM, nie obsah: čo presne sa do verejného changelogu napíše,
+// je redakčné rozhodnutie, ale revízia modelu bez akéhokoľvek záznamu preň je
+// chyba. Rovnaký princíp ako pri pečiatkach špecifikácií (#16).
+{
+  const page = 'app/[locale]/changelog/page.tsx';
+  let src;
+  try { src = readFileSync(page, 'utf8'); }
+  catch { errors.push(page + ': súbor chýba, hoci nesie verejnú históriu zmien'); src = null; }
+
+  if (src) {
+    const dates = [...src.matchAll(/^\s*date: '(\d{4}-\d{2}-\d{2})',$/gm)].map((m) => m[1]);
+    if (dates.length === 0) {
+      errors.push(page + ': nenašiel som ani jedno vydanie s dátumom — zmenil sa tvar poľa changelog?');
+    } else {
+      const newest = dates.slice().sort().at(-1);
+      if (newest < bank.last_updated) {
+        errors.push(
+          `${page}: najnovšie vydanie je z ${newest}, ale otázková banka sa menila ${bank.last_updated} ` +
+          '— doplň záznam, inak verejná história tvrdí neaktuálny stav modelu'
+        );
+      }
+      // OG modifiedTime je signál čerstvosti pre vyhľadávače; keď zaostane za
+      // obsahom stránky, hlási starší dátum, než aký na stránke naozaj je.
+      const og = (src.match(/modifiedTime: '(\d{4}-\d{2}-\d{2})/) || [])[1];
+      if (og && og < newest) {
+        errors.push(`${page}: modifiedTime je ${og}, ale najnovšie vydanie je z ${newest}`);
+      }
     }
   }
 }

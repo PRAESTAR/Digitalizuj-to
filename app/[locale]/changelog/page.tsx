@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     type: 'article',
     // Signál čerstvosti — legislatívne a metodické témy sa re-crawlujú
     // častejšie a AI vyhľadávače uprednostňujú datovaný obsah.
-    modifiedTime: '2026-08-02T00:00:00.000Z',
+    modifiedTime: '2026-08-07T00:00:00.000Z',
     // openGraph sa na podstránke nahrádza celý — bez explicitného obrázka
     // by karta zdieľania prišla o vizuál z file-konvencie v [locale].
     images: ['/sk/opengraph-image'],
@@ -53,11 +53,125 @@ const breadcrumbSchema = {
   ],
 };
 
+/**
+ * Verejná história zmien metodiky.
+ *
+ * POZOR: toto NIE JE generované z `CHANGELOG.md`. Sú to dva dokumenty pre dve
+ * publiká — tento hovorí firmám, čo sa zmenilo na meraní, ktorému majú veriť;
+ * `CHANGELOG.md` hovorí vývojárovi, čo sa zmenilo v kóde. Zlúčiť ich by
+ * znamenalo pokaziť oba.
+ *
+ * Cena za to je drift a ten sa 7. 8. 2026 aj stal: stránka dva dni ukazovala
+ * 5. augusta, hoci sa medzitým zmenila banka otázok, spôsob výpočtu DII aj
+ * skórovanie. Preto kontrola v `validate-model.mjs` (#18): dátum najnovšieho
+ * vydania tu musí byť aspoň taký čerstvý ako `last_updated` otázkovej banky.
+ */
 const changelog = [
+  {
+    version: '1.2',
+    date: '2026-08-07',
+    status: 'Aktuálna verzia',
+    sections: [
+      {
+        title: 'Skórovanie a metodika',
+        type: 'added' as const,
+        items: [
+          {
+            title: 'Malá firma sa už netrestá za to, že je malá',
+            description:
+              'Dve otázky merali počet zamestnancov, nie zrelosť: „dedikovaný IT tím s viacerými rolami" a „interný IT + externý dodávateľ s SLA" päťčlenná firma nedosiahne ani pri najlepšom vedení. Pre každé veľkostné pásmo sa odteraz vyhlási najvyššia dosiahnuteľná možnosť a rebríček sa prepočíta tak, aby znamenala plný počet bodov. Nula zostáva nulou. Úprava dokáže skóre len zdvihnúť, nikdy znížiť — overené na 12 000 kombináciách odpovedí (mikrofirmy +0,5 bodu priemerne).',
+          },
+          {
+            title: 'Rozklad skóre priamo vo výsledku',
+            description:
+              'Tvrdenie „každé skóre je auditovateľné" má odteraz doklad: výsledok ukazuje vážený priemer každej oblasti, zloženie celkového skóre, bezpečnostnú penalizáciu aj porovnanie s prahmi pásiem. Automatický test skóre prepočítava výhradne z tohto rozkladu a porovnáva s výstupom modelu — ak by sa výpočet a jeho vysvetlenie rozišli, build spadne.',
+          },
+          {
+            title: 'Mikrofirmy majú pri porovnaní výhradu',
+            description:
+              'Eurostat zbiera podniky od 10 zamestnancov, takže firma s 1–9 ľuďmi sa porovnávala s rozdelením, v ktorom nikto jej veľkosti nie je. Percentil sa naďalej počíta — bez neho by prišla o jedinú orientáciu — ale nesie priznanú výhradu.',
+          },
+          {
+            title: 'Presnosť výpočtu a citlivosť váh',
+            description:
+              'Vnútorné výpočty bežia v plnej presnosti a zaokrúhľuje sa až zobrazenie; predtým drift preklápal úroveň zrelosti v 27 zo 4 000 prípadov. Váhy oblastí majú doloženú citlivostnú analýzu: posun o ±5 percentuálnych bodov mení skóre málo, ale nálepku zrelosti v 3–8 % prípadov — preto rozdiel jednej úrovne medzi firmami nie je spoľahlivý signál.',
+          },
+        ],
+      },
+      {
+        title: 'Súkromie a dáta',
+        type: 'tech' as const,
+        items: [
+          {
+            title: 'Retencia 24 mesiacov a výmaz na požiadanie',
+            description:
+              'Uložené výsledky sa po 24 mesiacoch automaticky mažú. Vlastník odkazu môže svoj výsledok zmazať sám — autorizáciou je znalosť odkazu, žiadne konto netreba.',
+          },
+          {
+            title: 'Odpovede po otázkach sa neukladajú',
+            description:
+              'Na server ide len agregovaný výsledok. Cena za to je, že rozklad skóre existuje len na čerstvej výsledkovej stránke, nie na permanentnom odkaze — a je to tak priznané.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    version: '1.1',
+    date: '2026-08-06',
+    sections: [
+      {
+        title: 'Otázková banka a meranie',
+        type: 'added' as const,
+        items: [
+          {
+            title: 'Šesť dvojhlavňových otázok rozdelených na dvanásť',
+            description:
+              'Otázky, ktoré sa pýtali na dve veci naraz („schvaľovanie nákupov a dovoleniek", „zálohy a obnova"), sa nedali zodpovedať pravdivo, keď firma jedno mala a druhé nie. Každá je teraz samostatná. Pribudli otázky na ochranu koncových staníc, bezpečnostné povedomie a rolu vypĺňajúceho.',
+          },
+          {
+            title: 'DII po jednotlivých indikátoroch',
+            description:
+              'Namiesto plochého priemeru sa každý z 12 indikátorov Eurostatu vyhodnocuje samostatne s vlastným kritériom. Nezmeraný indikátor sa nefabrikuje na nesplnený — výsledok priznáva, z koľkých meraných sa extrapoluje.',
+          },
+          {
+            title: 'Rozsah namiesto jedného čísla',
+            description:
+              'Indikatívny kvíz meria menej otázkami, takže jeho výsledok je neistejší. Výsledok to už neskrýva: ukazuje rozsah odvodený z toho, o koľko by skóre pohla zmena jednej odpovede.',
+          },
+          {
+            title: 'Škála 0–10 pre zámer investovať',
+            description:
+              'Nový typ otázky, zámerne oplotený len na subjektívny úsudok o budúcnosti. Zvyšok banky stojí na behaviorálne ukotvených možnostiach, ktoré dvom firmám s rovnakou praxou dajú rovnakú odpoveď — holé číslo taký referenčný bod nemá.',
+          },
+          {
+            title: 'Hodnotenie testu po výsledku',
+            description:
+              'Po zobrazení výsledku sa dá test ohodnotiť na škále 0–10. Odpoveď sa ukladá k výsledku, takže sa dá porovnať so skóre, ktoré ju vyvolalo.',
+          },
+        ],
+      },
+      {
+        title: 'Odporúčania a ROI',
+        type: 'added' as const,
+        items: [
+          {
+            title: 'Odporúčania sa riadia odpoveďami, nie len skóre',
+            description:
+              'Predtým bežali čisto na kategóriovom skóre, takže sa trojosobovej firme odporúčal ERP a firme bez servera migrácia do cloudu. Pravidlo môže byť odteraz podmienené konkrétnou odpoveďou aj veľkosťou firmy — a odpoveď „Neviem" bránu nikdy neotvorí.',
+          },
+          {
+            title: 'Úspora za prvý rok oddelená od ustáleného stavu',
+            description:
+              'Karta hlásila ustálenú ročnú úsporu, kým graf pod ňou ukazoval v 12. mesiaci o 8–33 % menej. Sú to odteraz dve rozlíšené čísla a prvý rok sa berie priamo z bodu grafu.',
+          },
+        ],
+      },
+    ],
+  },
   {
     version: '1.0',
     date: '2026-08-05',
-    status: 'Aktuálna verzia',
     sections: [
       {
         title: 'Metodika a model',
