@@ -703,3 +703,71 @@ Aby ďalšia zmena váh nebola opäť nedoložená:
 
 Kým takýto záznam nevznikne, váhy zostávajú tým, čím sú: odôvodneným
 expertným odhadom s doloženou citlivosťou.
+
+
+
+---
+
+## 13. Reliabilita: čo sa dá zistiť a čo nie
+
+### 13.1 Pilotné kritériá popisujú štúdiu, ktorú systém spustiť nevie
+
+`scoringConfig.pilotCriteria` vyzerá prevádzkovo:
+
+```
+cronbachAlphaMin: 0.80 · itemDiscriminationMin: 0.30
+completionRateMin: 0.85 · unknownAnswerRateMax: 0.10
+orsToCorrelationMin: 0.50 · minPilotSampleSize: 200
+```
+
+**Štyri zo šiestich sa s dnešným úložiskom spočítať nedajú** — a nie je to
+otázka počtu respondentov:
+
+| Kritérium | Prečo je nedosiahnuteľné |
+|---|---|
+| `cronbachAlphaMin` | potrebuje odpovede po položkách; `answers_json` je zámerne `NULL` |
+| `itemDiscriminationMin` | to isté — item-total korelácia sa bez položiek nedá |
+| `unknownAnswerRateMax` | podiel „Neviem" je vlastnosť odpovedí, nie agregátu |
+| `completionRateMin` | nedokončené kvízy sa neukladajú, menovateľ neexistuje |
+
+Je to priamy dôsledok rozhodnutia z 5. 8. 2026 neukladať odpovede po otázkach
+(pôvodný účel — administrácia — bol zrušený, takže by sa najcitlivejšia časť
+dát uchovávala bez dôvodu). Rozhodnutie bolo správne; jeho cena je, že
+klasická psychometrická validácia nemá z čoho vzniknúť.
+
+**Čakanie na 200 respondentov teda samo o sebe nepomôže.** Potrebné je
+rozhodnutie o zbere, nie čas.
+
+### 13.2 Čo sa z agregátov spočítať DÁ
+
+`npm run pilot:readiness` počíta nad uloženými výsledkami:
+
+- veľkosť vzorky a jej vývoj,
+- koreláciu **ORS ↔ DII** (konvergentná validita: dve vrstvy majú merať
+  príbuznú, nie totožnú vec),
+- koreláciu **ORS ↔ TDRI** (očakáva sa záporná — vyššia zrelosť, nižšie riziko),
+- **medzikategóriové korelácie** A–F,
+- distribúciu NPS.
+
+Medzikategóriové korelácie sú tá najhodnotnejšia časť: odpovedajú na otázku,
+či šesť ODRM oblastí meria šesť rôznych vecí, alebo sa duplikujú. Korelácia
+nad 0,85 medzi dvoma kategóriami by znamenala, že ich oddelenie je zdanlivé —
+a to je zistenie o modeli, ktoré nepotrebuje odpovede po položkách.
+
+### 13.3 Tri cesty, ako rozpor vyriešiť
+
+Sú to alternatívy, nie postupnosť — každá má inú cenu:
+
+1. **Opt-in pilot so samostatným súhlasom.** Odpovede po položkách sa ukladajú
+   len respondentom, ktorí to výslovne odklikli, a len po dobu pilotu. Dá
+   plnú psychometriku, ale znamená ďalší súhlas v toku kvízu, samostatnú
+   retenciu a rozšírenie textov o ochrane údajov.
+2. **Agregovaná telemetria bez väzby na výsledok.** Ukladať len rozdelenie
+   odpovedí per otázka (koľkokrát ktorá možnosť, koľko „Neviem"), bez väzby
+   na konkrétne hodnotenie. Dá mieru „Neviem" a obťažnosť položiek, nedá
+   Cronbachovu alfu (tá potrebuje odpovede spárované v rámci respondenta).
+3. **Externý pilot mimo produkcie.** Osobitný beh so 40–60 firmami, dáta
+   mimo produkčnej databázy. Najčistejšie metodicky, najdrahšie prevádzkovo.
+
+Kým sa jedna z nich nezvolí, pilotné kritériá v konfigurácii sú **aspirácia,
+nie plán** — a tento dokument to hovorí namiesto toho, aby to zakrýval.

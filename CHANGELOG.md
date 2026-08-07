@@ -8,6 +8,27 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Reliabilita a ročné kotvy: nástroje namiesto čakania (6. 8. 2026)
+
+- **Pilotné kritériá popisujú štúdiu, ktorú systém spustiť nevie.** Štyri
+  zo šiestich (`cronbachAlphaMin`, `itemDiscriminationMin`,
+  `unknownAnswerRateMax`, `completionRateMin`) potrebujú odpovede po
+  položkách alebo počet nedokončených kvízov — ani jedno sa neukladá.
+  Je to dôsledok správneho rozhodnutia neuchovávať odpovede, ale znamená to,
+  že **čakanie na 200 respondentov samo osebe nepomôže**; potrebné je
+  rozhodnutie o zbere. METHODOLOGY §13 to hovorí rovno a ponúka tri cesty
+  (opt-in pilot, agregovaná telemetria, externý pilot) s ich cenou.
+- **`npm run pilot:readiness`** počíta to, čo z agregátov spočítať ide:
+  korelácie ORS↔DII a ORS↔TDRI, **medzikategóriové korelácie A–F** a NPS.
+  Tie medzikategóriové sú najcennejšie — odpovedajú, či šesť ODRM oblastí
+  meria šesť rôznych vecí, alebo sa duplikujú, a na to odpovede po položkách
+  netreba.
+- **`npm run data:freshness`** stráži dve ročné kotvy: Eurostat `isoc_e_dii`
+  (december) a hodinovú cenu práce (marec). Pri každej vypíše konkrétny
+  zoznam krokov, takže decembrová aktualizácia nebude archeológia.
+  **Zámerne nesťahuje dáta** — benchmark, ktorý sa zmení sám bez diffu, je
+  horší než zastaraný.
+
 ### Deploy, váhy a Turnstile brána (6. 8. 2026)
 
 - **Nasadzovací skript je v repozitári a overuje certifikát.** Dovtedy žil len

@@ -17,7 +17,9 @@
     "docs:sync": "node scripts/sync-model-docs.mjs",
     "model:sync": "npm run config:sync && npm run docs:sync",
     "deploy": "node scripts/deploy-ftp.mjs",
-    "weights:sensitivity": "node scripts/weight-sensitivity.mjs"
+    "weights:sensitivity": "node scripts/weight-sensitivity.mjs",
+    "pilot:readiness": "node scripts/pilot-readiness.mjs",
+    "data:freshness": "node scripts/check-data-freshness.mjs"
   },
   "dependencies": {
     "@types/qrcode": "^1.5.6",
