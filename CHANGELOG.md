@@ -8,6 +8,46 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Tri otvorené metodické body rozhodnuté — všetky tri zamietnutím (7. 8. 2026)
+
+Spoločný menovateľ nebol „chýbajú dáta", ale **chýba väzba** — a správnou
+operáciou bolo tvrdenie odstrániť, nie doplniť odhad.
+
+- **Payback a pásma nákladov: zamietnuté.** `roiEngine` nikdy nevidí výstup
+  `recommendationEngine` — úspora sa počíta z ručných procesov, zrelosti,
+  veľkosti a objemu fakturácie, nie zo zoznamu odporúčaní. Veta „ak tieto
+  zmeny stoja menej než X, vrátia sa" by nevymyslela číslo, ale **vzťah, ktorý
+  model nepočíta**, a taký sa nedá poctivo označiť ani ako expertný odhad.
+  Karta Business Impact odteraz hovorí priamo, čo číslo je a čo nie je.
+- **Z odporúčaní zmizli odznaky „Dopad: n/5" a „Úsilie: n/5".** `impact`
+  a `effort` sú interné poradové parametre bez deklarovanej jednotky — nie sú
+  to človekodni ani nič overiteľné. Zobrazené vyzerali ako meranie. „Dopad"
+  bol navyše natvrdo po slovensky, takže ho český aj anglický používateľ videl
+  v slovenčine. Poradie odporúčaní sa nemení; mení sa len to, čo je vidieť.
+- **Zber odpovedí po položkách: nebude.** Ani opt-in, ani telemetriou, ani
+  externým pilotom. **`pilotCriteria` sa zmazali, nie nahradili** — šesť prahov
+  nečítal žiadny engine a nahradiť ich novými by bolo premenovanie vady.
+  Dôvody, prečo Cronbachova alfa nesmie byť *prijímacím prahom*, sú
+  v METHODOLOGY §13.2 ako argument: závisí od počtu položiek (α = 0,80 žiada
+  r̄ = 0,571 pri troch položkách, ale len 0,235 pri trinástich — a kategórie
+  tohto modelu majú od 1 do 13), vysoká alfa by tu znamenala redundantný
+  dotazník, a vetvenie robí chýbanie odpovedí nenáhodným. Alfa **nie je
+  zakázaná metrika** — OECD/JRC ju pre kompozitné indikátory používa ako
+  diagnostiku; neobstojí ako prah.
+- **Reverse-keyed položky: zamietnuté natrvalo, kvôli formátu banky.** Banka má
+  77 položiek a formát súhlas–nesúhlas sa v nej nevyskytuje ani raz —
+  acquiescence bias je definovaný práve preň a odporúčaným liekom je nahradiť
+  ho konštruktovo špecifickými možnosťami, čo banka už má. Reverse položka by
+  teda zaviedla vadu, aby sa dala merať.
+- **Vecné jadro toho bodu prechádza inam:** deterministická kontrola rozporov
+  nad už existujúcimi dvojicami odpovedí („fakturácia je plne automatizovaná"
+  + „fakturáciu robíme prevažne ručne"). Bez novej otázky, bez prahu, ako
+  neblokujúca ponuka opravy — nie ako obvinenie z nepozornosti.
+- **Popri tom sa našli tri chyby:** `riskMitigations` sa počítajú a nikdy
+  nezobrazia; `COMPLETE_QUIZ` je v normálnom toku nedosiahnuteľná; a
+  dokumentácia sľubovala payback v „budúcich rozšíreniach", kým iná sekcia
+  toho istého súboru ho odmietala. Všetky tri sú v checkliste.
+
 ### Skórovanie prestalo trestať firmy za to, že sú malé (7. 8. 2026)
 
 - **Dve otázky merali počet zamestnancov, nie zrelosť.** `cx_DII04` („Máte vo

@@ -330,15 +330,7 @@
       "high": 10,
       "medium": 6
     },
-    "aiConfidenceMinAnswers": 2,
-    "pilotCriteria": {
-      "cronbachAlphaMin": 0.8,
-      "completionRateMin": 0.85,
-      "unknownAnswerRateMax": 0.1,
-      "orsToCorrelationMin": 0.5,
-      "minPilotSampleSize": 200,
-      "itemDiscriminationMin": 0.3
-    }
+    "aiConfidenceMinAnswers": 2
   },
   "workingHoursPerFteYear": 1700
 }

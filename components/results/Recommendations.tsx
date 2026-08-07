@@ -145,14 +145,14 @@ export default function Recommendations({ recommendations }: RecommendationsProp
                   <div className="font-bold text-[#1d1d1f]">{r.titleSk}</div>
                   <div className="text-sm text-[#6e6e73] mt-1 leading-relaxed">{r.descriptionSk}</div>
                 </div>
-                <div className="flex flex-wrap gap-2 sm:shrink-0">
-                  <span className="px-3 py-1.5 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] text-xs font-bold">
-                    Dopad: {r.impact}/5
-                  </span>
-                  <span className="px-3 py-1.5 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] text-xs font-bold">
-                    {t('effort', { n: r.effort })}
-                  </span>
-                </div>
+                {/* Odznaky „Dopad: n/5" a „Úsilie: n/5" odstránené 7. 8. 2026.
+                    `impact` a `effort` sú interné poradové parametre bez
+                    deklarovanej jednotky — nie sú to človekodni ani nič, čo by
+                    sa dalo overiť. Zobrazené vyzerali ako meranie, hoci slúžia
+                    výhradne na zoradenie odporúčaní medzi sebou
+                    (RECOMMENDATION_RULES §2.1). „Dopad" bol navyše natvrdo po
+                    slovensky, takže ho český aj anglický používateľ videl
+                    v slovenčine. Poradie odporúčaní sa nemení. */}
               </div>
             ))}
           </div>

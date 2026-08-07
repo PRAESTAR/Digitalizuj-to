@@ -60,13 +60,30 @@ tím", lebo nesplniteľné odporúčanie je horšie než žiadne.
 
 ### 2.1 Skutočný vzorec prioritizácie
 
-Kritické riziká:
 ```
-priorityScore = (severity === 'critical' ? 5 : 4) × 5 / 2
+priorityScore = round(urgency × impact / effort, 1)
 ```
-t.j. presne **12.5** pre critical severity, **10** pre high/medium (nie `urgency × impact / effort` z pôvodnej dokumentácie — `effort` je vždy natvrdo `2`, `impact` sa do vzorca nedostane).
 
-Quick win / strategic / long-term odporúčania majú `urgency`, `impact`, `effort`, `priorityScore` **natvrdo nastavené na fixné hodnoty per pravidlo** (tabuľky nižšie) — nepočítajú sa dynamicky.
+Platí **rovnako pre všetky typy odporúčaní** vrátane kritických rizík
+(`engines/recommendationEngine.ts`, funkcia `priority`). Šablóny rizikových
+faktorov v `data/riskRecommendations.ts` nesú vlastné `urgency`/`impact`/`effort`
+a `effort` sa medzi nimi líši (1 až 3), takže tvrdenie o pevnej hodnote 12,5
+neplatí.
+
+> **Oprava 7. 8. 2026.** Táto sekcia predtým opisovala stav spred 6. 8. 2026:
+> `priorityScore` bol v každom pravidle napísaný natvrdo, takže sa dalo zmeniť
+> `urgency`/`impact`/`effort` bez toho, aby sa poradie v roadmape pohlo.
+> Odvtedy sa počíta zo skutočných polí.
+
+**`urgency`, `impact` a `effort` sú interné poradové parametre bez deklarovanej
+jednotky.** Nie sú to človekodni, eurá ani nič, čo by sa dalo overiť — slúžia
+výhradne na zoradenie odporúčaní medzi sebou. Preto sa **respondentovi
+nezobrazujú**: odznaky „Dopad: 3/5" a „Úsilie: 3/5" boli 7. 8. 2026
+z `components/results/Recommendations.tsx` odstránené. Číslo bez jednotky
+a bez kotiev nie je interpersonálne porovnateľné (Smith & Kendall 1963,
+behaviorálne ukotvené škály) a jeho zobrazenie ho vydávalo za meranie.
+
+Poradie samotné sa nemení — mení sa len to, čo je vidieť.
 
 ---
 

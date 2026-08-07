@@ -358,8 +358,10 @@ nezmerané nie je zistenie. Prahy sú v `governanceScenarioGates`.
 
 ### 6.3 Budúce rozšírenia
 
-- Pridanie odhadov implementačných nákladov (per odporúčanie).
-- Simple payback period kalkulácia.
+*(Odhady implementačných nákladov a payback boli z tohto zoznamu odstránené
+7. 8. 2026 — sľubovali presne to, čo sekcia „Rozhodnuté: náklady a payback"
+nižšie odmieta.)*
+
 - Revenue impact model pre e-commerce a sales digitalizáciu.
 - TCO porovnanie (current state vs. target state).
 - Zapojenie zbieraných vstupov cx_ROI02 (admin headcount) a cx_ROI03 (objem fakturácie) do per-procesných prepočtov (dnes sa zbierajú, ale nevyužívajú — viď checklist).
@@ -549,15 +551,39 @@ hovorí, čo číslo naozaj meria — odstup od plne digitalizovaného stavu —
 priznáva, z čoho vzniká (`Podľa zrelosti procesov (N/4)…`). Test stráží, aby
 sa slovo „priemer" do tých textov nevrátilo.
 
-## Otvorené: náklady a payback
+## Rozhodnuté 7. 8. 2026: náklady a payback sa robiť nebudú
 
-Checklist vedie aj „pásma nákladov per odporúčanie → payback interval".
-Payback = investícia / ročná úspora. **Úsporu model počíta, investíciu nie** —
-a odhadnúť ju by znamenalo priradiť eurové pásmo dvadsiatim odporúčaniam bez
-jediného dátového bodu. Väčšina z nich je navyše prevažne prácnosť
-(„zdokumentujte DR plán", „zaveďte MFA"), ktorá sa medzi firmami líši
-rádovo.
+Payback = investícia / ročná úspora. **Úsporu model počíta, investíciu nie.**
+Priradiť eurové pásmo by znamenalo oceniť **32 položiek** (18 statických
+odporúčaní v `engines/recommendationEngine.ts` + 14 šablón viazaných na
+rizikové faktory v `data/riskRecommendations.ts`) bez jediného dátového bodu.
+Väčšina z nich je navyše prevažne prácnosť („zdokumentujte DR plán",
+„zaveďte MFA"), ktorá sa medzi firmami líši rádovo.
 
-Vymyslené pásmo nákladov by bolo číslo, podľa ktorého sa niekto rozhodne
-investovať. To je presne trieda údaja, ktorý model inde dôsledne označuje ako
-expertný odhad alebo nezobrazuje vôbec. Vedené ako otvorený bod.
+**Rozhodujúci dôvod nie je chýbajúce číslo, ale chýbajúca väzba.** `roiEngine`
+nikdy nevidí výstup `recommendationEngine` — úspora sa počíta z ručných
+procesov, zrelosti, veľkosti firmy a objemu fakturácie, nie zo zoznamu
+odporúčaní. Veta typu „ak tieto zmeny stoja menej než X, vrátia sa" by preto
+nevymyslela číslo, ale **vzťah**, ktorý model nepočíta. Vymyslený vzťah sa
+nedá ani poctivo označiť ako expertný odhad, lebo nie je odhadom ničoho, čo by
+nástroj meral.
+
+Zamietnuté boli aj dve navrhované náhrady vzorca:
+
+- **Prah „ak investícia < ročná úspora, vráti sa do roka"** je nesprávny
+  vstup. `eurPerYear` je ustálený run-rate **po nábehu**, kým konzervatívny
+  ramp-up trvá 9 mesiacov — prah by nadhodnocoval smerom, ktorý nabáda minúť
+  viac.
+- **Prah počítaný na 12 mesiacov** by bol bit za bit už existujúce
+  `firstYearEur`, ktoré karta zobrazuje. Nulová nová informácia, nenulová
+  trvalá cena v type aj v UI.
+
+Čo sa namiesto toho urobilo: karta Business Impact hovorí priamo, že zobrazené
+číslo je **potenciál automatizácie ručných procesov, nie cena zoznamu
+odporúčaní**, a že opakované poplatky (licencie, zálohovanie, e-fakturácia) sa
+porovnávajú s ročnou úsporou, nie s dvojročným kumulatívom.
+
+**Predpokladom akéhokoľvek zvýšenia rozhodovacej váhy eurového čísla** je
+sektorová diferenciácia hodinovej sadzby — dnes sa na všetky sektory používa
+jednotných 30,8 €/h (NACE J), čo je pri gastre či stavebníctve možné
+dvojnásobné nadhodnotenie. Vedené v `IMPROVEMENT_CHECKLIST.md`.

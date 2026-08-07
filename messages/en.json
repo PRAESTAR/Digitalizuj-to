@@ -270,6 +270,7 @@
     "errorReduction": "Savings from fewer errors (h)",
     "annualImpact": "Annual impact (once ramped up)",
     "confidence": "Estimate confidence:",
+    "whatThisIs": "This figure is the savings potential from automating manual processes — computed from your answers about processes, maturity, company size and invoicing volume. It is not the return on the recommendations listed below and it is not a payback figure: the model does not know implementation costs and deliberately does not estimate them. Compare recurring fees (licences, backup, e-invoicing) against the annual saving, not against the two-year cumulative in the chart.",
     "disclaimers": "Methodological notes and disclaimers",
     "auditTitle": "Audit trail: calculation breakdown",
     "colProcess": "Process",
@@ -290,8 +291,7 @@
     "focusNow": "Focus on the immediate actions. Define strategic initiatives once they are done.",
     "transformLater": "Define transformation steps after stabilising the foundations.",
     "transformExpand": "Consider extended digitalisation initiatives after stabilising the foundations.",
-    "quickWinsAll": "Quick Wins (all)",
-    "effort": "Effort: {n}/5"
+    "quickWinsAll": "Quick Wins (all)"
   },
   "bench": {
     "vsSk": "DII vs. Slovakia",

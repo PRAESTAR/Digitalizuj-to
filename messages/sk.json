@@ -270,6 +270,7 @@
     "errorReduction": "Úspora z redukcie chýb (h)",
     "annualImpact": "Ročný dopad (po nábehu)",
     "confidence": "Spoľahlivosť odhadu:",
+    "whatThisIs": "Číslo je potenciál úspory z automatizácie ručných procesov — počíta sa z vašich odpovedí o procesoch, zrelosti, veľkosti firmy a objeme fakturácie. Nie je to výnos zo zoznamu odporúčaní nižšie a nie je to návratnosť investície: model náklady na zavedenie nepozná a zámerne ich neodhaduje. Opakované poplatky (licencie, zálohovanie, e-fakturácia) porovnávajte s ročnou úsporou, nie s dvojročným kumulatívom v grafe.",
     "disclaimers": "Metodické poznámky a disclaimery",
     "auditTitle": "Audit trail: rozpad výpočtu",
     "colProcess": "Proces",
@@ -290,8 +291,7 @@
     "focusNow": "Sústreďte sa na okamžité akcie. Strategické iniciatívy definujte po ich splnení.",
     "transformLater": "Transformačné zmeny definujte po stabilizácii základov.",
     "transformExpand": "Zvážte rozšírené digitalizačné iniciatívy po stabilizácii základov.",
-    "quickWinsAll": "Quick Wins (všetky)",
-    "effort": "Úsilie: {n}/5"
+    "quickWinsAll": "Quick Wins (všetky)"
   },
   "bench": {
     "vsSk": "DII vs. Slovensko",

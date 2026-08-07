@@ -728,9 +728,9 @@ expertným odhadom s doloženou citlivosťou.
 
 ## 13. Reliabilita: čo sa dá zistiť a čo nie
 
-### 13.1 Pilotné kritériá popisujú štúdiu, ktorú systém spustiť nevie
+### 13.1 Prahy, ktoré nemali z čoho vzniknúť
 
-`scoringConfig.pilotCriteria` vyzerá prevádzkovo:
+Do 7. 8. 2026 niesla konfigurácia šesť pilotných kritérií:
 
 ```
 cronbachAlphaMin: 0.80 · itemDiscriminationMin: 0.30
@@ -738,8 +738,9 @@ completionRateMin: 0.85 · unknownAnswerRateMax: 0.10
 orsToCorrelationMin: 0.50 · minPilotSampleSize: 200
 ```
 
-**Štyri zo šiestich sa s dnešným úložiskom spočítať nedajú** — a nie je to
-otázka počtu respondentov:
+**Sú zmazané.** Nečítal ich žiadny engine — boli to konštanty, ktoré vyzerali
+prevádzkovo, ale nič sa podľa nich nerozhodovalo. Štyri z nich sa navyše
+s dnešným úložiskom spočítať nedali a nie je to otázka počtu respondentov:
 
 | Kritérium | Prečo je nedosiahnuteľné |
 |---|---|
@@ -748,19 +749,54 @@ otázka počtu respondentov:
 | `unknownAnswerRateMax` | podiel „Neviem" je vlastnosť odpovedí, nie agregátu |
 | `completionRateMin` | nedokončené kvízy sa neukladajú, menovateľ neexistuje |
 
-Je to priamy dôsledok rozhodnutia z 5. 8. 2026 neukladať odpovede po otázkach
-(pôvodný účel — administrácia — bol zrušený, takže by sa najcitlivejšia časť
-dát uchovávala bez dôvodu). Rozhodnutie bolo správne; jeho cena je, že
-klasická psychometrická validácia nemá z čoho vzniknúť.
+Nahradiť ich novou sadou čísel by bolo premenovanie vady, nie jej odstránenie.
+Prah, ktorý nemá z čoho vzniknúť, do konfigurácie nepatrí — je to to isté
+pravidlo ako „nezmerané ≠ nula", uplatnené na akceptačné kritériá.
 
-**Čakanie na 200 respondentov teda samo o sebe nepomôže.** Potrebné je
-rozhodnutie o zbere, nie čas.
+### 13.2 Prečo alfa nesmie byť prijímacím prahom
 
-### 13.2 Čo sa z agregátov spočítať DÁ
+Cronbachova alfa nie je zakázaná metrika — príručka OECD/JRC ju pri
+kompozitných indikátoroch používa ako **diagnostiku**. Neobstojí ako
+**prijímací prah**, a to z troch dôvodov, ktoré platia bez ohľadu na dáta.
+
+**1. Alfa rastie s počtom položiek, nie s kvalitou merania.** Spearman-Brownov
+vzťah `α = k·r̄ / (1 + (k−1)·r̄)` znamená, že ten istý prah kladie na rôzne
+kategórie úplne rôzne nároky:
+
+| Položiek `k` | Aké `r̄` vyžaduje α = 0,80 |
+|---|---|
+| 1 | nedefinované |
+| 3 | 0,571 |
+| 5 | 0,444 |
+| 13 | 0,235 |
+
+Kategórie tohto modelu sa v `k` líšia rádovo — **C má v komplexnom kvíze
+3 položky a v indikatívnom 1, E má 13**. Jednotný prah 0,80 by teda od
+kategórie C žiadal viac než dvojnásobne prísnejšiu homogenitu než od E,
+a pri indikatívnom kvíze by nebol vôbec definovaný.
+
+**2. Vysoká alfa by tu bola zlá správa.** Kategória E meria MFA, zálohy,
+patchovanie, inventár zariadení, monitoring, DR plán, kontinuitu, politiku,
+ochranu koncových staníc a školenia. Firma môže mať vynikajúce zálohy a žiadne
+MFA. Ak by tie položky navzájom silno korelovali, znamenalo by to, že sa
+dotazník pýta na to isté viackrát a mohol by byť kratší — nie že meria presne.
+
+**3. Chýbanie odpovedí nie je náhodné.** Kvíz je adaptívny: osem otázok
+vetvením preskakuje ďalšie. Ktoré položky respondentovi chýbajú, je určené
+jeho vlastnými odpoveďami (MNAR). Alfa počítaná nad takou maticou je skreslená
+spôsobom, ktorý sa nedá odhadnúť bez modelu chýbania.
+
+**Merací model kategórií zostáva otvorenou otázkou.** Vyššie uvedené naznačuje
+skôr formatívny index (položky konštrukt spoločne definujú) než reflektívnu
+škálu (položky sú zameniteľné prejavy jednej príčiny). Je to **interpretácia,
+nie doložený fakt** — model nikdy nebol takto špecifikovaný a rozhodnúť to
+znamená empirickú prácu, nie prečítanie dokumentácie.
+
+### 13.3 Čo sa z agregátov spočítať DÁ
 
 `npm run pilot:readiness` počíta nad uloženými výsledkami:
 
-- veľkosť vzorky a jej vývoj,
+- veľkosť vzorky a jej **rozpad podľa `model_version`**,
 - koreláciu **ORS ↔ DII** (konvergentná validita: dve vrstvy majú merať
   príbuznú, nie totožnú vec),
 - koreláciu **ORS ↔ TDRI** (očakáva sa záporná — vyššia zrelosť, nižšie riziko),
@@ -770,22 +806,40 @@ rozhodnutie o zbere, nie čas.
 Medzikategóriové korelácie sú tá najhodnotnejšia časť: odpovedajú na otázku,
 či šesť ODRM oblastí meria šesť rôznych vecí, alebo sa duplikujú. Korelácia
 nad 0,85 medzi dvoma kategóriami by znamenala, že ich oddelenie je zdanlivé —
-a to je zistenie o modeli, ktoré nepotrebuje odpovede po položkách.
+a to je zistenie o modeli, ktoré odpovede po položkách nepotrebuje.
 
-### 13.3 Tri cesty, ako rozpor vyriešiť
+**Stratifikácia podľa verzie je povinná, nie voliteľná.** Banka sa medzi
+4. a 7. 8. 2026 zmenila štyrikrát (1.5 → 1.8). Korelácia počítaná naprieč
+verziami je zmes viacerých nástrojov, nie zistenie o jednom. Paušálne
+„potrebujeme 200 respondentov" je preto zavádzajúce — rozhoduje počet
+v rámci JEDNEJ verzie.
 
-Sú to alternatívy, nie postupnosť — každá má inú cenu:
+### 13.4 Rozhodnutie o zbere (7. 8. 2026)
 
-1. **Opt-in pilot so samostatným súhlasom.** Odpovede po položkách sa ukladajú
-   len respondentom, ktorí to výslovne odklikli, a len po dobu pilotu. Dá
-   plnú psychometriku, ale znamená ďalší súhlas v toku kvízu, samostatnú
-   retenciu a rozšírenie textov o ochrane údajov.
-2. **Agregovaná telemetria bez väzby na výsledok.** Ukladať len rozdelenie
-   odpovedí per otázka (koľkokrát ktorá možnosť, koľko „Neviem"), bez väzby
-   na konkrétne hodnotenie. Dá mieru „Neviem" a obťažnosť položiek, nedá
-   Cronbachovu alfu (tá potrebuje odpovede spárované v rámci respondenta).
-3. **Externý pilot mimo produkcie.** Osobitný beh so 40–60 firmami, dáta
-   mimo produkčnej databázy. Najčistejšie metodicky, najdrahšie prevádzkovo.
+**Odpovede po položkách sa zbierať nebudú.** Ani opt-in, ani agregovanou
+telemetriou, ani externým pilotom — teraz nie.
 
-Kým sa jedna z nich nezvolí, pilotné kritériá v konfigurácii sú **aspirácia,
-nie plán** — a tento dokument to hovorí namiesto toho, aby to zakrýval.
+- **Opt-in pilot** padá na cene: znamenal by odvolávanie sľubu, ktorý sa
+  respondentovi zobrazuje priamo počas kvízu, a samovýberovú vzorku skreslenú
+  práve v meranej premennej (kto dobrovoľne zdieľa odpovede o svojej
+  bezpečnosti, sa od ostatných systematicky líši v bezpečnosti). Samostatná
+  retencia navyše nemá čím bežať — hosting nemá cron a mazanie visí na zápise.
+- **Agregovaná telemetria** nedá ani alfu, ani diskrimináciu položiek: obe
+  potrebujú odpovede spárované v rámci jedného respondenta.
+- **Externý pilot** sa parkuje s podmienkou: psychometrická vzorka potrebuje
+  **zmrazený nástroj**, a banka sa za štyri dni zmenila štyrikrát.
+
+Čo sa robí namiesto toho: **kognitívny pretest na 5–10 firmách** (think-aloud
+a verbal probing). Je to jediný zdroj dôkazu o validite dostupný pri nula
+respondentoch a mieri na obsahovú validitu, teda na otázku, či respondenti
+čítajú položky tak, ako sú mienené. Prioritne `cx_F01`/`ind_13` (možnosť za
+25 bodov je formulovaná ako test veľkosti) a osem vetviacich otázok.
+**Zápisy z rozhovorov sú osobné údaje** a potrebujú vlastný právny základ
+a retenciu — pretest je bez zásahu do produkcie, nie bez GDPR.
+
+**Test-retest a medzirespondentná zhoda sú dosiahnuteľné výhradne externým
+pilotom.** Nástroj je bez konta a bez identity, takže dva behy tej istej firmy
+nevie spárovať. Vedie sa to ako fakt, nie ako kritérium, ktoré raz splní.
+
+Po týchto krokoch bude mať nástroj **plán dôkazov a jeden vykonaný krok** —
+nie splnené prahy. Tvrdiť, že je validovaný, by bolo nepresné.

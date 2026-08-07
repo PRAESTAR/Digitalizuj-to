@@ -24,15 +24,17 @@ export const scoringConfig: ScoringConfig = {
   diiLevelCutoffs: [3, 6, 9],
   diiConfidenceMinIndicators: { high: 10, medium: 6 },
   aiConfidenceMinAnswers: 2,
-  pilotCriteria: {
-    cronbachAlphaMin: 0.80,
-    completionRateMin: 0.85,
-    unknownAnswerRateMax: 0.10,
-    orsToCorrelationMin: 0.50,
-    minPilotSampleSize: 200,
-    itemDiscriminationMin: 0.30,
-  },
 };
+
+// `pilotCriteria` odstránené 7. 8. 2026. Šesť prahov (alfa ≥ 0,80,
+// diskriminácia ≥ 0,30, dokončenie ≥ 0,85, „Neviem" ≤ 0,10, korelácia ≥ 0,50,
+// vzorka ≥ 200) vyzeralo prevádzkovo, ale nečítal ich žiadny engine — a štyri
+// z nich sa s týmto úložiskom spočítať nedali bez ohľadu na počet respondentov.
+// Prah, ktorý nemá z čoho vzniknúť, do konfigurácie nepatrí; je to „nezmerané
+// ≠ nula" aplikované na akceptačné kritériá. Nahradiť ich novou sadou čísel by
+// bolo premenovanie vady, nie jej odstránenie — dôvody, prečo alfa nesmie byť
+// prijímacím prahom, sú preto v METHODOLOGY §13 ako argument, nie ako konštanty.
+
 
 export const maturityLabels: Record<number, string> = {
   0: 'Digitálny nováčik',

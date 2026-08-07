@@ -198,6 +198,17 @@ export default function BusinessImpactPanel({ impact }: BusinessImpactPanelProps
           </div>
         </div>
 
+        {/* Čo to číslo JE a čo nie je.
+            Model počíta potenciál automatizácie ručných procesov z odpovedí
+            o procesoch, zrelosti, veľkosti a objeme fakturácie — `roiEngine`
+            nikdy nevidí výstup `recommendationEngine`. Bez tejto vety čitateľ
+            prirodzene číta úsporu ako „výnos zo zoznamu odporúčaní nižšie",
+            čo je vzťah, ktorý model nepočíta (ROI_MODEL, „Rozhodnuté: náklady
+            a payback"). Návratnosť sa preto nezobrazuje vôbec. */}
+        <p className="mb-6 text-xs text-[#6e6e73] leading-relaxed">
+          {t('impact.whatThisIs')}
+        </p>
+
         {/* Risk reduction */}
         {impact.riskReduction.keyMitigations.length > 0 && (
           <div className="mb-6 p-4 rounded-2xl bg-white border border-black/5">

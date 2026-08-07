@@ -601,15 +601,6 @@ export interface PeerSnapshot {
 
 // --- Config Types ---
 
-export interface PilotAcceptanceCriteria {
-  cronbachAlphaMin: number;         // ≥ 0.80
-  completionRateMin: number;        // ≥ 0.85
-  unknownAnswerRateMax: number;     // ≤ 0.10 per question
-  orsToCorrelationMin: number;  // target ORS-DII correlation
-  minPilotSampleSize: number;       // ≥ 200
-  itemDiscriminationMin: number;    // ≥ 0.30
-}
-
 /**
  * Krok rozkladu výsledku — z čoho a ako vzniklo zobrazené číslo.
  *
@@ -800,5 +791,4 @@ export interface ScoringConfig {
   diiConfidenceMinIndicators: { high: number; medium: number };
   /** Najmenší počet zodpovedaných AI otázok pre spoľahlivosť `medium`. */
   aiConfidenceMinAnswers: number;
-  pilotCriteria: PilotAcceptanceCriteria;
 }

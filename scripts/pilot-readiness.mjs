@@ -1,20 +1,23 @@
 /**
  * Čo sa o kvalite merania dá zistiť z uložených výsledkov — a čo nie.
  *
- * `scoringConfig.pilotCriteria` popisuje pilotnú štúdiu (Cronbachova alfa,
- * diskriminácia položiek, miera dokončenia…). Tá štúdia sa ale s dnešným
- * úložiskom **spustiť nedá** a nie je to otázka počtu respondentov:
+ * Do 7. 8. 2026 tento skript porovnával stav so šiestimi prahmi
+ * (`scoringConfig.pilotCriteria`). Tie sú zmazané: nečítal ich žiadny engine
+ * a štyri z nich sa s týmto úložiskom spočítať nedali bez ohľadu na počet
+ * respondentov, lebo `answers_json` je zámerne NULL a nedokončené kvízy sa
+ * neukladajú. Rozhodnutie zo 7. 8. 2026 znie, že odpovede po položkách sa
+ * zbierať nebudú — Cronbachova alfa ani diskriminácia položiek teda nemajú
+ * z čoho vzniknúť a nie je to otázka času (METHODOLOGY §13).
  *
- *  - `answers_json` je zámerne vždy NULL (rozhodnutie 5. 8. 2026 — odpovede
- *    po otázkach sa neukladajú), takže Cronbachova alfa ani item-total
- *    korelácie nemajú z čoho vzniknúť. Obe potrebujú odpovede po položkách.
- *  - Nedokončené kvízy sa neukladajú vôbec, takže mieru dokončenia nemá
- *    s čím porovnávať.
+ * Skript preto neporovnáva s prahmi. Počíta to, čo z agregátov spočítať IDE,
+ * a najcennejšie sú medzikategóriové korelácie: odpovedajú na otázku, či šesť
+ * ODRM oblastí meria šesť rôznych vecí, alebo sa navzájom duplikujú. Na to
+ * odpovede po položkách netreba.
  *
- * Kritériá teda vyzerajú prevádzkovo, ale sú aspiračné. Tento skript to
- * priznáva a spočíta to, čo z agregátov spočítať ide — a to nie je málo:
- * medzikategóriové korelácie odpovedajú na otázku, či šesť ODRM oblastí meria
- * šesť rôznych vecí, alebo sa navzájom duplikujú.
+ * POVINNÁ STRATIFIKÁCIA PODĽA `model_version`. Banka sa medzi 4. a 7. 8. 2026
+ * zmenila štyrikrát (1.5 → 1.8). Korelácia počítaná naprieč verziami je zmes
+ * viacerých nástrojov, nie zistenie o jednom — preto sa vzorka rozpadá podľa
+ * verzie a spoločne sa nepočíta nič.
  *
  * Spustenie:  DB_PASS='…' npm run pilot:readiness
  */
@@ -68,15 +71,12 @@ console.log(`Uložených výsledkov: ${rows.length}`);
 console.log(`Z toho s odpoveďami po otázkach: ${itemLevel.c}\n`);
 
 // ── Čo sa spočítať NEDÁ a prečo ───────────────────────────────────────────
-const blocked = [
-  ['cronbachAlphaMin', 'potrebuje odpovede po položkách — `answers_json` je zámerne NULL'],
-  ['itemDiscriminationMin', 'to isté: item-total korelácia sa bez položiek nedá'],
-  ['unknownAnswerRateMax', 'podiel „Neviem" je vlastnosť odpovedí, nie agregátu'],
-  ['completionRateMin', 'nedokončené kvízy sa neukladajú, takže menovateľ neexistuje'],
-];
 console.log('NEDÁ SA SPOČÍTAŤ (nie kvôli počtu respondentov, ale kvôli tomu, čo ukladáme):');
-for (const [k, why] of blocked) console.log(`  ✗ ${k.padEnd(24)} ${why}`);
-console.log();
+console.log('  ✗ vnútorná konzistencia (alfa)   potrebuje odpovede po položkách — answers_json je zámerne NULL');
+console.log('  ✗ diskriminácia položiek         to isté: item-total korelácia sa bez položiek nedá');
+console.log('  ✗ podiel „Neviem"                je vlastnosť odpovedí, nie agregátu');
+console.log('  ✗ miera dokončenia               nedokončené kvízy sa neukladajú, menovateľ neexistuje');
+console.log('  Rozhodnuté 7. 8. 2026: zbierať sa nebudú. Viď METHODOLOGY §13.\n');
 
 if (rows.length === 0) {
   console.log('Žiadne výsledky — zvyšok sa počítať nedá. Vráť sa, keď kvíz niekto vyplní.');
@@ -103,7 +103,21 @@ for (const r of rows) {
 }
 
 console.log('SPOČÍTATEĽNÉ Z AGREGÁTOV:');
-console.log(`  vzorka                 ${rows.length} (pilot vyžaduje 200)`);
+console.log(`  vzorka                 ${rows.length}`);
+
+// Rozpad podľa verzie modelu. Bez neho by korelácie nižšie miešali výsledky
+// z nástrojov, ktoré merali inak — banka sa medzi 4. a 7. 8. 2026 zmenila
+// štyrikrát. Paušálne „potrebujeme 200 respondentov" je preto zavádzajúce:
+// rozhoduje počet v NAJVÄČŠEJ verzii, nie súčet.
+const byVersion = {};
+for (const r of rows) byVersion[r.model_version ?? '(neuvedená)'] = (byVersion[r.model_version ?? '(neuvedená)'] ?? 0) + 1;
+const versions = Object.entries(byVersion).sort((a, b) => b[1] - a[1]);
+console.log(`  verzií modelu vo vzorke ${versions.length}`);
+for (const [v, n] of versions) console.log(`    ${String(v).padEnd(12)} ${n}`);
+if (versions.length > 1) {
+  console.log('  ⚠ Vzorka je zmesou viacerých verzií nástroja — korelácie nižšie sú');
+  console.log('    orientačné. Na tvrdenie o modeli počítaj v rámci jednej verzie.');
+}
 
 const rOrsDii = pearson(ors, dii);
 console.log(`  korelácia ORS ↔ DII    ${rOrsDii === null ? 'nedostatočná vzorka' : rOrsDii.toFixed(3)}`);
@@ -132,6 +146,8 @@ if (maxPair) {
   console.log('    (nedostatočná vzorka)');
 }
 
-console.log('\nZáver: kým sa neuloží aspoň časť odpovedí po položkách, pilotné');
-console.log('kritériá zostávajú aspiračné bez ohľadu na počet respondentov.');
-console.log('Riešenie je rozhodnutie o zbere, nie čakanie — viď METHODOLOGY §13.');
+console.log('\nZáver: odpovede po položkách sa zbierať NEBUDÚ (rozhodnuté 7. 8. 2026),');
+console.log('takže vnútorná konzistencia ani diskriminácia položiek sa nikdy nespočítajú');
+console.log('— a nie je to otázka času. Dôkaz o kvalite merania stojí na obsahovej');
+console.log('validite (kognitívny pretest) a na diskriminačnej validite, ktorú vidno');
+console.log('práve v medzikategóriových koreláciách vyššie. Viď METHODOLOGY §13.');
