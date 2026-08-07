@@ -155,9 +155,9 @@ if (isMain) {
   const conn = await mysql.createConnection({
     host: process.env.DB_HOST || 'db.r6.websupport.sk',
     port: Number(process.env.DB_PORT || 3306),
-    user: process.env.DB_USER || 'L76bIIPR',
+    user: process.env.DB_USER || 'digitalizuj',
     password: process.env.DB_PASS,
-    database: process.env.DB_NAME || 'digitalizacia',
+    database: process.env.DB_NAME || 'Digitalizuj',
     charset: 'utf8mb4',
   });
   const model = await buildModel(conn);

@@ -2,7 +2,8 @@
  * ETL: data/questionBank.json + RF definície zo scoringConfig.ts → MariaDB.
  *
  * Spustenie:  DB_PASS='...' node scripts/db/import.mjs
- * (DB_HOST/DB_USER/DB_NAME majú defaulty na websupport `digitalizacia`.)
+ * (DB_HOST/DB_USER/DB_NAME majú defaulty na produkčnú `Digitalizuj` — pozri
+ * /matpex.sk/app-config/db.php na hostingu, do gitu heslá nepatria.)
  *
  * Zásady:
  *  - IDEMPOTENTNÉ: najprv aplikuje db/schema.sql (DROP + CREATE), potom
@@ -144,9 +145,9 @@ async function main() {
   const conn = await mysql.createConnection({
     host: process.env.DB_HOST || 'db.r6.websupport.sk',
     port: Number(process.env.DB_PORT || 3306),
-    user: process.env.DB_USER || 'L76bIIPR',
+    user: process.env.DB_USER || 'digitalizuj',
     password: process.env.DB_PASS,
-    database: process.env.DB_NAME || 'digitalizacia',
+    database: process.env.DB_NAME || 'Digitalizuj',
     charset: 'utf8mb4',
     multipleStatements: true,
   });
