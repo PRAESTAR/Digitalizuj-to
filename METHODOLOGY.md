@@ -607,3 +607,99 @@ Tabuľka je generovaná zo zdrojov pravdy (questionBank + diiIndicators) — pri
 | `cx_DII03` | komplexný | dii | dii, ai_readiness | DII12 |
 | `cx_DII03b` | komplexný | dii | dii | DII5, DII6 |
 | `cx_DII04` | komplexný | dii | dii, ors_F | vylúčená (mimo v3) |
+
+
+
+---
+
+## 12. Váhy kategórií — pôvod, citlivosť a protokol revízie
+
+### 12.1 Odkiaľ váhy sú
+
+Váhy A–F (20/20/15/15/20/10 %) sú **expertne stanovené**. Nevznikli z dát,
+lebo žiadne neboli — model bol postavený pred prvým hodnotením. Zdôvodnenie
+každej váhy je pri príslušnej kategórii vyššie (§ Kategória A–F).
+
+**Čo NIE JE zdokumentované:** ako presne sa k tým číslam dospelo. Neexistuje
+záznam o elicitácii — kto sa jej zúčastnil, aké alternatívy sa zvažovali, ako
+sa riešili nezhody. Váhy sú teda odôvodnené, ale nie **doložené**. Tento
+dokument to priznáva namiesto toho, aby to zakrýval; protokol pre ďalšiu
+revíziu je v §12.4.
+
+### 12.2 Ako veľmi na váhach záleží (sensitivity analýza)
+
+Otázka, ktorú si položí každý recenzent metodiky: keď sú váhy expertný odhad,
+nerozhodujú o výsledku viac než odpovede?
+
+Merateľné to je. `scripts/weight-sensitivity.mjs` posunie každú váhu o ±5
+percentuálnych bodov, zvyšné renormalizuje a prepočíta ORS nad **2 000
+deterministickými kombináciami odpovedí** komplexného kvízu:
+
+| Váha | Priem. zmena ORS | Max. zmena | Preklopený maturity level |
+|---|---|---|---|
+| A (20 %) | 0,68 b | 1,94 b | 5,5–6,0 % |
+| B (20 %) | 0,37 b | 1,22 b | 3,2–3,4 % |
+| C (15 %) | 0,65 b | 2,22 b | 5,8 % |
+| D (15 %) | 0,46 b | 1,58 b | 3,2–3,6 % |
+| E (20 %) | 0,86 b | 1,67 b | **7,1–8,0 %** |
+| F (10 %) | 0,47 b | 1,76 b | 4,0–4,9 % |
+
+**Záver, ktorý z toho vyplýva — a nie je celkom pohodlný.**
+
+*Skóre je robustné.* Posun ktorejkoľvek váhy o 5 p. b. zmení ORS v priemere
+o menej než 1 bod a v najhoršom prípade o 2,2 bodu. Na stupnici 0–100 je to
+šum a expertné nastavenie váh je tam prijateľné riziko.
+
+*Nálepka robustná nie je.* Maturity level sa preklopí v **3–8 %** prípadov —
+pri kategórii E v jednom z dvanástich. Pritom práve nálepka („Rozvíjajúci sa"
+vs. „Pokročilý") je to, čo si respondent zapamätá a zopakuje ďalej, nie číslo.
+Najkrehkejší výstup je teda ten najviditeľnejší.
+
+Dôsledok pre interpretáciu: **rozdiel jednej úrovne zrelosti medzi dvoma
+firmami nie je spoľahlivý signál.** Rozdiel dvoch úrovní už áno. Platí to
+najmä pri firmách blízko prahu (20/40/60/80).
+
+### 12.3 Porovnanie s inými maturity modelmi
+
+Váženie kategórií nie je v tejto triede modelov samozrejmosť — väčšina
+zavedených rámcov ho nepoužíva vôbec:
+
+| Rámec | Štruktúra | Váženie |
+|---|---|---|
+| **CMMI** | 5 úrovní vyspelosti, procesné oblasti | Žiadny vážený priemer — úroveň sa dosahuje splnením kritérií, nie skóre |
+| **Acatech Industrie 4.0 Maturity Index** | 6 vývojových stupňov, 4 štrukturálne oblasti | Stupňový postup, nie vážený súčet |
+| **IMPULS Industrie 4.0 Readiness** (VDMA) | 6 dimenzií, 6 úrovní pripravenosti | Dimenzie sa agregujú; presnú váhovú schému treba overiť v origináli |
+| **DREAMY** | Procesne orientovaný, maturity per proces | Hodnotenie per proces, nie jedno súhrnné skóre |
+| **ODRM (tento model)** | 6 kategórií, vážený priemer 0–100 | Explicitné váhy 20/20/15/15/20/10 |
+
+> **Poznámka o presnosti tejto tabuľky.** Štruktúra rámcov je uvedená podľa
+> ich všeobecne známeho usporiadania. Konkrétne váhové schémy — najmä pri
+> IMPULS — **neboli overené proti primárnym zdrojom**. Kým sa tak nestane,
+> tabuľka slúži na orientáciu v type modelu, nie ako citácia. Doplniť
+> presné odkazy je súčasťou §12.4.
+
+Podstatný rozdiel: CMMI a Acatech sú **stupňové** — vyššiu úroveň dosiahnete
+splnením podmienok, nie priemerom. Vážený priemer, ktorý používame, umožňuje
+kompenzáciu: silná oblasť vykryje slabú. Bezpečnostná penalizácia (§3.3) je
+čiastočná protiváha práve k tomu, ale len pre kategóriu E.
+
+### 12.4 Protokol pre ďalšiu revíziu váh
+
+Aby ďalšia zmena váh nebola opäť nedoložená:
+
+1. **Zaznamenať vstupy.** Kto sa elicitácie zúčastnil, aká je jeho doména
+   a koľko rokov praxe v SME segmente.
+2. **Nezávislé priradenie.** Každý účastník rozdelí 100 bodov medzi kategórie
+   samostatne, bez videnia ostatných — inak dominuje ten, kto hovorí prvý.
+3. **Zaznamenať rozptyl.** Ak sa účastníci na váhe kategórie líšia o viac než
+   10 p. b., je to samostatné zistenie, nie šum na spriemerovanie.
+4. **Druhé kolo po diskusii.** Klasický Delphi krok: ukázať rozptyl,
+   nechať prehodnotiť, znovu zapísať.
+5. **Overiť sensitivity znovu.** `npm run weights:sensitivity` a porovnať
+   s číslami v §12.2 — ak nová schéma preklápa level častejšie, je horšia
+   bez ohľadu na to, ako presvedčivo znie.
+6. **Zapísať do `MODEL_VERSIONS.md`** so stupňom porovnateľnosti. Zmena váh
+   je **prerušenie** — staré výsledky sa novými váhami neprepočítavajú.
+
+Kým takýto záznam nevznikne, váhy zostávajú tým, čím sú: odôvodneným
+expertným odhadom s doloženou citlivosťou.

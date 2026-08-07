@@ -28,6 +28,13 @@ export default function ScoreDerivation({ trail }: Props) {
       {/* ── Kategórie ── */}
       <div>
         <h3 className="font-bold text-[#1d1d1f] mb-2">1. Vážený priemer v každej oblasti</h3>
+        {/* Verzia váh patrí k číslam, nie do pätičky: váhy sú expertný odhad
+            a ich zmena preklopí maturity level v 3–8 % prípadov (METHODOLOGY
+            §12.2). Bez verzie sa dva výsledky nedajú porovnať. */}
+        <p className="text-xs text-[#86868b] mb-2">
+          Schéma váh: <span className="font-mono">{trail.modelVersion.scoringConfigVersion}</span>
+          {' '}&middot; expertne stanovená, citlivosť doložená v metodike (§12.2)
+        </p>
         <div className="overflow-x-auto rounded-2xl border border-black/5">
           <table className="w-full text-xs">
             <thead>

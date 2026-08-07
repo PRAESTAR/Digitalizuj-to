@@ -8,6 +8,34 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Deploy, váhy a Turnstile brána (6. 8. 2026)
+
+- **Nasadzovací skript je v repozitári a overuje certifikát.** Dovtedy žil len
+  v dočasnom adresári — jediná kópia, ktorá by so zmazaním priečinka zmizla —
+  a pripájal sa s vypnutou kontrolou certifikátu s poznámkou, že „cert hosting
+  nepokrýva". **Certifikát je pritom platný Let's Encrypt** pre
+  `*.r6.websupport.sk`; nesedelo len meno, lebo sa skript pripájal na alias
+  `ftp.magors.net`. Pripojenie na `ftp.r6.websupport.sk` (tá istá IP) prejde
+  **plnou verifikáciou bez jedinej výnimky** — vypnutá kontrola nikdy nebola
+  potrebná, len otvárala nahrávanie celej produkcie vrátane `.htaccess`
+  a PHP endpointov útoku uprostred spojenia. Nasadenie beží cez `npm run deploy`.
+- **Váhy kategórií majú doloženú citlivosť.** Nový `npm run weights:sensitivity`
+  posunie každú váhu o ±5 p. b., zvyšné renormalizuje a prepočíta ORS nad
+  2 000 kombináciami odpovedí. Výsledok nie je celkom pohodlný: **skóre je
+  robustné** (priemerná zmena 0,37–0,86 bodu), ale **maturity level sa
+  preklopí v 3–8 % prípadov** — pri kategórii E v jednom z dvanástich. Najviac
+  viditeľný výstup je teda ten najkrehkejší; rozdiel jednej úrovne medzi dvoma
+  firmami nie je spoľahlivý signál. Metodika to hovorí rovno (§12.2) spolu
+  s porovnaním voči CMMI, Acatech, IMPULS a DREAMY a s **protokolom pre ďalšiu
+  revíziu váh** (Delphi, nezávislé priradenie, zaznamenaný rozptyl). Verzia
+  schémy váh je pri rozklade skóre.
+- **Turnstile brána prestala kaskádovať render.** Reset fázy sa presunul
+  z efektu do renderu (dokumentovaný vzor „úprava stavu pri zmene propu").
+  Predtým sa po znovuotvorení brány najprv vykreslila stará fáza — napríklad
+  `error` z predchádzajúceho pokusu — a až potom `loading`. Kľúč resetu je
+  zámerne zhodný so závislosťami efektu, takže sa spúšťa presne v tých
+  situáciách ako predtým.
+
 ### Karta a graf prestali hlásiť dve rôzne čísla (6. 8. 2026)
 
 - **Ročný dopad ignoroval nábeh.** Karta hlásila ustálený run-rate ako

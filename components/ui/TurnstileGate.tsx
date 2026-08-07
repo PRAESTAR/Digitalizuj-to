@@ -49,6 +49,26 @@ export default function TurnstileGate({ open, action, onVerified, onCancel }: Pr
     onVerifiedRef.current = onVerified;
   }, [onVerified]);
 
+  // Reset fázy pri (znovu)otvorení brány.
+  //
+  // Predtým to robil `setPhase('loading')` v efekte, čo React Compiler právom
+  // hlásil ako kaskádový render: efekt beží až po commite, takže sa najprv
+  // vykreslila stará fáza (napr. `error` z predchádzajúceho pokusu) a hneď
+  // nato prekreslila na `loading`.
+  //
+  // Toto je dokumentovaný vzor „úprava stavu pri zmene propu": React render
+  // zahodí a zopakuje ešte pred vykreslením, takže žiadny medzisnímok
+  // nevznikne. Kľúč je ZÁMERNE zhodný so závislosťami efektu nižšie
+  // (`open`, `action`, `locale`) — reset sa tak spustí presne v tých
+  // situáciách ako predtým, vrátane prípadu, keď sa počas otvorenej brány
+  // zmení akcia alebo jazyk a widget sa stavia nanovo.
+  const resetKey = `${open}|${action}|${locale}`;
+  const [prevResetKey, setPrevResetKey] = useState(resetKey);
+  if (resetKey !== prevResetKey) {
+    setPrevResetKey(resetKey);
+    if (open) setPhase('loading');
+  }
+
   const cleanup = useCallback(() => {
     if (widgetIdRef.current && window.turnstile) {
       try {
@@ -67,18 +87,8 @@ export default function TurnstileGate({ open, action, onVerified, onCancel }: Pr
     }
 
     let cancelled = false;
-    // Reset fázy pri každom otvorení — brána sa môže otvoriť znova po chybe
-    // alebo po zrušení a musí začať od načítavania.
-    //
-    // React Compiler tu právom hlási kaskádový render: správne by to bolo
-    // buď remountom cez `key`, alebo vzorom „úprava stavu pri zmene propu"
-    // s pomocným `prevOpen`. Oboje je ale zásah do stavového automatu
-    // komponentu, ktorý stráži vstup do kvízu a ktorého tok sa v tomto
-    // prostredí nedá odskúšať (Turnstile sa overuje ručne na produkcii).
-    // Meniť ho naslepo je horšie než jeden render navyše — vedený ako bod
-    // v IMPROVEMENT_CHECKLIST.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPhase('loading');
+    // Fázu tu už nenastavujeme — reset rieši vzor pri zmene propu vyššie,
+    // ešte pred vykreslením.
 
     loadTurnstile()
       .then((turnstile) => {

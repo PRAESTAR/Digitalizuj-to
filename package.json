@@ -15,7 +15,9 @@
     "test": "vitest run",
     "config:sync": "node scripts/sync-model-config.mjs",
     "docs:sync": "node scripts/sync-model-docs.mjs",
-    "model:sync": "npm run config:sync && npm run docs:sync"
+    "model:sync": "npm run config:sync && npm run docs:sync",
+    "deploy": "node scripts/deploy-ftp.mjs",
+    "weights:sensitivity": "node scripts/weight-sensitivity.mjs"
   },
   "dependencies": {
     "@types/qrcode": "^1.5.6",
