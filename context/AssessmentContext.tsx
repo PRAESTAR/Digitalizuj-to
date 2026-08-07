@@ -132,11 +132,18 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
       const currentQuestion = getNextQuestion(state.questions, newAnswers, newSkipped);
       const progress = getProgress(state.questions, newAnswers, newSkipped);
 
-      // Auto-complete if no more questions
+      // Posledná odpoveď kvíz NEDOKONČÍ. Prejde do medzistavu `answered`:
+      // otázky sú zodpovedané, výsledok ešte nie je spočítaný.
+      //
+      // Do 7. 8. 2026 tu bolo `status = 'completed'` plus rovno
+      // `computeResult`. Efekt v `quiz/page.tsx` potom vždy trafil prvú vetvu
+      // (`status === 'completed'` → presmeruj) a `COMPLETE_QUIZ` sa v celom
+      // normálnom toku nezavolala ani raz — bola to mŕtva vetva reducera.
+      // Dôsledok nie je len kozmetický: medzi poslednou odpoveďou a výsledkom
+      // neexistoval okamih, do ktorého by sa dalo čokoľvek vložiť — ani
+      // rekapitulácia, ani ponuka opravy odpovede.
       if (!currentQuestion) {
-        newAssessment.status = 'completed';
-        newAssessment.completedAt = new Date().toISOString();
-        newAssessment.result = computeResult(newAssessment, state.questions, action.market);
+        newAssessment.status = 'answered';
       }
 
       return {
@@ -149,6 +156,10 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
 
     case 'COMPLETE_QUIZ': {
       if (!state.assessment) return state;
+      // Idempotentné: druhé zavolanie výsledok neprepočíta. Efekt v React 18+
+      // môže v StrictMode bežať dvakrát a `computeResult` razí `computedAt`,
+      // takže druhý beh by ticho vyrobil iný snapshot toho istého kvízu.
+      if (state.assessment.status === 'completed') return state;
       const completed: Assessment = {
         ...state.assessment,
         status: 'completed',

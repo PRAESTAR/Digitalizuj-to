@@ -21,6 +21,9 @@
  *     nesedí s vlastnou distribúciou, ORS mimo rozsahu)
  * 11. benchmarkData: sektor/veľkosť voliteľná v kvíze nemá referenčný záznam
  *     (inak sa respondentovi ticho zobrazí „benchmark nedostupný")
+ * 19. `data/riskRecommendations.ts`: rizikový faktor bez šablóny odporúčania
+ *     (respondent by videl riziko bez akcie), effort ≤ 0 (delenie v priorite),
+ *     prázdne texty, kategória mimo A–F
  * 18. verejný changelog (`app/[locale]/changelog/page.tsx`) zaostal za bankou —
  *     revízia modelu bez záznamu pre firmy, ktoré si chcú overiť, čím sa meria
  * 17. veľkostné kotvy (`size_anchors`): strop odkazuje na možnosť, ktorú
@@ -506,6 +509,60 @@ for (const q of all) {
   for (const band of Object.keys(q.size_anchors?.ceilings ?? {})) {
     if (SIZE_BANDS.includes(band) && !sizeOptionValues.has(band)) {
       errors.push(`${q.id}: kotva pre pásmo "${band}", ktoré otázka na veľkosť firmy neponúka`);
+    }
+  }
+}
+
+// --- 19: šablóny odporúčaní k rizikovým faktorom ----------------------------
+// Hlavička `data/riskRecommendations.ts` od 6. 8. 2026 tvrdila, že „teraz sú to
+// dáta, ktoré build kontroluje". Nebola to pravda — validátor ten súbor vôbec
+// nečítal. Tvrdenie o kontrole, ktorá neexistuje, je horšie než žiadna
+// kontrola: ďalší človek sa naň spoľahne.
+//
+// Kontroluje sa to, čo súbor sám sľubuje: každý faktor, ktorý sa vie dostať
+// nad prah, musí mať šablónu — inak sa používateľovi zobrazí riziko bez
+// akejkoľvek akcie (presne to sa stalo pri RF06).
+{
+  const src = readFileSync('data/riskRecommendations.ts', 'utf8');
+  const templates = [...src.matchAll(/^ {2}(RF\d+): \{([\s\S]*?)^ {2}\},$/gm)]
+    .map((m) => ({ id: m[1], body: m[2] }));
+
+  if (templates.length === 0) {
+    errors.push('data/riskRecommendations.ts: nenašiel som ani jednu šablónu — zmenil sa tvar súboru?');
+  }
+
+  const haveTemplate = new Set(templates.map((t) => t.id));
+  for (const rf of definedRF) {
+    if (!haveTemplate.has(rf)) {
+      errors.push(`${rf}: definovaný v scoringConfig, ale nemá šablónu odporúčania — respondent by videl riziko bez akcie`);
+    }
+  }
+  for (const t of templates) {
+    if (!definedRF.includes(t.id)) {
+      errors.push(`${t.id}: šablóna odporúčania pre faktor, ktorý v scoringConfig neexistuje`);
+    }
+    // `priority()` delí hodnotou effort — nula by dala Infinity a odporúčanie
+    // by natrvalo obsadilo vrchol roadmapy.
+    const effort = Number((t.body.match(/effort:\s*(-?\d+(?:\.\d+)?)/) || [])[1]);
+    if (!Number.isFinite(effort) || effort <= 0) {
+      errors.push(`${t.id}: effort musí byť kladné číslo (je "${effort}") — priorityScore ním delí`);
+    }
+    for (const field of ['urgency', 'impact']) {
+      const v = Number((t.body.match(new RegExp(field + ':\\s*(-?\\d+(?:\\.\\d+)?)')) || [])[1]);
+      if (!Number.isFinite(v) || v <= 0) {
+        errors.push(`${t.id}: ${field} musí byť kladné číslo (je "${v}")`);
+      }
+    }
+    for (const field of ['title', 'desc', 'expectedOutcome']) {
+      if (!new RegExp(field + ":\\s*'[^']+'").test(t.body)) {
+        errors.push(`${t.id}: pole ${field} chýba alebo je prázdne`);
+      }
+    }
+    // Kategória musí byť ODRM oblasť — inak odporúčanie ukazuje na kategóriu,
+    // ktorá v skóre neexistuje.
+    const cat = (t.body.match(/category:\s*'([^']*)'/) || [])[1];
+    if (!['A', 'B', 'C', 'D', 'E', 'F'].includes(cat)) {
+      errors.push(`${t.id}: category "${cat}" nie je ODRM oblasť A–F`);
     }
   }
 }

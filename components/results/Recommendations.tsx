@@ -1,14 +1,74 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { Recommendations as RecsType } from '@/types';
+import type { Recommendation, Recommendations as RecsType } from '@/types';
 
 interface RecommendationsProps {
   recommendations: RecsType;
 }
 
+/** Značka horizontu podľa typu odporúčania — farba aj symbol nesú význam. */
+const MARK: Record<Recommendation['type'], { bg: string; glyph: string }> = {
+  critical_risk: { bg: 'bg-rose-500', glyph: '!' },
+  risk_mitigation: { bg: 'bg-amber-500', glyph: '!' },
+  quick_win: { bg: 'bg-emerald-500', glyph: '⚡' },
+  strategic: { bg: 'bg-amber-500', glyph: '★' },
+  long_term: { bg: 'bg-[#1d1d1f]', glyph: '→' },
+};
+
+function RoadmapItem({ r }: { r: Recommendation }) {
+  const mark = MARK[r.type];
+  return (
+    <div className="text-sm p-3 rounded-xl bg-[#fbfbfd] border border-black/5">
+      <div className="flex items-start gap-2">
+        <span className={`w-5 h-5 rounded-md ${mark.bg} flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 mt-0.5`}>
+          {mark.glyph}
+        </span>
+        {/* min-w-0: bez neho flex položka nikdy neklesne pod šírku najdlhšieho slova */}
+        <div className="min-w-0 break-words">
+          <div className="font-bold text-[#1d1d1f] text-xs">{r.titleSk}</div>
+          <div className="text-[#6e6e73] text-xs mt-0.5 leading-relaxed">{r.descriptionSk}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Recommendations({ recommendations }: RecommendationsProps) {
   const t = useTranslations('reco');
+
+  /**
+   * Roadmapa sa vykresľuje z `recommendations.roadmap`, nie z vlastného výberu
+   * zoznamov.
+   *
+   * Do 7. 8. 2026 si každá bunka vyberala sama: stredný horizont renderoval
+   * `strategicInitiatives.slice(0, 3)`, takže **celá trieda `riskMitigations`
+   * sa počítala a nikdy nezobrazila** — a s ňou aj rozhodnutie enginu, že
+   * stredné riziká majú ísť PRED strategické iniciatívy, lebo sú to konkrétne
+   * nálezy, nie zámery. Bunka 0–3 mesiace zasa brala dva quick winy tam, kde
+   * roadmapa hovorí tri.
+   *
+   * Odteraz je komponent verným zobrazením toho, čo engine rozhodol. Poradie
+   * aj stropy patria enginu (`engines/recommendationEngine.ts`), komponentu
+   * patrí ich vykreslenie.
+   */
+  const byId = new Map<string, Recommendation>(
+    [
+      ...recommendations.criticalRisks,
+      ...(recommendations.riskMitigations ?? []),
+      ...recommendations.quickWins,
+      ...recommendations.strategicInitiatives,
+      ...(recommendations.longTermInitiatives ?? []),
+    ].map(r => [r.id, r])
+  );
+  /** ID, ktoré sa nedá rozviazať, sa preskočí — radšej menej než prázdna karta. */
+  const resolve = (ids: readonly string[]): Recommendation[] =>
+    ids.map(id => byId.get(id)).filter((r): r is Recommendation => r !== undefined);
+
+  const immediate = resolve(recommendations.roadmap.immediate0_3m);
+  const medium = resolve(recommendations.roadmap.medium3_12m);
+  const longTerm = resolve(recommendations.roadmap.longTerm12mPlus);
+
   return (
     // p-8 nechávalo pri 320 px len 222 px obsahu; padding nabieha až od sm
     <div className="bg-white rounded-3xl border border-black/5 shadow-sm p-5 sm:p-6 lg:p-8 animate-fade-in-up">
@@ -38,30 +98,7 @@ export default function Recommendations({ recommendations }: RecommendationsProp
             <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-700 text-xs font-bold">{t('phaseNow')}</span>
           </div>
           <div className="space-y-3 stagger-children">
-            {recommendations.criticalRisks.slice(0, 3).map(r => (
-              <div key={r.id} className="text-sm p-3 rounded-xl bg-[#fbfbfd] border border-black/5">
-                <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-md bg-rose-500 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 mt-0.5">!</span>
-                  {/* min-w-0: bez neho flex položka nikdy neklesne pod šírku najdlhšieho slova */}
-                  <div className="min-w-0 break-words">
-                    <div className="font-bold text-[#1d1d1f] text-xs">{r.titleSk}</div>
-                    <div className="text-[#6e6e73] text-xs mt-0.5 leading-relaxed">{r.descriptionSk}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {recommendations.quickWins.slice(0, 2).map(r => (
-              <div key={r.id} className="text-sm p-3 rounded-xl bg-[#fbfbfd] border border-black/5">
-                <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-md bg-emerald-500 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 mt-0.5">&#9889;</span>
-                  {/* min-w-0: bez neho flex položka nikdy neklesne pod šírku najdlhšieho slova */}
-                  <div className="min-w-0 break-words">
-                    <div className="font-bold text-[#1d1d1f] text-xs">{r.titleSk}</div>
-                    <div className="text-[#6e6e73] text-xs mt-0.5 leading-relaxed">{r.descriptionSk}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
+            {immediate.map(r => <RoadmapItem key={r.id} r={r} />)}
           </div>
         </div>
 
@@ -77,19 +114,8 @@ export default function Recommendations({ recommendations }: RecommendationsProp
             <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 text-xs font-bold">{t('phaseStrategic')}</span>
           </div>
           <div className="space-y-3 stagger-children">
-            {recommendations.strategicInitiatives.slice(0, 3).map(r => (
-              <div key={r.id} className="text-sm p-3 rounded-xl bg-[#fbfbfd] border border-black/5">
-                <div className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-md bg-amber-500 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 mt-0.5">&#9733;</span>
-                  {/* min-w-0: bez neho flex položka nikdy neklesne pod šírku najdlhšieho slova */}
-                  <div className="min-w-0 break-words">
-                    <div className="font-bold text-[#1d1d1f] text-xs">{r.titleSk}</div>
-                    <div className="text-[#6e6e73] text-xs mt-0.5 leading-relaxed">{r.descriptionSk}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {recommendations.strategicInitiatives.length === 0 && (
+            {medium.map(r => <RoadmapItem key={r.id} r={r} />)}
+            {medium.length === 0 && (
               <p className="text-sm text-[#6e6e73] p-3 rounded-xl bg-[#fbfbfd] border border-black/5 italic">
                 {t('focusNow')}
               </p>
@@ -109,19 +135,9 @@ export default function Recommendations({ recommendations }: RecommendationsProp
             <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-[#1d1d1f]/8 text-[#1d1d1f] text-xs font-bold">{t('phaseTransform')}</span>
           </div>
           <div className="space-y-3">
-            {recommendations.roadmap.longTerm12mPlus.length > 0 ? (
-              (recommendations.longTermInitiatives ?? [])
-                .filter(r => recommendations.roadmap.longTerm12mPlus.includes(r.id))
-                .map(r => (
-                  <div key={r.id} className="text-sm p-3 rounded-xl bg-[#fbfbfd] border border-black/5">
-                    <div className="font-bold text-[#1d1d1f] text-xs">{r.titleSk}</div>
-                  </div>
-                ))
-            ) : null}
+            {longTerm.map(r => <RoadmapItem key={r.id} r={r} />)}
             <p className="text-sm text-[#6e6e73] p-3 rounded-xl bg-[#fbfbfd] border border-black/5 italic">
-              {recommendations.roadmap.longTerm12mPlus.length === 0
-                ? t('transformLater')
-                : t('transformExpand')}
+              {longTerm.length === 0 ? t('transformLater') : t('transformExpand')}
             </p>
           </div>
         </div>

@@ -14,12 +14,20 @@ export default function QuizPage() {
   const { state, submitAnswer, completeQuiz } = useAssessment();
   const { assessment, currentQuestion, progress } = state;
 
-  // Handle redirects in useEffect to avoid setState-during-render
+  // Presmerovanie v efekte, aby sa nemenil stav počas renderu.
+  //
+  // Poradie vetiev je nosné. `answered` (všetko zodpovedané, výsledok ešte
+  // nespočítaný) sa rieši PRVÉ: až tu sa zavolá `completeQuiz`, ktorý výsledok
+  // spočíta. Predtým `SUBMIT_ANSWER` nastavil rovno `completed` a výsledok si
+  // spočítal sám, takže sa vždy uplatnila vetva s presmerovaním a
+  // `completeQuiz` sa nezavolal nikdy.
   useEffect(() => {
-    if (assessment?.status === 'completed') {
-      router.push('/results');
-    } else if (assessment && !currentQuestion) {
+    if (!assessment) return;
+    if (assessment.status === 'answered') {
       completeQuiz();
+      return; // presmeruje až ďalší beh, keď je výsledok spočítaný
+    }
+    if (assessment.status === 'completed' || !currentQuestion) {
       router.push('/results');
     }
   }, [assessment, currentQuestion, completeQuiz, router]);
@@ -47,8 +55,8 @@ export default function QuizPage() {
     );
   }
 
-  // Show nothing while redirecting
-  if (assessment.status === 'completed' || !currentQuestion) {
+  // Počas dopočítavania výsledku aj počas presmerovania sa nevykresľuje nič.
+  if (assessment.status === 'answered' || assessment.status === 'completed' || !currentQuestion) {
     return null;
   }
 

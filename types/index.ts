@@ -171,7 +171,14 @@ export interface Answer {
 // --- Assessment Types ---
 
 export type AssessmentType = 'indicative' | 'complex';
-export type AssessmentStatus = 'not_started' | 'in_progress' | 'completed';
+/**
+ * `answered` je medzistav: všetky otázky sú zodpovedané, ale výsledok ešte
+ * nie je spočítaný. Bez neho neexistoval okamih medzi poslednou odpoveďou
+ * a výsledkom — `SUBMIT_ANSWER` kvíz sám dokončil a rovno volal
+ * `computeResult`, takže `COMPLETE_QUIZ` bola mŕtva vetva a nebolo kam vložiť
+ * rekapituláciu ani ponuku opraviť odpoveď.
+ */
+export type AssessmentStatus = 'not_started' | 'in_progress' | 'answered' | 'completed';
 
 export interface Respondent {
   sector: string;
