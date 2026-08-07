@@ -22,9 +22,40 @@ export default function ScoreDerivation({ trail }: Props) {
   const penalty = trail.steps.find((s): s is Extract<AuditStep, { kind: 'penalty' }> => s.kind === 'penalty');
   const level = trail.steps.find((s): s is Extract<AuditStep, { kind: 'level' }> => s.kind === 'level');
   const dii = trail.steps.find((s): s is Extract<AuditStep, { kind: 'dii' }> => s.kind === 'dii');
+  const anchors = trail.steps.filter((s): s is Extract<AuditStep, { kind: 'anchor' }> => s.kind === 'anchor');
 
   return (
     <div className="space-y-4 text-sm">
+      {/* ── Veľkostné kotvy ──
+          Ide pred kategórie zámerne: mení vstupné čísla, takže bez neho by
+          tabuľka nižšie uvádzala hodnoty, ktoré sa nezhodujú s možnosťami
+          otázky, a čitateľ by nemal ako zistiť prečo. */}
+      {anchors.length > 0 && (
+        <div>
+          <h3 className="font-bold text-[#1d1d1f] mb-1">
+            Prepočet na veľkosť firmy ({anchors[0].bandLabelSk})
+          </h3>
+          <p className="text-xs text-[#6e6e73] leading-relaxed mb-2">
+            Časť možností opisuje štruktúru, ktorú firma vašej veľkosti nemôže mať bez ohľadu
+            na to, ako dobre digitalizuje. Pri takých otázkach dostáva plný počet bodov najvyššia
+            možnosť, ktorá je pre vás dosiahnuteľná. Nula zostáva nulou.
+          </p>
+          <div className="space-y-2">
+            {anchors.map((a) => (
+              <div key={a.id} className="rounded-2xl bg-blue-50 border border-blue-200 p-3">
+                <p className="text-xs font-bold text-[#1d1d1f] mb-1">{a.labelSk}</p>
+                <p className="font-mono text-xs break-all mb-1.5">
+                  {a.rawScore} × ({a.questionMax}/{a.ceilingScore}) = <strong>{a.adjustedScore}</strong>
+                </p>
+                <p className="text-xs text-[#6e6e73] leading-relaxed">
+                  Strop pre vašu veľkosť: <em>{a.ceilingLabelSk}</em>. {a.rationaleSk}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── Kategórie ── */}
       <div>
         <h3 className="font-bold text-[#1d1d1f] mb-2">1. Vážený priemer v každej oblasti</h3>
@@ -95,7 +126,7 @@ export default function ScoreDerivation({ trail }: Props) {
         <div>
           <h3 className="font-bold text-[#1d1d1f] mb-1">{penalty ? 4 : 3}. {level.labelSk}</h3>
           <p className="font-mono text-xs bg-black/[0.03] border border-black/5 rounded-xl px-3 py-2 break-all">
-            {level.value} vs. prahy [{level.thresholds.join(', ')}] &rarr;{' '}
+            {level.displayedValue} vs. prahy [{level.thresholds.join(', ')}] &rarr;{' '}
             <strong>Level {level.level} — {level.levelLabelSk}</strong>
           </p>
           <p className="text-xs text-[#6e6e73] leading-relaxed mt-1">{level.noteSk}</p>

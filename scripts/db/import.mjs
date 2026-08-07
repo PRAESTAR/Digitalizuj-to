@@ -29,12 +29,65 @@ const mysql = require('mysql2/promise');
 const QUESTION_KEYS = new Set([
   'id', 'category', 'dimension', 'question_sk', 'question_type', 'weight',
   'options', 'max_score', 'scoring_note', 'scoring_mode', 'branching_rules', 'evidence_type',
-  'anchor_low_sk', 'anchor_high_sk', 'likert_ors_rationale',
+  'anchor_low_sk', 'anchor_high_sk', 'likert_ors_rationale', 'size_anchors',
   'maps_to_score', 'maps_to_risk', 'maps_to_roi_model', 'tooltip',
   'allow_unknown', 'scale', 'scale_rationale',
 ]);
 const RULE_KEYS = new Set(['condition', 'action', 'target', 'reason', 'on_unknown']);
 const OPTION_KEYS = new Set(['value', 'label', 'score']);
+
+/**
+ * Kľúče otázky, ktoré idú do vlastného stĺpca `questions`, a ako sa hodnota
+ * pripraví. Zvyšok `QUESTION_KEYS` má vlastné tabuľky alebo iný cieľ.
+ *
+ * Táto mapa existuje kvôli chybe, ktorá tu tichšie prežila dva dni: kľúč
+ * stačilo pridať do `QUESTION_KEYS` a `assertKeys` ho pustil ďalej, ale ak sa
+ * nedopísal aj do INSERT-u, do databázy sa nikdy nedostal. Tak zmizli
+ * `scoring_mode` (cx_A05 by po publishi z DB skórovala 0 pre všetkých),
+ * `anchor_low_sk`/`anchor_high_sk` aj `likert_ors_rationale`. Import prešiel
+ * bez slova — presne to, čomu má `assertKeys` brániť.
+ *
+ * Odteraz je zoznam stĺpcov ODVODENÝ odtiaľto a kontrola nižšie zhodí import,
+ * kým sa nový kľúč nezaradí buď sem, alebo medzi `HANDLED_ELSEWHERE`.
+ */
+const QUESTION_COLUMNS = {
+  id: (q) => q.id,
+  category: (q) => q.category,
+  dimension: (q) => q.dimension,
+  question_type: (q) => q.question_type,
+  weight: (q) => q.weight,
+  max_score: (q) => q.max_score ?? null,
+  evidence_type: (q) => q.evidence_type,
+  allow_unknown: (q) => (q.allow_unknown ? 1 : 0),
+  scale: (q) => q.scale ?? null,
+  scale_rationale: (q) => q.scale_rationale ?? null,
+  scoring_note: (q) => q.scoring_note ?? null,
+  scoring_mode: (q) => q.scoring_mode ?? 'standard',
+  anchor_low_sk: (q) => q.anchor_low_sk ?? null,
+  anchor_high_sk: (q) => q.anchor_high_sk ?? null,
+  likert_ors_rationale: (q) => q.likert_ors_rationale ?? null,
+  size_anchors: (q) => (q.size_anchors ? JSON.stringify(q.size_anchors) : null),
+};
+
+/** Kľúče, ktoré do `questions` nepatria — majú vlastnú tabuľku alebo stĺpec. */
+const HANDLED_ELSEWHERE = new Set([
+  'options',            // options + option_i18n
+  'branching_rules',    // branching_rules + rule_targets
+  'maps_to_score',      // question_score_map
+  'maps_to_risk',       // question_risk_map
+  'maps_to_roi_model',  // question_roi_map
+  'question_sk',        // question_i18n
+  'tooltip',            // question_i18n
+]);
+
+for (const k of QUESTION_KEYS) {
+  if (!(k in QUESTION_COLUMNS) && !HANDLED_ELSEWHERE.has(k)) {
+    throw new Error(
+      `Kľúč otázky "${k}" je povolený, ale nikde sa neukladá — doplň ho do QUESTION_COLUMNS ` +
+      '(a do db/schema.sql), alebo medzi HANDLED_ELSEWHERE. Inak by import prešiel a hodnota zmizla.'
+    );
+  }
+}
 
 /**
  * Typy otázok, ktoré pozná DB schéma (ENUM `questions.question_type`).
@@ -128,15 +181,15 @@ async function main() {
         'doplň ho do db/schema.sql aj sem, inak ho MariaDB uloží ako prázdny reťazec bez chyby.'
       );
     }
+    // Stĺpce sú odvodené z QUESTION_COLUMNS, aby sa nedal pridať kľúč, ktorý
+    // sa nikam nezapíše. `quiz_code`, `module_id` a `position` nie sú v JSON
+    // otázky — vyplývajú z jej umiestnenia v banke.
+    const cols = Object.keys(QUESTION_COLUMNS);
+    const values = cols.map((c) => QUESTION_COLUMNS[c](q));
     await conn.query(
-      `INSERT INTO questions (id, quiz_code, module_id, position, category, dimension, question_type,
-         weight, max_score, evidence_type, allow_unknown, scale, scale_rationale, scoring_note,
-         anchor_low_sk, anchor_high_sk, likert_ors_rationale)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [q.id, quizCode, moduleId, position, q.category, q.dimension, q.question_type,
-        q.weight, q.max_score ?? null, q.evidence_type, q.allow_unknown ? 1 : 0,
-        q.scale ?? null, q.scale_rationale ?? null, q.scoring_note ?? null,
-        q.anchor_low_sk ?? null, q.anchor_high_sk ?? null, q.likert_ors_rationale ?? null]);
+      `INSERT INTO questions (quiz_code, module_id, position, ${cols.join(', ')})
+       VALUES (${new Array(cols.length + 3).fill('?').join(',')})`,
+      [quizCode, moduleId, position, ...values]);
     await conn.query('INSERT INTO question_i18n (question_id, locale, text, tooltip) VALUES (?,?,?,?)',
       [q.id, 'sk', q.question_sk, q.tooltip]);
 

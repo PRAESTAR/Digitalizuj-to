@@ -7,7 +7,7 @@
 
 **Metodika merania digitálnej zrelosti SME — Adaptívny model DAP**
 
-> **Platí pre:** otázková banka `1.7` · scoring config `1.5` · benchmark dáta `2025-DII-v3` · overené 2026-08-06
+> **Platí pre:** otázková banka `1.8` · scoring config `1.5` · benchmark dáta `2025-DII-v3` · overené 2026-08-07
 >
 > Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
 > Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),
@@ -497,7 +497,20 @@ Používame **statické benchmark hodnoty** odvodené z verejných Eurostat dát
 
 **Rozhodnutie pre MVP:** Veľkosť firmy je vstupná premenná, ktorá ovplyvňuje branching a benchmark porovnanie. Scoring logika je rovnaká.
 
-**Pre budúcnosť:** Sektorové a veľkostné normalizačné tabuľky.
+**Revízia 7. 8. 2026:** rovnaká scoring logika sa ukázala ako neudržateľná pri
+otázkach, ktorých vrchné možnosti opisujú **štruktúru, nie prax** — „dedikovaný
+IT tím s viacerými rolami" (`cx_DII04`) alebo „interný IT + externý dodávateľ
+s SLA" (`cx_B05`). Päťčlenná firma ich nedosiahne ani pri najlepšom vedení, čiže
+tie otázky merali počet zamestnancov. Dostali **veľkostné kotvy**: pre dané
+pásmo sa vyhlási najvyššia dosiahnuteľná možnosť a rebríček sa prepočíta tak,
+aby znamenala plný počet bodov. Zásah je zámerne úzky — dve otázky, tri
+vyhlásené stropy — a oplotený validátorom (#17), aby sa z neho nestala tichá
+normalizácia celého modelu. Mechanika a jej priznané slabiny: `SCORING_SPEC.md`
+§13; dopad na porovnateľnosť: `MODEL_VERSIONS.md`.
+
+**Pre budúcnosť:** Sektorové a veľkostné normalizačné tabuľky — teda plošná
+normalizácia namiesto per-otázkových stropov. Vyžaduje reálne hodnotenia; kým
+nie sú, kotvy sú maximum, ktoré sa dá obhájiť bez dát.
 
 ---
 

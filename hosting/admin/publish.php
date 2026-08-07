@@ -168,6 +168,14 @@ function compile_model(PDO $pdo, string $locale): array {
     ];
     if ($r['max_score'] !== null) { $out['max_score'] = (int) $r['max_score']; }
     if ($r['scoring_note'] !== null) { $out['scoring_note'] = $r['scoring_note']; }
+    // Polia nižšie sa do publish dostali až 7. 8. 2026 — dovtedy ich DB
+    // ukladala, ale publish ich zahadzoval. Musí zostať v zhode so
+    // scripts/db/compile.mjs; nasadenie porovnáva výstupy checksumom.
+    if ($r['scoring_mode'] !== null && $r['scoring_mode'] !== 'standard') { $out['scoring_mode'] = $r['scoring_mode']; }
+    if ($r['anchor_low_sk'] !== null) { $out['anchor_low_sk'] = $r['anchor_low_sk']; }
+    if ($r['anchor_high_sk'] !== null) { $out['anchor_high_sk'] = $r['anchor_high_sk']; }
+    if ($r['likert_ors_rationale'] !== null) { $out['likert_ors_rationale'] = $r['likert_ors_rationale']; }
+    if ($r['size_anchors'] !== null) { $out['size_anchors'] = json_decode($r['size_anchors'], true); }
     $out['branching_rules'] = array_map(function ($rule) use ($targets) {
       $t = array_map(
         fn($x) => $x['target_question_id'] ?? $x['target_rf_id'],

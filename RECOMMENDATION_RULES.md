@@ -1,6 +1,6 @@
 # digitalizuj.to — Recommendation Rules
 
-> **Platí pre:** otázková banka `1.7` · scoring config `1.5` · overené 2026-08-06
+> **Platí pre:** otázková banka `1.8` · scoring config `1.5` · overené 2026-08-07
 >
 > Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
 > Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),
@@ -25,7 +25,22 @@
 }
 ```
 
-Odporúčania sa generujú z **fixnej sady pravidiel** naviazaných na kategóriové skóre ORS, aktívne TDRI risk faktory a AI Readiness — **nie** z odpovedí na konkrétne otázky (`answers`/`questions` parametre sa v `generateQuickWins`/`generateStrategic` prijímajú, ale v tele funkcie sa nepoužívajú). Cielenie na konkrétnu odpoveď (napr. "faktúry sú manuálne") momentálne nie je implementované.
+Odporúčania sa generujú z **fixnej sady pravidiel** naviazaných na kategóriové
+skóre ORS, aktívne TDRI risk faktory a AI Readiness. Od 6. 8. 2026 k tomu
+pribudla **faktová vrstva** (`buildFacts`): pravidlo môže byť podmienené
+konkrétnou odpoveďou alebo veľkosťou firmy. Predtým sa `answers`/`questions`
+prijímali a nevyužívali, takže sa trojosobovej firme odporúčal ERP a firme bez
+servera migrácia do cloudu.
+
+Kľúčová sémantika, zhodná so scoringom: **neplatná odpoveď nikdy nesplní
+podmienku.** „Neviem" ani preskočené nie sú zistenie, takže bránu neotvoria —
+rovnako, ako nevstupujú do skóre.
+
+**Pozor na dva rôzne vstupy:** faktová vrstva číta **surové** hodnoty odpovedí,
+kým prahové pravidlá dostávajú kategóriové skóre ORS, ktoré je pri mikro-
+a malých firmách prepočítané veľkostnou kotvou (`SCORING_SPEC.md` §13). Je to
+zámer: mikrofirma na strope svojho pásma nedostane radu „zaveďte dedikovaný IT
+tím", lebo nesplniteľné odporúčanie je horšie než žiadne.
 
 ---
 

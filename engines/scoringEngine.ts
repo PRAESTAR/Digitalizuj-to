@@ -1,4 +1,4 @@
-import type { Answer, DIIScore, DIIIndicator, ORSScore, CategoryScore, ConfidenceBand, Question } from '@/types';
+import type { Answer, DIIScore, DIIIndicator, ORSScore, CategoryScore, ConfidenceBand, Question, SizeBand } from '@/types';
 import { scoringConfig, maturityLabels, diiLevelLabels, categoryNames } from '@/data/scoringConfig';
 import { diiIndicators, excludedDiiQuestionIds, mappedDiiQuestionIds, type DiiCriterion } from '@/data/diiIndicators';
 
@@ -31,6 +31,91 @@ function criterionMet(criterion: DiiCriterion, answer: Answer): boolean {
 /** Zaokrúhlenie na desatinu — VÝHRADNE pre zobrazenie, nikdy pred ďalším výpočtom. */
 function round1(v: number): number {
   return Math.round(v * 10) / 10;
+}
+
+/** Doložený prepočet skóre otázky na veľkosť firmy — viď `sizeAdjustedScore`. */
+export interface AppliedSizeAnchor {
+  questionId: string;
+  band: SizeBand;
+  /** Hodnota možnosti, ktorá je pri tejto veľkosti stropom. */
+  ceilingValue: string;
+  ceilingScore: number;
+  /** Maximum, aké otázka ponúka komukoľvek (`cx_B05` má 80, nie 100). */
+  questionMax: number;
+  factor: number;
+  rawScore: number;
+  adjustedScore: number;
+  rationaleSk: string;
+}
+
+/**
+ * Skóre odpovede prepočítané na to, čo je pri danej veľkosti firmy dosiahnuteľné.
+ *
+ * PREČO. Časť možností opisuje štruktúru, nie prax: „dedikovaný IT tím
+ * s viacerými rolami" (`cx_DII04`) alebo „interný IT + externý dodávateľ s SLA"
+ * (`cx_B05`). Päťčlenná firma ich nedosiahne ani pri najlepšom vedení — tri
+ * IT role by boli väčšina firmy. Bez úpravy taká otázka meria počet
+ * zamestnancov a mikrofirma dostane menej bodov za rozhodnutie, ktoré nikdy
+ * neurobila. Najlepšia prax pri piatich ľuďoch JE stály externý dodávateľ so
+ * zmluvou, a model, ktorý sa volá „operačná pripravenosť", to tak má aj rátať.
+ *
+ * AKO. Dosiahnuteľný strop pásma dostane plný počet bodov otázky; rebríček pod
+ * ním si zachová rozostupy. Teda `skóre × (max / strop)`, orezané na `max`.
+ * Nula zostáva nulou pri každej veľkosti — „nikto to nerieši" nie je vlastnosť
+ * veľkosti, ale rozhodnutie.
+ *
+ * Násobenie, nie posun: posun (`skóre + (max − strop)`) by firme bez akejkoľvek
+ * IT podpory pridelil polovicu bodov len za to, že je malá.
+ *
+ * ODCHÝLKA JE JEDNOSMERNÁ. Firma, ktorá strop svojho pásma prekročí, dostane
+ * plný počet bodov tak či tak (orezanie). Príliš nízko nastavený strop teda
+ * nikomu neuberie — nanajvýš je štedrý. Preto sa stropy vyhlasujú len tam, kde
+ * je možnosť ŠTRUKTÚRNE nedosiahnuteľná, nie tam, kde je len zriedkavá.
+ *
+ * ČO SA NEMENÍ. Prepočet žije výhradne v agregácii ORS. `Answer.score` zostáva
+ * surové, takže DII (binárne premenné Eurostatu), rizikové faktory aj
+ * odporúčania vidia stav taký, aký je. Mikrofirma so „stálym dodávateľom"
+ * dostane plné body do ORS, a napriek tomu jej odporúčanie na posilnenie IT
+ * podpory nezmizne, ak naň má nárok z iných dôvodov.
+ */
+export function sizeAdjustedScore(
+  question: Question,
+  rawScore: number,
+  sizeBand: SizeBand | null | undefined
+): { score: number; anchor: AppliedSizeAnchor | null } {
+  const anchors = question.size_anchors;
+  if (!anchors || !sizeBand) return { score: rawScore, anchor: null };
+
+  const ceilingValue = anchors.ceilings[sizeBand];
+  if (!ceilingValue) return { score: rawScore, anchor: null };
+
+  const options = question.options ?? [];
+  const ceiling = options.find(o => o.value === ceilingValue);
+  const questionMax = options.length > 0 ? Math.max(...options.map(o => o.score)) : 0;
+  // Neplatná kotva sa správa ako žiadna. Validátor (#17) ju do banky nepustí,
+  // ale engine beží aj nad kompilátom z DB — tichý prepočet podľa nezmyselného
+  // stropu by bol horší než žiadna úprava.
+  if (!ceiling || ceiling.score <= 0 || ceiling.score >= questionMax) {
+    return { score: rawScore, anchor: null };
+  }
+
+  const factor = questionMax / ceiling.score;
+  const adjusted = Math.min(questionMax, rawScore * factor);
+
+  return {
+    score: adjusted,
+    anchor: {
+      questionId: question.id,
+      band: sizeBand,
+      ceilingValue,
+      ceilingScore: ceiling.score,
+      questionMax,
+      factor: Math.round(factor * 1e6) / 1e6,
+      rawScore,
+      adjustedScore: Math.round(adjusted * 10000) / 10000,
+      rationaleSk: anchors.rationale_sk,
+    },
+  };
 }
 
 /**
@@ -193,10 +278,18 @@ export function calculateDII(
  * kategória (žiadna platná odpoveď) má score null a NEVSTUPUJE do súčtu
  * ani do menovateľa váh — nezmerané nie je nula. Dôsledok: skóre vypovedá
  * o tom, čo sa meralo; pokrytie komunikuje measuredCategories + confidence.
+ *
+ * `sizeBand` je nepovinné a slúži výhradne na prepočet otázok s vyhlásenou
+ * kotvou (`sizeAdjustedScore`). Bez neho sa počíta zo surových skóre —
+ * zámerne sa NEDOPĹŇA náhradná hodnota. Benchmark si pri chýbajúcej odpovedi
+ * dosadzuje `small`, lebo bez pásma by porovnanie nevzniklo vôbec; tu by
+ * dosadené pásmo naopak ticho zmenilo skóre firmy podľa domnienky o jej
+ * veľkosti, čo je horšie než úpravu nespraviť.
  */
 export function calculateORS(
   answers: Answer[],
-  questions: Question[]
+  questions: Question[],
+  sizeBand?: SizeBand | null
 ): ORSScore {
   const categories: Record<string, CategoryScore> = {};
   // Neskrátené skóre kategórií. Zobrazované hodnoty v `categories` sú
@@ -223,7 +316,9 @@ export function calculateORS(
 
     for (const ans of catAnswers) {
       const q = catQuestions.find(q => q.id === ans.questionId)!;
-      score += ans.score * q.weight;
+      // Do priemeru vstupuje skóre prepočítané na veľkosť firmy; `ans.score`
+      // zostáva surové pre DII, riziká a odporúčania.
+      score += sizeAdjustedScore(q, ans.score, sizeBand).score * q.weight;
       totalWeight += q.weight;
     }
 

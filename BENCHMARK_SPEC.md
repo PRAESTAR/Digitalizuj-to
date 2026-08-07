@@ -1,6 +1,6 @@
 # digitalizuj.to — Benchmark Specification
 
-> **Platí pre:** benchmark dáta `2025-DII-v3` · scoring config `1.5` · overené 2026-08-06
+> **Platí pre:** benchmark dáta `2025-DII-v3` · scoring config `1.5` · overené 2026-08-07
 >
 > Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
 > Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),
@@ -270,6 +270,17 @@ neistejšie než referencia. Profily majú odteraz dosiahnuteľné pokrytie
 `round(met / measured × 12)`. Stráži to `data/peerData.test.ts`, ktorý
 pokrytie počíta priamo z banky.
 
+**Známa odchýlka po zavedení veľkostných kotiev (7. 8. 2026).** 23 z 50 profilov
+je v pásme micro alebo small a ich `orsScore` vzniklo pred kotvami. Respondent
+tej istej veľkosti sa teda porovnáva s populáciou, ktorá by dnes vyšla
+o niečo vyššie — priemerne **+0,51 bodu** pri micro a **+0,08** pri small
+(SCORING_SPEC §13.2b). Odchýlka mieri v neprospech respondenta, čo je
+konzervatívnejší smer, a pri percentilovom rebríčku 50 profilov je pod
+rozlíšením. Prepočet vzorky by znamenal opustiť kalibráciu na Eurostat
+distribúcie, ktorá je jej hlavnou hodnotou, takže sa zámerne nerobí — ale pri
+najbližšej revízii profilov to treba zohľadniť. `DII` skóre vzorky sa kotvy
+netýkajú vôbec.
+
 
 ## Mikrofirmy a pokrytie Eurostatu
 
@@ -291,20 +302,36 @@ expertné odhady, ktoré pásmo `micro` zámerne pokrývajú (`sizeBenchmarks.mi
 má vlastný medián s poznámkou „Eurostat nepokrýva, expertný odhad"); pridať
 k nim tú istú vetu by bol šum, nie presnosť.
 
-### Otvorené: kotvy otázok podľa veľkosti
+### Vyriešené 7. 8. 2026: kotvy otázok podľa veľkosti
 
-Druhá polovica problému zostáva. Niektoré otázky majú najvyššie možnosti
-štrukturálne nedosiahnuteľné pre mikrofirmu:
+Druhá polovica problému je uzavretá. Otázky, ktorých vrchné možnosti sú pre
+mikrofirmu štrukturálne nedosiahnuteľné, dostali **veľkostné kotvy**: pre dané
+pásmo sa vyhlási najvyššia dosiahnuteľná možnosť a rebríček sa prepočíta tak,
+aby znamenala plný počet bodov. Mechanika, vlastnosti a oplotenie sú
+v `SCORING_SPEC.md` §13; tu ostáva len to, čo sa týka porovnávania.
 
-| Otázka | Vrchná možnosť | Prečo je pre 1–9 ľudí mimo dosahu |
+| Otázka | Strop pre 1–9 ľudí | Prečo |
 |---|---|---|
-| `cx_DII04` | „Dedikovaný IT tím s viacerými rolami" | tím rolí v trojčlennej firme neexistuje |
-| `cx_F01` / `ind_13` | „Zodpovedná osoba/tím s rozpočtom" | pri troch ľuďoch je to majiteľ = možnosť za 25 b |
+| `cx_DII04` | stály externý dodávateľ so zmluvou (50) | viacrolový IT tím v trojčlennej firme neexistuje |
+| `cx_B05` | externý dodávateľ / MSP (50) | to isté; „interný IT + externý s SLA" tiež |
 
-`cx_DII04` navyše sýti **DII**, takže mikrofirme znižuje aj benchmarkové
-skóre. Naopak `ind_14`/`cx_F06` (závislosť na jednom človeku) nízke skóre
-dostávajú **správne** — riziko je reálne bez ohľadu na veľkosť, nie artefakt.
+**Dve tvrdenia z pôvodného zápisu neobstáli:**
 
-Riešenie by znamenalo skórovacie kotvy podmienené veľkosťou, teda zmenu
-modelu s prerušením porovnateľnosti a bez dát na kalibráciu (žiadne reálne
-hodnotenia zatiaľ nie sú). Vedené ako otvorený bod v `IMPROVEMENT_CHECKLIST.md`.
+1. **`cx_DII04` benchmarkové skóre neznižuje.** Štítok `dii` v `maps_to_score`
+   má, ale zo sady v3/2025 je explicitne vylúčená (ICT špecialisti sú premenná
+   v4) — do DII teda nevstupuje a percentilu sa nedotýka. Kotvy vôbec žiadnu
+   DII premennú neovplyvňujú; validátor #17 to aj vynucuje.
+2. **`cx_F01`/`ind_13` kotvu nepotrebujú.** Ich vrchná možnosť
+   („digitalizácia je súčasť obchodnej stratégie") je pre mikrofirmu
+   dosiahnuteľná — nepomenúva rolu, ale spôsob rozhodovania. Nedosiahnuteľná
+   je možnosť v **strede** rebríčka, a diera v strede nikoho nezastropuje.
+   Zostáva tam problém formulácie, vedený samostatne (SCORING_SPEC §13.4).
+
+`ind_14`/`cx_F06` (závislosť na jednom človeku) nízke skóre naďalej dostávajú
+**správne** — riziko je reálne bez ohľadu na veľkosť.
+
+**Dopad na porovnateľnosť:** ORS mikro- a malých firiem s odpoveďou na
+`cx_DII04`/`cx_B05` je od verzie banky 1.8 vyššie než predtým. Výsledky spred
+7. 8. 2026 sa s novými priamo porovnávať nedajú (`MODEL_VERSIONS.md`).
+Kalibračné dáta na overenie výšky stropov neexistujú; odchýlka je preto
+navrhnutá jednosmerne — chybný odhad môže byť štedrý, nie trestajúci.

@@ -1,7 +1,15 @@
 import type {
-  Answer, Question, ResultSnapshot, AuditStep, AuditTrail,
+  Answer, Question, ResultSnapshot, AuditStep, AuditTrail, SizeBand,
 } from '@/types';
 import { scoringConfig } from '@/data/scoringConfig';
+import { sizeAdjustedScore } from './scoringEngine';
+
+const SIZE_BAND_LABELS: Record<SizeBand, string> = {
+  micro: '1–9 zamestnancov',
+  small: '10–49 zamestnancov',
+  medium: '50–249 zamestnancov',
+  large: '250+ zamestnancov',
+};
 
 /**
  * Rozloženie výsledku na kroky, z ktorých vznikol.
@@ -26,20 +34,31 @@ import { scoringConfig } from '@/data/scoringConfig';
 export function buildAuditTrail(
   result: ResultSnapshot,
   answers: Answer[],
-  questions: Question[]
+  questions: Question[],
+  sizeBand?: SizeBand | null
 ): AuditTrail {
   const steps: AuditStep[] = [];
   const q = (id: string) => questions.find(x => x.id === id);
 
+  /**
+   * Skóre tak, ako do kategórie naozaj vstúpilo. MUSÍ ísť cez tú istú funkciu
+   * ako `calculateORS` — keby si trail počítal vlastnú úpravu, replay test by
+   * porovnával dva nezávislé výpočty a zhoda by nedokazovala nič.
+   */
+  const effective = (question: Question | undefined, a: Answer) =>
+    question ? sizeAdjustedScore(question, a.score, sizeBand) : { score: a.score, anchor: null };
+
   // ── 1. Odpovede ───────────────────────────────────────────────────────────
   for (const a of answers) {
     const question = q(a.questionId);
+    const adj = effective(question, a);
     steps.push({
       kind: 'answer',
       id: a.questionId,
       labelSk: question?.question_sk ?? a.questionId,
       value: Array.isArray(a.value) ? a.value.join(', ') : a.value,
-      score: a.isUnknown || a.wasSkipped ? null : a.score,
+      score: a.isUnknown || a.wasSkipped ? null : adj.score,
+      rawScore: a.isUnknown || a.wasSkipped || !adj.anchor ? null : a.score,
       weight: question?.weight ?? 0,
       excluded: a.isUnknown ? 'unknown' : a.wasSkipped ? 'skipped' : null,
       excludedReasonSk: a.isUnknown
@@ -47,6 +66,33 @@ export function buildAuditTrail(
         : a.wasSkipped
           ? (a.skipReason ?? 'Otázku preskočilo vetvenie — respondentovi sa nezobrazila.')
           : null,
+    });
+  }
+
+  // ── 1b. Veľkostné kotvy ───────────────────────────────────────────────────
+  // Bez tohto kroku by v rozklade sedeli čísla, ktoré sa nezhodujú s tabuľkou
+  // možností otázky, a nedalo by sa zistiť prečo. Úprava skóre, ktorú vidno
+  // len vo výsledku, je presne to, čomu sa audit trail má vyhýbať.
+  for (const a of answers) {
+    if (a.isUnknown || a.wasSkipped) continue;
+    const question = q(a.questionId);
+    const anchor = effective(question, a).anchor;
+    if (!anchor) continue;
+    const ceilingLabel = (question?.options ?? []).find(o => o.value === anchor.ceilingValue)?.label
+      ?? anchor.ceilingValue;
+    steps.push({
+      kind: 'anchor',
+      id: a.questionId,
+      labelSk: question?.question_sk ?? a.questionId,
+      band: anchor.band,
+      bandLabelSk: SIZE_BAND_LABELS[anchor.band],
+      ceilingLabelSk: ceilingLabel,
+      ceilingScore: anchor.ceilingScore,
+      questionMax: anchor.questionMax,
+      factor: anchor.factor,
+      rawScore: anchor.rawScore,
+      adjustedScore: anchor.adjustedScore,
+      rationaleSk: anchor.rationaleSk,
     });
   }
 
@@ -64,7 +110,8 @@ export function buildAuditTrail(
       .filter(({ question }) => (question?.maps_to_score ?? []).includes(`ors_${key}`))
       .map(({ a, question }) => ({
         questionId: a.questionId,
-        score: a.score,
+        // Prepočítané skóre, nie surové — presne to, s čím rátal engine.
+        score: effective(question, a).score,
         weight: question!.weight,
       }));
 
@@ -112,21 +159,29 @@ export function buildAuditTrail(
   });
 
   // ── 4. Bezpečnostná penalta ───────────────────────────────────────────────
+  // Prah aj násobok počíta engine z NEZAOKRÚHLENEJ kategórie E — pri hodnote
+  // tesne pod 30 rozhoduje desatina o tom, či penalta vôbec nastúpi.
+  const orsExact = weightSum > 0
+    ? measured.reduce((s, [k, c]) => s + (exactCategory[k] ?? c.score ?? 0) * c.weight, 0) / weightSum
+    : result.ors.score;
+  const penaltyFactor = result.ors.penaltyApplied
+    ? 1 - scoringConfig.securityPenaltyMaxFactor +
+      scoringConfig.securityPenaltyMaxFactor *
+      ((exactCategory['E'] ?? result.ors.categories['E']?.score ?? 0) / scoringConfig.securityPenaltyThreshold)
+    : 1;
+  // Hodnota, ktorú engine porovnáva s prahmi pásiem. Musí byť nezaokrúhlená —
+  // viď komentár pri `AuditStep.level.value`.
+  const penalizedExact = orsExact !== null ? orsExact * penaltyFactor : null;
+
   if (result.ors.penaltyApplied && result.ors.score !== null && result.ors.scorePenalized !== null) {
-    // Prah aj násobok počíta engine z NEZAOKRÚHLENEJ kategórie E — pri hodnote
-    // tesne pod 30 rozhoduje desatina o tom, či penalta vôbec nastúpi.
     const e = exactCategory['E'] ?? result.ors.categories['E']?.score ?? 0;
-    const factor = 1 - scoringConfig.securityPenaltyMaxFactor +
-      scoringConfig.securityPenaltyMaxFactor * (e / scoringConfig.securityPenaltyThreshold);
-    const orsExact = weightSum > 0
-      ? measured.reduce((s, [k, c]) => s + (exactCategory[k] ?? c.score ?? 0) * c.weight, 0) / weightSum
-      : result.ors.score;
+    const factor = penaltyFactor;
     steps.push({
       kind: 'penalty',
       id: 'security',
       labelSk: 'Bezpečnostná penalizácia',
       inputSk: `Kategória E = ${round4(e)}/100, prah ${scoringConfig.securityPenaltyThreshold}`,
-      before: round4(orsExact),
+      before: round4(orsExact ?? result.ors.score),
       // Šesť desatinných miest, nie štyri: násobok sa uplatňuje na skóre
       // rádovo 100, takže chyba zaokrúhlenia sa stonásobí. Pri štyroch
       // miestach z kroku nevyšlo pôvodné číslo (odchýlka 0,0522 oproti
@@ -138,13 +193,14 @@ export function buildAuditTrail(
   }
 
   // ── 5. Pásmo zrelosti ─────────────────────────────────────────────────────
-  if (result.ors.maturityLevel !== null && result.ors.scorePenalized !== null) {
+  if (result.ors.maturityLevel !== null && result.ors.scorePenalized !== null && penalizedExact !== null) {
     const t = scoringConfig.maturityThresholds;
     steps.push({
       kind: 'level',
       id: 'maturity',
       labelSk: 'Úroveň zrelosti',
-      value: result.ors.scorePenalized,
+      value: penalizedExact,
+      displayedValue: result.ors.scorePenalized,
       thresholds: [...t],
       level: result.ors.maturityLevel,
       levelLabelSk: result.ors.maturityLabelSk ?? '',
@@ -233,6 +289,9 @@ export function buildAuditTrail(
       'Trail sa skladá z odpovedí, ktoré sú v prehliadači — na permanentnom odkaze `/r/{hash}` k dispozícii nie je, lebo odpovede po otázkach sa na server neukladajú.',
       'ROI má vlastný rozklad po procesoch v paneli Business Impact (`calculationAudit`); tu sa neopakuje.',
       'Zobrazené skóre sú zaokrúhlené na desatinu, kroky uvádzajú aj nezaokrúhlenú hodnotu — rozdiel do 0,05 bodu je očakávaný (SCORING_SPEC §9.1).',
+      ...(steps.some(s => s.kind === 'anchor')
+        ? ['Stropy dosiahnuteľné pri danej veľkosti firmy sú expertné rozhodnutie, nie kalibrácia na dátach — žiadne reálne hodnotenia zatiaľ neexistujú (SCORING_SPEC §13).']
+        : []),
     ],
   };
 }

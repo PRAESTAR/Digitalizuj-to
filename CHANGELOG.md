@@ -8,6 +8,52 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Skórovanie prestalo trestať firmy za to, že sú malé (7. 8. 2026)
+
+- **Dve otázky merali počet zamestnancov, nie zrelosť.** `cx_DII04` („Máte vo
+  firme ICT špecialistov?") a `cx_B05` („Kto spravuje vaše IT systémy?") majú
+  vrchné možnosti, ktoré opisujú štruktúru — dedikovaný IT tím s viacerými
+  rolami, interný IT plus externý dodávateľ s SLA. Päťčlenná firma ich
+  nedosiahne ani pri najlepšom vedení. Dostala teda menej bodov za rozhodnutie,
+  ktoré nikdy neurobila. Najlepšou dosiahnuteľnou praxou pri tejto veľkosti JE
+  stály externý dodávateľ so zmluvou.
+- **Riešenie: veľkostné kotvy** (`size_anchors`). Pre pásmo sa vyhlási najvyššia
+  dosiahnuteľná možnosť a rebríček sa prepočíta tak, aby znamenala plný počet
+  bodov. **Nula zostáva nulou** — „nikto to nerieši" nie je vlastnosť veľkosti,
+  preto sa násobí, nie posúva. Zásah je úzky: dve otázky, tri stropy.
+- **Odchýlka je jednosmerná.** Firma, ktorá strop svojho pásma prekročí, dostane
+  plný počet bodov vďaka orezaniu. Chybne nízky odhad stropu teda nikomu
+  neuberie, nanajvýš je štedrý — a to je jediné, čo túto zmenu drží v medziach,
+  lebo kalibračné dáta neexistujú.
+- **Zmeraný dopad:** mikrofirmy +0,51 bodu priemerne (max +1,40), malé firmy
+  +0,08 (max +0,30), stredné a veľké nula. V 12 000 testovaných kombináciách
+  skóre **ani raz nekleslo**. Nálepka zrelosti sa mikrofirme posunie v 4,2 %
+  prípadov — rovnaký rád ako pri zmene váh kategórií o ±5 p. b.
+- **Dve tvrdenia z pôvodného zadania neobstáli.** `cx_DII04` mala podľa neho
+  znižovať aj DII skóre — nemá ako, zo sady v3/2025 je explicitne vylúčená
+  (ICT špecialisti sú premenná v4). A `cx_F01`/`ind_13` kotvu nepotrebujú:
+  ich vrchná možnosť je pre mikrofirmu dosiahnuteľná, nedosiahnuteľná je až tá
+  v strede rebríčka a diera v strede nikoho nezastropuje. Zostáva tam problém
+  formulácie („konateľ **popri iných povinnostiach**" platí v štvorčlennej firme
+  o každom), ktorý sa rieši textom v MariaDB, nie skórovaním.
+- **Otázka na veľkosť firmy sa pridávať nemusela** — `cx_02` aj `ind_02`
+  v banke sú, sú povinné a už poháňajú vetvenie NIS2 aj benchmark.
+- **Fence vo validátore (#17).** Kotva sa nedá dať na otázku sýtiacu DII
+  (premenné Eurostatu sú binárne fakty), na `multi_select` (žiadny rebríček),
+  bez zdôvodnenia, na maximum otázky, ani tak, aby strop klesal s veľkosťou
+  firmy. Overené negatívnym testom na siedmich poruchách.
+- **Replay test odhalil chybu, ktorá tam bola od zavedenia audit trailu.** Krok
+  `level` niesol zaokrúhlené penalizované skóre, kým engine úroveň počíta
+  z nezaokrúhleného — pri hodnote tesne nad prahom pásma dal rozklad o stupeň
+  nižšiu nálepku, než akú ukazovala karta. Kotvy skóre len posunuli na hranicu,
+  kde sa to prejaví.
+- **Publish z databázy by bol vypol invertované skórovanie `cx_A05`** — teda
+  skóre 0 pre všetkých respondentov. Cesta banka → MariaDB → banka strácala
+  `scoring_mode` (import ho vôbec neukladal), `anchor_low_sk`, `anchor_high_sk`
+  aj `likert_ors_rationale`. Do produkcie sa to nedostalo, lebo publish z DB
+  medzitým nebežal. Zoznam stĺpcov je odteraz odvodený z jednej mapy a stráži
+  ho test `scripts/db/roundtrip.test.ts`.
+
 ### Reliabilita a ročné kotvy: nástroje namiesto čakania (6. 8. 2026)
 
 - **Pilotné kritériá popisujú štúdiu, ktorú systém spustiť nevie.** Štyri

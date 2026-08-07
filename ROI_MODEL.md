@@ -1,6 +1,6 @@
 # digitalizuj.to — ROI & Business Impact Model
 
-> **Platí pre:** otázková banka `1.7` · scoring config `1.5` · overené 2026-08-06
+> **Platí pre:** otázková banka `1.8` · scoring config `1.5` · overené 2026-08-07
 >
 > Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
 > Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),
@@ -476,6 +476,13 @@ Pri `null` sa počíta s `assumedMaturityLevel = 2` (stredná úroveň: najniž�
 by úsporu nafúkla na 90 % ručnej práce, najvyššia by ju zmazala na 5 %) a
 predpoklad sa **prizná** — disclaimerom, príznakom `inputAssumptions.maturityAssumed`
 a zastropovanou dôveryhodnosťou na 0,3, rovnako ako pri neuvedenej veľkosti firmy.
+
+**Vplyv veľkostných kotiev (od 7. 8. 2026).** Úroveň zrelosti vychádza
+z penalizovaného ORS, ktoré je pri mikro- a malých firmách prepočítané
+(`SCORING_SPEC.md` §13). Mikrofirma so stálym externým dodávateľom tak vyjde
+o niečo zrelšia a jej odhadovaná úspora je nižšia než pred touto zmenou. Nie je
+to vedľajší účinok: úspora je medzera voči **dosiahnuteľnému** stavu, nie voči
+stavu firmy s vlastným IT oddelením.
 
 
 ### Dve brány scenárov: pripravenosť a zámer

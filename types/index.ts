@@ -66,6 +66,30 @@ export interface BranchingRule {
   on_unknown?: 'ignore' | 'apply';
 }
 
+/** Veľkostné pásmo firmy podľa počtu zamestnancov (odpoveď na `cx_02`/`ind_02`). */
+export type SizeBand = 'micro' | 'small' | 'medium' | 'large';
+
+/**
+ * Najvyššia možnosť, ktorú firma daného pásma vôbec MÔŽE dosiahnuť.
+ *
+ * Niektoré možnosti opisujú štruktúru, ktorá pri danom počte ľudí neexistuje —
+ * päťčlenná firma nemôže mať „dedikovaný IT tím s viacerými rolami", nech
+ * digitalizuje akokoľvek dobre. Taká otázka potom nemeria zrelosť, ale počet
+ * zamestnancov, a mikrofirme strhne body za niečo, čo nie je jej rozhodnutie.
+ *
+ * Kotva pomenuje strop pásma HODNOTOU možnosti (nie poradím — `cx_B05` má
+ * možnosti zámerne nezoradené) a engine podľa nej rebríček prepočíta tak, aby
+ * dosiahnuteľný strop znamenal plný počet bodov. Spodok sa nehýbe: „nikto to
+ * nerieši" je nula pri akejkoľvek veľkosti.
+ *
+ * Pásmo bez záznamu = plný rebríček bez úpravy.
+ */
+export interface SizeAnchors {
+  /** Prečo je strop tam, kde je — povinné, kontroluje validátor (#17). */
+  rationale_sk: string;
+  ceilings: Partial<Record<SizeBand, string>>;
+}
+
 export interface Question {
   id: string;
   category: string;
@@ -91,6 +115,11 @@ export interface Question {
    * jej preformulovanie alebo preklad ticho menili spôsob výpočtu.
    */
   scoring_mode?: 'standard' | 'inverted';
+  /**
+   * Stropy dosiahnuteľné pri danej veľkosti firmy. Viď `SizeAnchors`.
+   * Bez tohto poľa sa skóre otázky nijako neupravuje.
+   */
+  size_anchors?: SizeAnchors;
   branching_rules: BranchingRule[];
   evidence_type: string;
   maps_to_score: string[];
@@ -146,7 +175,7 @@ export type AssessmentStatus = 'not_started' | 'in_progress' | 'completed';
 
 export interface Respondent {
   sector: string;
-  employeeCountBand: 'micro' | 'small' | 'medium' | 'large' | '';
+  employeeCountBand: SizeBand | '';
   revenueBand?: string;
 }
 
@@ -599,11 +628,36 @@ export type AuditStep =
       id: string;
       labelSk: string;
       value: string;
-      /** null = do skóre nevstúpila (Neviem alebo preskočená). */
+      /**
+       * Skóre, ktoré vstúpilo do kategórie. Pri otázke s veľkostnou kotvou
+       * je to prepočítaná hodnota — `rawScore` drží pôvodnú, aby bol rozdiel
+       * v rozklade vidieť a nie iba tvrdený.
+       * null = do skóre nevstúpila (Neviem alebo preskočená).
+       */
       score: number | null;
+      /** Nenulové len vtedy, keď sa uplatnila veľkostná kotva. */
+      rawScore: number | null;
       weight: number;
       excluded: 'unknown' | 'skipped' | null;
       excludedReasonSk: string | null;
+    }
+  | {
+      /**
+       * Prepočet skóre otázky na to, čo je pri danej veľkosti firmy
+       * dosiahnuteľné (`scoringEngine.sizeAdjustedScore`).
+       */
+      kind: 'anchor';
+      id: string;
+      labelSk: string;
+      band: SizeBand;
+      bandLabelSk: string;
+      ceilingLabelSk: string;
+      ceilingScore: number;
+      questionMax: number;
+      factor: number;
+      rawScore: number;
+      adjustedScore: number;
+      rationaleSk: string;
     }
   | {
       /** Vážený priemer jednej ORS kategórie. */
@@ -649,7 +703,16 @@ export type AuditStep =
       kind: 'level';
       id: string;
       labelSk: string;
+      /**
+       * NEZAOKRÚHLENÉ penalizované skóre — presne hodnota, ktorú engine
+       * porovnáva s prahmi. Zaokrúhlená sem nesmie: úroveň je diskrétne
+       * rozhodnutie, takže rozdiel 0,03 bodu pri hodnote tesne nad prahom
+       * z rozkladu vyrobí o pásmo nižšiu nálepku, než akú karta ukazuje.
+       * Odhalil to replay test 7. 8. 2026 (seed 107, skóre tesne nad 20).
+       */
       value: number;
+      /** Číslo na karte (zaokrúhlené na desatinu) — na zobrazenie. */
+      displayedValue: number;
       thresholds: number[];
       level: number;
       levelLabelSk: string;

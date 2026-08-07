@@ -5,7 +5,7 @@
 -->
 # digitalizuj.to — Scoring Specification
 
-> **Platí pre:** otázková banka `1.7` · scoring config `1.5` · overené 2026-08-06
+> **Platí pre:** otázková banka `1.8` · scoring config `1.5` · overené 2026-08-07
 >
 > Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
 > Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),
@@ -565,7 +565,8 @@ s prahom pásma. Tvrdenie stálo na dôvere, nie na doklade.
 
 | Krok | Čo dokladá |
 |---|---|
-| `answer` | odpoveď, jej skóre a váha; pri vylúčení aj dôvod („Neviem" / preskočené vetvením) |
+| `answer` | odpoveď, jej skóre a váha; pri vylúčení aj dôvod („Neviem" / preskočené vetvením); pri veľkostnej kotve aj pôvodné skóre |
+| `anchor` | prepočet skóre na veľkosť firmy — strop pásma, násobok, pôvodná a upravená hodnota (§13) |
 | `category` | vážený priemer jednej ORS kategórie — položky, súčet váh, výsledok |
 | `aggregate` | zloženie celkového ORS z meraných kategórií vrátane renormalizovaného menovateľa |
 | `penalty` | vstup, násobok a výsledok bezpečnostnej penalizácie |
@@ -589,6 +590,16 @@ vstupy, takže z nich pôvodné číslo nevyšlo (odchýlka 0,06 b pri ORS a
 a násobok penalty má šesť desatinných miest, lebo sa uplatňuje na skóre
 rádovo 100 a chyba zaokrúhlenia by sa stonásobila.
 
+Od 7. 8. 2026 beží replay **v oboch vetvách** — bez pásma veľkosti aj pre
+mikrofirmu, kde sa uplatňujú kotvy (§13). Rozšírenie odhalilo ďalší prípad tej
+istej chyby: krok `level` niesol **zaokrúhlené** penalizované skóre, kým engine
+úroveň počíta z nezaokrúhleného. Pri hodnote tesne nad prahom (seed 107, skóre
+tesne nad 20) dal rozklad o pásmo nižšiu nálepku, než akú ukazovala karta.
+Úroveň je diskrétne rozhodnutie, takže tam tolerancia „pol kroku zobrazenia"
+neexistuje — krok preto nesie presnú hodnotu (`value`) aj zobrazenú
+(`displayedValue`). Chyba bola v kóde od zavedenia trailu; kotvy ju len
+posunuli na hranicu, kde sa prejaví.
+
 ### 12.3 Čo trail nepokrýva
 
 - **Na permanentnom odkaze `/r/{hash}` k dispozícii nie je.** Odpovede po
@@ -601,3 +612,151 @@ rádovo 100 a chyba zaokrúhlenia by sa stonásobila.
 
 Obmedzenia sú vypísané aj v UI (`limitationsSk`), aby „kompletný audit trail"
 nesľuboval viac, než dodáva.
+
+---
+
+## 13. Skórovacie kotvy podľa veľkosti firmy
+
+Implementácia: `engines/scoringEngine.ts` → `sizeAdjustedScore(question, rawScore, sizeBand)`.
+Deklarácia: pole `size_anchors` na otázke v banke. Fence: `validate-model.mjs` #17.
+
+### 13.1 Problém, ktorý to rieši
+
+Časť možností neopisuje prax, ale **štruktúru**:
+
+| Otázka | Možnosť | Skóre |
+|---|---|---|
+| `cx_DII04` — Máte vo firme ICT špecialistov? | Interný IT človek / tím | 75 |
+| | Dedikovaný IT tím s viacerými rolami | 100 |
+| `cx_B05` — Kto spravuje vaše IT systémy? | Dedikovaný IT človek alebo tím | 60 |
+| | Interný IT + externý dodávateľ s jasným SLA | 80 |
+
+Firma s 1–9 zamestnancami ich nedosiahne ani pri najlepšom vedení: interný IT
+človek je pri piatich ľuďoch pätina firmy a viacrolový IT tím jej väčšina.
+Otázka tak meria **počet zamestnancov, nie zrelosť**, a mikrofirme uberie body
+za rozhodnutie, ktoré nikdy neurobila. Najlepšou dosiahnuteľnou praxou pri
+tejto veľkosti JE stály externý dodávateľ so zmluvou — a model, ktorý sa volá
+*operačná pripravenosť*, to tak má aj rátať.
+
+### 13.2 Ako to funguje
+
+Kotva vyhlási pre pásmo **najvyššiu možnosť, ktorá je dosiahnuteľná**. Rebríček
+sa prepočíta tak, aby tento strop znamenal plný počet bodov otázky:
+
+```
+upravené = min(maximum_otázky, skóre × maximum_otázky / skóre_stropu)
+```
+
+Vlastnosti, ktoré z toho plynú a ktoré stráži test (`engines/sizeAnchors.test.ts`):
+
+- **Nula zostáva nulou.** „Nikto to nerieši" nie je vlastnosť veľkosti.
+  Preto sa násobí, nie posúva — posun by firme bez akejkoľvek IT podpory
+  pridelil polovicu bodov len za to, že je malá.
+- **Nikdy neuberá.** Firma, ktorá strop svojho pásma prekročí, dostane plný
+  počet bodov vďaka orezaniu. Odchýlka je teda **jednosmerná**: príliš nízko
+  odhadnutý strop nikomu neuberie, nanajvýš je štedrý. Preto sa stropy
+  vyhlasujú len tam, kde je možnosť ŠTRUKTÚRNE nedosiahnuteľná, nie tam, kde
+  je len zriedkavá.
+- **Zachováva poradie.** Lepšia odpoveď nikdy nedostane menej bodov.
+- **Maximum je maximum otázky, nie 100.** `cx_B05` má strop 80 pre každého;
+  kotva na tom nič nemení.
+- **Bez pásma veľkosti sa nič neupravuje.** Náhradná hodnota sa zámerne
+  nedosadzuje — benchmark si `small` dosadiť smie (bez pásma by porovnanie
+  nevzniklo vôbec), tu by domnienka o veľkosti ticho zmenila skóre firmy.
+
+Aktuálne kotvy:
+
+| Otázka | micro (1–9) | small (10–49) | medium / large |
+|---|---|---|---|
+| `cx_DII04` | stály externý dodávateľ so zmluvou (50) | interný IT človek / tím (75) | bez úpravy |
+| `cx_B05` | externý dodávateľ / MSP (50) | bez úpravy | bez úpravy |
+
+### 13.2b Zmeraný dopad
+
+4 000 deterministických kombinácií odpovedí komplexného kvízu per pásmo,
+porovnané s výpočtom bez pásma:
+
+| Pásmo | Priemerná zmena ORS | Najväčšia | Posunutý maturity level |
+|---|---|---|---|
+| micro | +0,51 b | +1,40 b | 4,2 % prípadov |
+| small | +0,08 b | +0,30 b | 0,6 % |
+| medium / large | 0,00 b | 0,00 b | 0 % |
+
+**Ani v jednom z 12 000 prípadov skóre nekleslo** — jednosmernosť z §13.2 teda
+neplatí len z konštrukcie vzorca, ale je aj odmeraná.
+
+Posun bodu je malý, posun nálepky nie: 4,2 % pri mikrofirmách je rovnaký rád ako
+citlivosť na váhy kategórií (±5 p. b. → 3–8 %, METHODOLOGY §12.2). Platí tu
+preto tá istá výhrada — **rozdiel jednej úrovne zrelosti medzi firmami nie je
+spoľahlivý signál.**
+
+### 13.3 Čo kotvu dostať NESMIE
+
+- **Otázky sýtiace DII.** Premenné Eurostatu sú binárne fakty a percentil voči
+  meranej distribúcii má zmysel len vtedy, keď sa merajú pre každého rovnako.
+  Testuje sa účasť v `data/diiIndicators.json`, nie štítok `dii`
+  v `maps_to_score`: `cx_DII04` štítok má, ale zo sady v3/2025 je **explicitne
+  vylúčená** (ICT špecialisti sú premenná v4), takže do DII nevstupuje.
+  Rozhoduje kontrakt, nie štítok.
+- **`multi_select`.** Strop je najvyššia priečka rebríčka; pri sčítaní
+  zaškrtnutých položiek žiadny rebríček nie je.
+- **Otázky o riziku závislosti** (`cx_F06`, `ind_14`). Nízke skóre tam
+  mikrofirma dostáva **správne** — keď systémy pozná jeden človek, riziko je
+  reálne bez ohľadu na veľkosť firmy.
+- **Otázky, kde je vrchná možnosť len drahá alebo zriedkavá, nie nemožná.**
+  Zdokumentovať DR plán, zaviesť MFA či napísať bezpečnostnú politiku je
+  prácnosť, nie počet zamestnancov.
+
+### 13.4 Prečo `cx_F01` a `ind_13` kotvu nedostali
+
+Obe otázky („Kto vo firme zodpovedá za digitalizáciu?") boli pôvodne vedené ako
+kandidáti. Pri rozbore sa ukázalo, že problém majú iný a kotva naň nesadne:
+
+- Vrchná možnosť („Digitalizácia je súčasť obchodnej stratégie" / „strategická
+  priorita s governance") je **dosiahnuteľná aj pre mikrofirmu** — nepomenúva
+  rolu, ale spôsob rozhodovania. Strop teda chýba a nie je čo dvíhať.
+- Nedosiahnuteľná je možnosť v **strede** rebríčka („IT človek / IT oddelenie",
+  50 bodov). Diera v strede ale nikoho nezastropuje: respondent ju jednoducho
+  nevyberie a siahne po 25 alebo 75.
+
+Zostáva reálny **problém formulácie**, ktorý kotva nerieši: možnosť za 25 bodov
+znie „Konateľ/majiteľ **popri iných povinnostiach**", čo v štvorčlennej firme
+platí o každom a o všetkom. Majiteľ, ktorý na digitalizáciu má plán aj rozpočet,
+sa v tej vete spozná a môže si vybrať nižšie, než kam patrí. Náprava je zmena
+textu možnosti v MariaDB, nie zásah do skórovania — a text musí naďalej fungovať
+aj pre dvestočlennú firmu, kde „dedikovaná osoba" znamená naozaj dedikovanú
+osobu. Vedené ako otvorené v `IMPROVEMENT_CHECKLIST.md`.
+
+### 13.5 Kam prepočet dosiahne a kam nie
+
+Prepočet žije **výhradne v agregácii ORS**. `Answer.score` zostáva surové.
+
+**Nedotknuté:**
+
+- **DII** vidí pôvodné hodnoty — a kotvené otázky doň aj tak nevstupujú (§13.3).
+- **Rizikové faktory** vidia stav taký, aký je. Chýbajúce zálohy sú riziko pri
+  piatich aj pri dvestopäťdesiatich zamestnancoch.
+- **Faktová vrstva odporúčaní** (`buildFacts`) číta hodnoty odpovedí, nie skóre.
+  Odporúčanie viazané na konkrétnu odpoveď sa teda správa rovnako pri každej
+  veľkosti.
+
+**Dotknuté — vedome:**
+
+- **Prahové pravidlá odporúčaní** dostávajú kategóriové skóre ORS, teda už
+  prepočítané. Mikrofirma, ktorá strop svojho pásma dosiahla, tak nedostane
+  radu „zaveďte dedikovaný IT tím" — a to je správne: nesplniteľné odporúčanie
+  je horšie než žiadne.
+- **ROI** odvodzuje podiel manuálnej práce z úrovne zrelosti, ktorá vychádza
+  z penalizovaného ORS. Vyššie ORS mikrofirmy teda mierne znižuje odhadovanú
+  úsporu. Je to dôsledok, nie vedľajší účinok: úspora sa počíta z medzery
+  voči dosiahnuteľnému stavu.
+
+### 13.6 Priznaná slabina
+
+Stropy sú **expertné rozhodnutie, nie kalibrácia**. Žiadne reálne hodnotenia
+zatiaľ neexistujú, takže neexistuje ani dátový podklad, z ktorého by sa dalo
+overiť, kde presne strop pásma leží. Jediné, čo túto slabinu drží v medziach,
+je jednosmernosť odchýlky (§13.2): chybný odhad môže byť štedrý, nie trestajúci.
+
+Výhrada je vypísaná aj v UI — v rozklade skóre pri kroku `anchor` aj medzi
+obmedzeniami trailu.

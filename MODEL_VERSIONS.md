@@ -1,6 +1,6 @@
 # digitalizuj.to — história verzií modelu
 
-> **Platí pre:** otázková banka `1.7` · scoring config `1.5` · benchmark dáta `2025-DII-v3` · overené 2026-08-06
+> **Platí pre:** otázková banka `1.8` · scoring config `1.5` · benchmark dáta `2025-DII-v3` · overené 2026-08-07
 >
 > Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16).
 
@@ -8,7 +8,7 @@ Model má **tri nezávisle verzované zdroje** a každý má vlastný životný 
 
 | Zdroj | Kde | Verzia dnes | Čo mení |
 |---|---|---|---|
-| Otázková banka | `data/questionBank.json` | `1.7` | znenie, počet a váhy otázok |
+| Otázková banka | `data/questionBank.json` | `1.8` | znenie, počet a váhy otázok |
 | Scoring config | `data/scoringConfig.ts` | `1.5` | váhy kategórií, prahy, rizikové faktory, ROI parametre |
 | Benchmark dáta | `data/benchmarkData.json` | `2025-DII-v3` | referenčné distribúcie Eurostatu |
 
@@ -29,12 +29,48 @@ potrebuje človek, ktorý neskôr pozerá na dáta, nie ten, kto číta release 
   a po zmene je metodicky neplatné.
 
 Verzia modelu je pri každom uloženom výsledku v stĺpci `model_version` ako
-`{scoring}/qb{banka}` — dnes teda `1.5/qb1.7`. Dá sa podľa nej filtrovať
+`{scoring}/qb{banka}` — dnes teda `1.5/qb1.8`. Dá sa podľa nej filtrovať
 v SQL bez rozparsovania `result_json`.
 
 ---
 
 ## Otázková banka
+
+### 1.8 — 7. 8. 2026 · **Porovnateľnosť: prerušená pre mikro a malé firmy**
+
+Skórovacie kotvy podľa veľkosti firmy (`size_anchors`, SCORING_SPEC §13).
+
+Dve otázky mali vrchné možnosti, ktoré firma s 1–9 zamestnancami nedosiahne
+ani pri najlepšom vedení — merali teda počet zamestnancov, nie zrelosť:
+
+| Otázka | Strop micro | Strop small |
+|---|---|---|
+| `cx_DII04` (ICT špecialisti) | stály externý dodávateľ (50) | interný IT človek (75) |
+| `cx_B05` (správa IT systémov) | externý dodávateľ / MSP (50) | bez úpravy |
+
+Skóre týchto otázok sa pre dané pásmo prepočíta tak, aby dosiahnuteľný strop
+znamenal plný počet bodov. Nula zostáva nulou; úprava nikdy neuberá.
+
+**Čo to znamená pre porovnateľnosť:**
+
+- **Mikro a malé firmy** — ORS je od tejto verzie **vyššie** než predtým, ak
+  na tieto otázky odpovedali. Priame porovnanie so staršími výsledkami tej
+  istej veľkosti je metodicky neplatné. Najviac sa dotýka kategórií **B a F**
+  (obe otázky sýtia `ors_F`, `cx_B05` aj `ors_B`).
+- **Stredné a veľké firmy** — bez zmeny, kotvy sa ich netýkajú.
+- **DII, TDRI a odporúčania** — bez zmeny pri akejkoľvek veľkosti. Prepočet
+  žije výhradne v agregácii ORS; `Answer.score` zostáva surové.
+
+Stropy sú expertné rozhodnutie bez kalibračných dát — žiadne reálne hodnotenia
+zatiaľ neexistujú. Odchýlka je preto navrhnutá jednosmerne: chybne nízky strop
+môže byť štedrý, nie trestajúci.
+
+**Sprievodná oprava (bez vplyvu na skóre):** cesta banka → MariaDB → banka
+strácala `scoring_mode`, `anchor_low_sk`, `anchor_high_sk`
+a `likert_ors_rationale`. Publish z databázy by tak vypol invertované
+skórovanie `cx_A05` — teda skóre 0 pre všetkých respondentov. Chyba do
+produkcie nikdy nedošla (publish z DB medzitým nebežal); stráži ju nový test
+`scripts/db/roundtrip.test.ts`.
 
 ### 1.7 — 6. 8. 2026 · **Porovnateľnosť: posunutá**
 

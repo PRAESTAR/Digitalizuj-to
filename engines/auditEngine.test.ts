@@ -8,7 +8,7 @@ import { calculateBusinessImpact, extractROIInputs } from './roiEngine';
 import { generateRecommendations } from './recommendationEngine';
 import { getQuizQuestions, calculateAnswerScore } from './questionEngine';
 import { scoringConfig } from '@/data/scoringConfig';
-import type { Answer, Question, ResultSnapshot, AuditStep } from '@/types';
+import type { Answer, Question, ResultSnapshot, AuditStep, SizeBand } from '@/types';
 
 /**
  * REPLAY TEST — dôkaz tvrdenia „každé skóre je auditovateľné a spätne
@@ -39,9 +39,9 @@ function answersFor(questions: Question[], seed: number): Answer[] {
   });
 }
 
-function resultFor(questions: Question[], answers: Answer[]): ResultSnapshot {
+function resultFor(questions: Question[], answers: Answer[], sizeBand: SizeBand | null = null): ResultSnapshot {
   const dii = calculateDII(answers, questions);
-  const ors = calculateORS(answers, questions);
+  const ors = calculateORS(answers, questions, sizeBand);
   const tdri = calculateTDRI(answers, questions, new Set<string>());
   const aiReadiness = calculateAIReadiness(answers, questions);
   const roiInputs = extractROIInputs(answers, questions, ors.categories['F']?.score ?? null);
@@ -69,12 +69,20 @@ function replayWeightedMean(step: Extract<AuditStep, { kind: 'category' | 'aggre
 const questions = getQuizQuestions('complex');
 const SWEEP = 300;
 
-describe('replay: skóre sa dá prepočítať výhradne z audit trailu', () => {
+/**
+ * Replay beží pre OBE vetvy: bez pásma veľkosti (surové skóre) aj pre
+ * mikrofirmu, kde sa uplatňujú veľkostné kotvy (SCORING_SPEC §13). Kotva
+ * mení čísla vstupujúce do kategórií, takže keby ju trail nezohľadnil,
+ * z rozkladu by pôvodné skóre nevyšlo — a to je presne tá trieda chyby,
+ * ktorú tento test odhalil pri svojom prvom behu.
+ */
+describe.each([[null], ['micro']] as [SizeBand | null][])(
+  'replay (pásmo: %s): skóre sa dá prepočítať výhradne z audit trailu', (band) => {
   test('každá ORS kategória sa z krokov prepočíta na svoju zobrazenú hodnotu', () => {
     for (let seed = 0; seed < SWEEP; seed++) {
       const answers = answersFor(questions, seed);
-      const result = resultFor(questions, answers);
-      const trail = buildAuditTrail(result, answers, questions);
+      const result = resultFor(questions, answers, band);
+      const trail = buildAuditTrail(result, answers, questions, band);
 
       for (const step of trail.steps) {
         if (step.kind !== 'category') continue;
@@ -92,8 +100,8 @@ describe('replay: skóre sa dá prepočítať výhradne z audit trailu', () => {
   test('celkové ORS sa z kategóriových krokov prepočíta na zobrazenú hodnotu', () => {
     for (let seed = 0; seed < SWEEP; seed++) {
       const answers = answersFor(questions, seed);
-      const result = resultFor(questions, answers);
-      const trail = buildAuditTrail(result, answers, questions);
+      const result = resultFor(questions, answers, band);
+      const trail = buildAuditTrail(result, answers, questions, band);
 
       const agg = trail.steps.find((s) => s.kind === 'aggregate');
       expect(agg).toBeDefined();
@@ -106,8 +114,8 @@ describe('replay: skóre sa dá prepočítať výhradne z audit trailu', () => {
     let seen = 0;
     for (let seed = 0; seed < SWEEP; seed++) {
       const answers = answersFor(questions, seed);
-      const result = resultFor(questions, answers);
-      const trail = buildAuditTrail(result, answers, questions);
+      const result = resultFor(questions, answers, band);
+      const trail = buildAuditTrail(result, answers, questions, band);
       const step = trail.steps.find((s) => s.kind === 'penalty');
       if (!step || step.kind !== 'penalty') continue;
       seen++;
@@ -121,8 +129,8 @@ describe('replay: skóre sa dá prepočítať výhradne z audit trailu', () => {
   test('úroveň zrelosti sa z kroku odvodí porovnaním s prahmi', () => {
     for (let seed = 0; seed < SWEEP; seed++) {
       const answers = answersFor(questions, seed);
-      const result = resultFor(questions, answers);
-      const trail = buildAuditTrail(result, answers, questions);
+      const result = resultFor(questions, answers, band);
+      const trail = buildAuditTrail(result, answers, questions, band);
       const step = trail.steps.find((s) => s.kind === 'level');
       if (!step || step.kind !== 'level') continue;
 
@@ -137,8 +145,8 @@ describe('replay: skóre sa dá prepočítať výhradne z audit trailu', () => {
   test('DII sa z kroku prepočíta extrapoláciou', () => {
     for (let seed = 0; seed < SWEEP; seed++) {
       const answers = answersFor(questions, seed);
-      const result = resultFor(questions, answers);
-      const trail = buildAuditTrail(result, answers, questions);
+      const result = resultFor(questions, answers, band);
+      const trail = buildAuditTrail(result, answers, questions, band);
       const step = trail.steps.find((s) => s.kind === 'dii');
       if (!step || step.kind !== 'dii') continue;
 
@@ -148,6 +156,28 @@ describe('replay: skóre sa dá prepočítať výhradne z audit trailu', () => {
       expect(step.indicators.length).toBe(step.total);
       expect(step.indicators.filter((i) => i.status === 'met').length).toBe(step.met);
     }
+  });
+
+  test('krok kotvy nesie vlastný prepočet, ktorý sa dá overiť', () => {
+    let seen = 0;
+    for (let seed = 0; seed < SWEEP; seed++) {
+      const answers = answersFor(questions, seed);
+      const result = resultFor(questions, answers, band);
+      const trail = buildAuditTrail(result, answers, questions, band);
+
+      for (const step of trail.steps) {
+        if (step.kind !== 'anchor') continue;
+        seen++;
+        const replayed = Math.min(step.questionMax, step.rawScore * step.factor);
+        expect(Math.abs(replayed - step.adjustedScore), `${step.id} @ seed ${seed}`)
+          .toBeLessThanOrEqual(0.0001);
+        // Krok odpovede musí ukazovať tú istú dvojicu čísel.
+        const ans = trail.steps.find(s => s.kind === 'answer' && s.id === step.id);
+        expect(ans && ans.kind === 'answer' ? ans.rawScore : null).toBe(step.rawScore);
+      }
+    }
+    // Bez pásma kotva nesmie nastať vôbec; s mikrofirmou musí.
+    expect(seen === 0, `pásmo ${band}, krokov kotvy ${seen}`).toBe(band === null);
   });
 });
 

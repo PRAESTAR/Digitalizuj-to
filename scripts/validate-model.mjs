@@ -21,6 +21,9 @@
  *     nesedí s vlastnou distribúciou, ORS mimo rozsahu)
  * 11. benchmarkData: sektor/veľkosť voliteľná v kvíze nemá referenčný záznam
  *     (inak sa respondentovi ticho zobrazí „benchmark nedostupný")
+ * 17. veľkostné kotvy (`size_anchors`): strop odkazuje na možnosť, ktorú
+ *     otázka ponúka, klesá s veľkosťou firmy, nesedí na maxime a nesmie byť
+ *     na otázke sýtiacej DII (Eurostat premenné sa merajú pre všetkých rovnako)
  *
  * Spustenie:  node scripts/validate-model.mjs
  * Návratový kód 1 = nájdené chyby (vhodné do CI).
@@ -413,6 +416,94 @@ for (const [file, sources] of Object.entries(SPEC_FILES)) {
       errors.push(
         file + ': pečiatka neuvádza ' + want + ' — model sa posunul, dokument nie. Skontroluj obsah a uprav pečiatku.'
       );
+    }
+  }
+}
+
+// --- 17: fence na veľkostné kotvy -------------------------------------------
+// `size_anchors` prepisuje skóre otázky podľa počtu zamestnancov. Je to jediné
+// miesto v modeli, kde odpoveď na jednu otázku mení hodnotu inej — teda presne
+// ten druh mechaniky, ktorý sa pri chybe neprejaví pádom, ale tichým posunom
+// skóre celej triedy firiem. Preto rovnaké oplotenie ako pri škále 0–10 (#13).
+const SIZE_BANDS = ['micro', 'small', 'medium', 'large'];
+const diiCriterionIds = new Set(
+  diiMap.indicators.flatMap((ind) => (ind.criteria ?? []).map((c) => c.questionId))
+);
+
+for (const q of all) {
+  const anchors = q.size_anchors;
+  if (anchors === undefined) continue;
+
+  if (typeof anchors !== 'object' || anchors === null || Array.isArray(anchors)) {
+    errors.push(`${q.id}: size_anchors musí byť objekt`);
+    continue;
+  }
+  if (!anchors.rationale_sk) {
+    errors.push(`${q.id}: size_anchors bez "rationale_sk" — strop, ktorý nikto nezdôvodnil, je len tichá úprava skóre`);
+  }
+  // Strop je najvyššia možnosť REBRÍČKA. Pri multi_select žiadny rebríček nie
+  // je (skóre vzniká súčtom zaškrtnutých položiek), takže by pojem nedával
+  // zmysel a prepočet by ho zdeformoval nepredvídateľne.
+  if (q.question_type !== 'single_choice') {
+    errors.push(`${q.id}: size_anchors je len pre single_choice, nie pre "${q.question_type}"`);
+  }
+  // Otázka sýtiaca DII sa upravovať NESMIE: premenné Eurostatu sú binárne
+  // fakty a porovnateľnosť s meranou distribúciou stojí na tom, že sa merajú
+  // rovnako pre každého. Testuje sa účasť v diiIndicators.json, nie tag
+  // 'dii' v maps_to_score — cx_DII04 tag má, ale je z v3 sady explicitne
+  // vylúčená, takže do DII nevstupuje. Rozhoduje kontrakt, nie štítok.
+  if (diiCriterionIds.has(q.id)) {
+    errors.push(`${q.id}: size_anchors na otázke, ktorá je kritériom DII indikátora — prepočet by rozbil porovnateľnosť s meranou distribúciou Eurostatu`);
+  }
+
+  const ceilings = anchors.ceilings;
+  if (typeof ceilings !== 'object' || ceilings === null || Object.keys(ceilings).length === 0) {
+    errors.push(`${q.id}: size_anchors.ceilings je prázdne — pole bez stropu nerobí nič`);
+    continue;
+  }
+
+  const byValue = new Map((q.options ?? []).map((o) => [o.value, o.score]));
+  const max = Math.max(...(q.options ?? []).map((o) => o.score));
+  const scoreOf = {};
+
+  for (const [band, value] of Object.entries(ceilings)) {
+    if (!SIZE_BANDS.includes(band)) {
+      errors.push(`${q.id}: size_anchors pozná pásma ${SIZE_BANDS.join('/')}, nie "${band}"`);
+      continue;
+    }
+    if (!byValue.has(value)) {
+      errors.push(`${q.id}: strop pásma ${band} odkazuje na možnosť "${value}", ktorú otázka neponúka`);
+      continue;
+    }
+    const s = byValue.get(value);
+    if (s <= 0) {
+      errors.push(`${q.id}: strop pásma ${band} ("${value}") má skóre ${s} — nulový strop by celé pásmo vynásobil nekonečnom`);
+    }
+    if (s >= max) {
+      errors.push(`${q.id}: strop pásma ${band} ("${value}") je ${s}, teda maximum otázky (${max}) — kotva by nerobila nič, radšej ju zmaž`);
+    }
+    scoreOf[band] = s;
+  }
+
+  // Väčšia firma nesmie mať nižší strop než menšia — inak by úprava trestala
+  // rast. Pásmo bez záznamu znamená plný rebríček, teda `max`.
+  let prev = 0;
+  for (const band of SIZE_BANDS) {
+    const s = scoreOf[band] ?? max;
+    if (s < prev) {
+      errors.push(`${q.id}: strop pásma ${band} (${s}) je nižší než v menšom pásme (${prev}) — kotvy musia rásť s veľkosťou firmy`);
+    }
+    prev = s;
+  }
+}
+
+// Pásma v kotvách musia sedieť s hodnotami, ktoré kvíz reálne ponúka —
+// inak by sa strop vyhlásil pre pásmo, do ktorého sa respondent nedostane.
+const sizeOptionValues = new Set(optionValues('benchmark_size'));
+for (const q of all) {
+  for (const band of Object.keys(q.size_anchors?.ceilings ?? {})) {
+    if (SIZE_BANDS.includes(band) && !sizeOptionValues.has(band)) {
+      errors.push(`${q.id}: kotva pre pásmo "${band}", ktoré otázka na veľkosť firmy neponúka`);
     }
   }
 }

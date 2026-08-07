@@ -1,6 +1,6 @@
 # digitalizuj.to — Technical Architecture
 
-> **Platí pre:** otázková banka `1.7` · scoring config `1.5` · benchmark dáta `2025-DII-v3` · overené 2026-08-06
+> **Platí pre:** otázková banka `1.8` · scoring config `1.5` · benchmark dáta `2025-DII-v3` · overené 2026-08-07
 >
 > Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
 > Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),
@@ -402,11 +402,13 @@ digitalizuj/
     │       └── Badge.tsx
     ├── engines/
     │   ├── questionEngine.ts
-    │   ├── scoringEngine.ts
+    │   ├── scoringEngine.ts   # DII, ORS + veľkostné kotvy (SCORING_SPEC §13)
     │   ├── riskEngine.ts
     │   ├── roiEngine.ts
     │   ├── benchmarkEngine.ts
-    │   └── recommendationEngine.ts
+    │   ├── recommendationEngine.ts
+    │   ├── aiReadinessEngine.ts
+    │   └── auditEngine.ts     # Odvodený rozklad skóre, neukladá sa
     ├── data/
     │   ├── questionBank.json   # Kompilát z MariaDB (nasadzovací artefakt)
     │   ├── scoringConfig.ts    # Váhy, prahy, multiplikátory, procesné benchmarky

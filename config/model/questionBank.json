@@ -1,7 +1,7 @@
 {
-  "version": "1.7",
+  "version": "1.8",
   "model_name": "Adaptívny model DAP",
-  "last_updated": "2026-08-06",
+  "last_updated": "2026-08-07",
   "indicative_quiz": {
     "id": "indicative_v1",
     "name": "Indikatívny kvíz",
@@ -1910,6 +1910,12 @@
                 "score": 80
               }
             ],
+            "size_anchors": {
+              "rationale_sk": "Dedikovaný IT človek ani kombinácia interného IT s externým dodávateľom pri 1–9 zamestnancoch neexistuje — dobre vedená mikrofirma má správu IT u dodávateľa a to je jej strop, nie polovičné riešenie.",
+              "ceilings": {
+                "micro": "outsourced"
+              }
+            },
             "branching_rules": [
               {
                 "condition": "value != 'outsourced'",
@@ -3871,6 +3877,13 @@
                 "score": 100
               }
             ],
+            "size_anchors": {
+              "rationale_sk": "Interný IT človek je pri 1–9 zamestnancoch aspoň desatina firmy a dedikovaný IT tím s viacerými rolami by bol jej väčšina — pri tejto veľkosti je najlepšou dosiahnuteľnou praxou stály externý dodávateľ so zmluvou. Firma s 10–49 ľuďmi si interného IT človeka dovoliť môže, viacrolový tím nie.",
+              "ceilings": {
+                "micro": "external_contract",
+                "small": "internal"
+              }
+            },
             "branching_rules": [],
             "evidence_type": "direct",
             "maps_to_score": [

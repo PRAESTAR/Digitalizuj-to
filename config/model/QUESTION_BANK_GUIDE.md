@@ -77,12 +77,16 @@ Poradie otázok v poli/module **je funkčné** — `questionEngine.getNextQuesti
 | `category` | string | áno | `"A"`–`"F"` (ODRM kategória), `"dii"` (iba DII bucket, nepatrí do ORS), `"meta"` (demografia/ROI vstup, `weight: 0`, neprispieva do žiadneho skóre). |
 | `dimension` | string | áno | Voľný popisný label pre editorov (napr. `"process_maturity"`, `"ai_usage"`) — kód ho nečíta, slúži len ako orientácia v UI editora. |
 | `question_sk` | string | áno | Text otázky v slovenčine. **Nie** `text` — pole sa volá presne `question_sk`. |
-| `question_type` | string | áno | **Iba `"single_choice"` alebo `"multi_select"` sú implementované** (`QuestionCard.tsx`). Iné hodnoty (napr. `numeric_bands`, `numeric_input`) nie sú podporené v UI — nepoužívať. |
+| `question_type` | string | áno | Implementované sú `"single_choice"`, `"multi_select"` a `"likert_11"` (škála 0–10). Iné hodnoty (napr. `numeric_bands`, `numeric_input`) UI nepozná — nepoužívať. **Nový typ znamená aj rozšírenie ENUM-u `questions.question_type` v `db/schema.sql`**: MariaDB v neprísnom režime neznámu hodnotu neodmietne, uloží prázdny reťazec a import zbehne bez chyby. |
 | `weight` | number | áno | Váha otázky v rámci kategórie (default `1.0`, meta otázky majú `0`). |
 | `options` | array | pre single/multi | `{ value, label, score }`. `score` je číslo, typicky 0–100. |
 | `max_score` | number | pre multi_select | Súčet, voči ktorému sa normalizuje `multi_select` skóre (viď 4.2). |
 | `scoring_note` | string | nie | Prozaická poznámka pre autora. Engine ju **nečíta** — od 5. 8. 2026 rozhoduje pole `scoring_mode`. |
 | `scoring_mode` | string | nie | `"standard"` (default) alebo `"inverted"` — invertovaný scoring pre `multi_select` (viď 4.3). Predtým sa režim detegoval podľa výskytu slova „Invertované" v `scoring_note`, takže jej preformulovanie alebo preklad ticho menili spôsob výpočtu. |
+| `size_anchors` | objekt | nie | Stropy dosiahnuteľné pri danej veľkosti firmy: `{ "rationale_sk": "…", "ceilings": { "micro": "hodnota_moznosti" } }`. Používa sa **len** tam, kde je vrchná možnosť pre malú firmu štrukturálne nemožná (viď 4.5). |
+| `scale` / `scale_rationale` | string | áno / pri odchýlke | Deklarovaná škála bodovania — `"linear-N"`, `"likert-11"`, `"meta"`, alebo `"categorical"`/`"descending"`/`"custom"`. Neštandardná škála musí mať `scale_rationale`, inak build spadne (validátor #6). |
+| `anchor_low_sk` / `anchor_high_sk` | string | pri `likert_11` | Textové kotvy krajov škály 0–10. Bez nich je pásik číselník bez významu. |
+| `likert_ors_rationale` | string | ak `likert_11` sýti ORS | Zdôvodnenie, prečo smie subjektívny úsudok vstúpiť do skóre zrelosti (validátor #13). |
 | `branching_rules` | array | áno (môže byť `[]`) | Pole pravidiel — **nie** `branching` objekt. Presná štruktúra v sekcii 5. |
 | `evidence_type` | string | áno | `"direct"` alebo `"self_assessment"` — informačné, kód ho nevyhodnocuje. |
 | `maps_to_score` | **string[]** | áno (môže byť `[]`) | **Pole**, nie jeden string. Otázka môže prispievať do viacerých vecí naraz — napr. `["ors_D", "dii"]`. Hodnoty: `"ors_A"`..`"ors_F"` (kategória ORS), `"dii"` (DII bucket), `"ai_readiness"` (AI & Automatizácia Readiness), `"benchmark_sector"` / `"benchmark_size"` (meta otázky, ktoré nastavujú `respondent.sector`/`employeeCountBand` — číta ich priamo `AssessmentContext`, nie scoring engine). |
@@ -147,7 +151,51 @@ Príklad — `cx_A05` (ktoré procesy sú prevažne ručné): každá vybraná m
 
 - `allow_unknown: true` sprístupní tlačidlo "Neviem" — uloží sa `isUnknown: true`, `score: 0`.
 - Scoring engine (`calculateDII`, `calculateORS`) **vylučuje** `isUnknown`/`wasSkipped` odpovede z menovateľa — neznižujú skóre, len znižujú confidence kategórie.
-- **Dôležité:** branching pravidlá sa pre "Neviem" odpovede **nevyhodnocujú** (`AssessmentContext.tsx`: `if (!action.isUnknown) evaluateBranching(...)`). To znamená, že `skip_if`/`flag_risk` naviazané na otázku sa pri odpovedi "Neviem" nikdy nespustia — otázky určené na preskočenie zostanú v zozname a risk flag sa nenastaví. Ak je toto pre vašu otázku problém (napr. bezpečnostná otázka, kde "Neviem" by mala byť rizikový signál), doplňte to zatiaľ len do `tooltip`/UX, kód to automaticky nerieši.
+- **Zmena 6. 8. 2026:** branching pravidlá sa pre „Neviem" vyhodnocujú, ale
+  každé pravidlo si samo určuje, či sa vtedy uplatní — pole `on_unknown`
+  (`"ignore"` default / `"apply"`, viď 5.4). Predtým sa preskakovalo celé
+  vyhodnotenie, takže respondent, ktorý priznal nevedomosť, dostal **najviac**
+  otázok a risk flagy sa nenastavili.
+
+---
+
+### 4.5 Veľkostné kotvy — `size_anchors`
+
+Časť možností opisuje **štruktúru, nie prax**: „dedikovaný IT tím s viacerými
+rolami" alebo „interný IT + externý dodávateľ s SLA". Firma s 1–9 zamestnancami
+ich nedosiahne ani pri najlepšom vedení, takže taká otázka meria počet
+zamestnancov a mikrofirme uberie body za rozhodnutie, ktoré nikdy neurobila.
+
+Kotva vyhlási pre pásmo najvyššiu **dosiahnuteľnú** možnosť a engine rebríček
+prepočíta tak, aby znamenala plný počet bodov:
+
+```json
+"size_anchors": {
+  "rationale_sk": "Interný IT človek je pri 1–9 zamestnancoch aspoň desatina firmy…",
+  "ceilings": {
+    "micro": "external_contract",
+    "small": "internal"
+  }
+}
+```
+
+Strop sa uvádza **hodnotou možnosti** (`value`), nie poradím — `cx_B05` má
+možnosti zámerne nezoradené podľa skóre. Pásmo bez záznamu = plný rebríček.
+
+**Kedy kotvu NEPRIDÁVAŤ** (validátor #17 väčšinu z toho vynúti):
+
+- Otázka je kritériom DII indikátora (`data/diiIndicators.json`) — premenné
+  Eurostatu sú binárne fakty a porovnateľnosť stojí na tom, že sa merajú pre
+  každého rovnako.
+- Otázka je `multi_select` — pri sčítaní zaškrtnutých položiek žiadny rebríček
+  neexistuje.
+- Vrchná možnosť je len **drahá alebo zriedkavá**, nie nemožná. Zdokumentovať DR
+  plán či zaviesť MFA je prácnosť, nie počet zamestnancov.
+- Otázka meria **riziko** (`cx_F06`, `ind_14` — závislosť na jednom človeku).
+  Tam mikrofirma nízke skóre dostáva správne.
+
+Zdôvodnenie (`rationale_sk`) je povinné a zobrazuje sa respondentovi v rozklade
+skóre. Kotva sa nedá pridať ticho — a to je zámer. Detaily: `SCORING_SPEC.md` §13.
 
 ---
 

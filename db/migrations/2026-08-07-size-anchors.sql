@@ -1,0 +1,41 @@
+-- ============================================================================
+-- Migrácia 2026-08-07 — skórovacie kotvy podľa veľkosti firmy
+--
+-- `questions.size_anchors`
+--   Najvyššia možnosť, ktorú firma daného veľkostného pásma vôbec MÔŽE
+--   dosiahnuť. Časť možností opisuje štruktúru, nie prax: „dedikovaný IT tím
+--   s viacerými rolami" (cx_DII04) alebo „interný IT + externý dodávateľ
+--   s SLA" (cx_B05). Päťčlenná firma ich nedosiahne ani pri najlepšom vedení,
+--   takže taká otázka meria počet zamestnancov, nie zrelosť. Engine podľa
+--   kotvy rebríček prepočíta tak, aby dosiahnuteľný strop znamenal plný počet
+--   bodov; nula zostáva nulou.
+--
+--   Tvar: {"rationale_sk": "…", "ceilings": {"micro": "hodnota_moznosti", …}}
+--   Pásmo bez záznamu = plný rebríček bez úpravy.
+--
+--   Fence je vo validátore (kontrola #17): strop musí existovať medzi
+--   možnosťami otázky, musí rásť s veľkosťou firmy, nesmie sedieť na maxime
+--   otázky a NESMIE byť na otázke, ktorá je kritériom DII indikátora —
+--   premenné Eurostatu sú binárne fakty a porovnateľnosť s meranou
+--   distribúciou stojí na tom, že sa merajú pre každého rovnako.
+--
+-- Spustenie:
+--   mysql -h db.r6.websupport.sk -u L76bIIPR -p digitalizacia \
+--     < db/migrations/2026-08-07-size-anchors.sql
+--
+-- Pozn.: `questions` sa pri každom `scripts/db/import.mjs` DROPne a postaví
+-- nanovo zo schémy, takže po plnom reimporte je stĺpec už zo `schema.sql`.
+-- Táto migrácia je pre prípad aktualizácie bez reimportu.
+--
+-- POZOR: samotný ALTER nestačí. Do 7. 8. 2026 import `scoring_mode` do DB
+-- vôbec neukladal (kľúč bol povolený, ale chýbal v INSERT-e) a kompilácia
+-- späť zahadzovala aj `anchor_low_sk`, `anchor_high_sk` a
+-- `likert_ors_rationale`. Publish z DB by tak vypol invertované skórovanie
+-- `cx_A05` — skóre 0 pre všetkých. Po tejto migrácii preto spusti plný
+-- reimport a overenie:
+--   DB_PASS='…' node scripts/db/import.mjs
+--   DB_PASS='…' node scripts/db/compile.mjs --check
+-- ============================================================================
+
+ALTER TABLE questions
+  ADD COLUMN size_anchors JSON NULL AFTER scoring_mode;

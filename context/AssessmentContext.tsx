@@ -184,8 +184,13 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
 function computeResult(assessment: Assessment, questions: Question[], market: Market): ResultSnapshot {
   const { answers, respondent, riskFlags } = assessment;
 
+  // Pásmo veľkosti sa NEDOPĹŇA: prázdna odpoveď znamená, že sa skóre
+  // neprepočítava (scoringEngine.sizeAdjustedScore). Benchmark nižšie si
+  // náhradnú hodnotu dosadiť smie — tam ide o porovnanie, nie o skóre firmy.
+  const sizeBand = respondent.employeeCountBand || null;
+
   const dii = calculateDII(answers, questions);
-  const ors = calculateORS(answers, questions);
+  const ors = calculateORS(answers, questions, sizeBand);
   const tdri = calculateTDRI(answers, questions, riskFlags);
   const aiReadiness = calculateAIReadiness(answers, questions);
 

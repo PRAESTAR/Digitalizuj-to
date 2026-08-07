@@ -9,11 +9,15 @@
  * robí to isté v PHP a jeho výstup sa pri nasadzovaní porovnáva checksumom
  * s týmto skriptom, aby sa dve implementácie nemohli rozísť.
  *
- * Poradie kľúčov otázky je deterministické (overené: v JSON existujú presne
- * 4 varianty, dané prítomnosťou polí): id, category, dimension, question_sk,
- * question_type, weight, options, [max_score], [scoring_note],
- * branching_rules, evidence_type, maps_to_score, maps_to_risk,
- * maps_to_roi_model, tooltip, allow_unknown, [scale], [scale_rationale].
+ * Poradie kľúčov: id, category, dimension, question_sk, question_type, weight,
+ * options, [max_score], [scoring_note], [scoring_mode], [anchor_low_sk],
+ * [anchor_high_sk], [likert_ors_rationale], [size_anchors], branching_rules,
+ * evidence_type, maps_to_score, maps_to_risk, maps_to_roi_model, tooltip,
+ * allow_unknown, [scale], [scale_rationale].
+ *
+ * Na poradí ale NEZÁLEŽÍ: `--check` porovnáva cez `deepDiff`, teda podľa
+ * obsahu. `data/questionBank.json` má poradie kľúčov historicky nejednotné
+ * (deväť variantov) a je to v poriadku — zmysel má zhoda hodnôt.
  */
 import { createRequire } from 'node:module';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -69,6 +73,18 @@ export async function buildModel(conn, locale = 'sk') {
     };
     if (r.max_score !== null) out.max_score = r.max_score;
     if (r.scoring_note !== null) out.scoring_note = r.scoring_note;
+    // Polia nižšie sa do kompilátu dostali až 7. 8. 2026. Dovtedy ich import
+    // do DB ukladal, ale kompilácia späť ich zahadzovala — publish z DB by
+    // teda ticho vypol invertované skórovanie `cx_A05` (skóre 0 pre všetkých)
+    // a zmazal kotvy škály 0–10. Presne tá trieda chyby, pre ktorú `--check`
+    // existuje; nikto ho po pridaní tých polí nespustil.
+    if (r.scoring_mode !== null && r.scoring_mode !== 'standard') out.scoring_mode = r.scoring_mode;
+    if (r.anchor_low_sk !== null) out.anchor_low_sk = r.anchor_low_sk;
+    if (r.anchor_high_sk !== null) out.anchor_high_sk = r.anchor_high_sk;
+    if (r.likert_ors_rationale !== null) out.likert_ors_rationale = r.likert_ors_rationale;
+    if (r.size_anchors !== null) {
+      out.size_anchors = typeof r.size_anchors === 'string' ? JSON.parse(r.size_anchors) : r.size_anchors;
+    }
     out.branching_rules = (rulesBy.get(r.id) || []).map((rule) => {
       const t = (targetsBy.get(rule.id) || []).map((x) => x.target_question_id ?? x.target_rf_id);
       return {

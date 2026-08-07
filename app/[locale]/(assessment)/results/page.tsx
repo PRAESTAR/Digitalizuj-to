@@ -215,7 +215,7 @@ export default function ResultsPage() {
                 {t('results.auditDerivation')}
               </summary>
               <div className="mt-3">
-                <ScoreDerivation trail={buildAuditTrail(result, assessment.answers, questions)} />
+                <ScoreDerivation trail={buildAuditTrail(result, assessment.answers, questions, assessment.respondent.employeeCountBand || null)} />
               </div>
             </details>
 

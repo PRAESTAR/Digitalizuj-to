@@ -107,6 +107,14 @@ CREATE TABLE questions (
   -- výskytu slova „Invertované" v scoring_note — preklad tej vety by ticho
   -- prepol otázku na štandardný výpočet, teda skóre 0 pre všetkých.
   scoring_mode    ENUM('standard','inverted') NOT NULL DEFAULT 'standard',
+  -- Stropy dosiahnuteľné pri danej veľkosti firmy: {"rationale_sk": "…",
+  -- "ceilings": {"micro": "hodnota_moznosti", …}}. Prepočítava skóre otázky
+  -- tak, aby dosiahnuteľný strop znamenal plný počet bodov — bez toho meria
+  -- otázka počet zamestnancov, nie zrelosť. Fence je vo validátore (#17):
+  -- strop musí existovať medzi možnosťami, rásť s veľkosťou a nesmie byť na
+  -- otázke sýtiacej DII. Uložené ako JSON, lebo je to celé rozhodnutie
+  -- k jednej otázke — rozpad do tabuľky by ho roztrhal bez úžitku.
+  size_anchors    JSON         NULL,
   CONSTRAINT fk_q_quiz   FOREIGN KEY (quiz_code) REFERENCES quizzes(code),
   CONSTRAINT fk_q_module FOREIGN KEY (module_id) REFERENCES modules(id),
   -- trieda 6 validátora: neštandardná škála musí mať zdôvodnenie
