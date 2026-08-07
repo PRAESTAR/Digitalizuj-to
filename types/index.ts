@@ -382,7 +382,22 @@ export interface BusinessImpact {
     eurSaved: ScenarioValues;
   };
   financialImpact: {
+    /**
+     * Ustálený ročný run-rate — koľko firma ušetrí, KEĎ UŽ zmena beží naplno.
+     * NIE je to prvý rok: nábeh trvá 3–9 mesiacov podľa scenára.
+     */
     eurPerYear: ScenarioValues;
+    /**
+     * Úspora za prvých 12 mesiacov vrátane nábehu.
+     *
+     * Karta dovtedy hlásila run-rate ako „€/rok", kým graf na tej istej
+     * stránke ukazoval v 12. mesiaci o 8–33 % menej. Dve rôzne čísla pre tú
+     * istú vec, a to väčšie bolo tučným písmom. Počíta sa z TEJ ISTEJ krivky
+     * ako graf, takže sa už rozísť nemôžu — stráži to test.
+     *
+     * Voliteľné kvôli výsledkom uloženým pred 6. 8. 2026.
+     */
+    firstYearEur?: ScenarioValues;
     confidence: number;
     confidenceLabelSk: string;
   };
@@ -392,9 +407,17 @@ export interface BusinessImpact {
     potentialLevel: string;
     keyMitigations: string[];
   };
+  /**
+   * Odstup od PLNE DIGITALIZOVANÉHO STAVU — nie od priemeru trhu.
+   *
+   * `gapPercentage` je `(1 − zrelosť/4) × 100`, teda vzdialenosť od najvyššej
+   * úrovne procesnej zrelosti. Žiadny benchmark do toho nevstupuje. Text
+   * dovtedy hovoril „oproti priemeru", čo je iné tvrdenie — a nepravdivé.
+   */
   opportunityGap: {
     descriptionSk: string;
     gapPercentage: number;
+    /** Názov poľa zostal kvôli uloženým výsledkom; obsah už benchmark netvrdí. */
     benchmarkComparisonSk: string;
   };
   disclaimers: string[];

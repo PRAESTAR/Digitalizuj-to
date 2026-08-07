@@ -8,6 +8,22 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Karta a graf prestali hlásiť dve rôzne čísla (6. 8. 2026)
+
+- **Ročný dopad ignoroval nábeh.** Karta hlásila ustálený run-rate ako
+  „€/rok", kým graf na tej istej obrazovke ukazoval v 12. mesiaci o **8–33 %
+  menej** — pri konzervatívnom scenári 66,7 %. Dve rôzne čísla pre tú istú vec
+  a to väčšie bolo tučným písmom. Pribudlo `firstYearEur`, ktoré sa berie
+  **presne z bodu grafu za 12. mesiac**, nie z vlastného výpočtu, takže sa
+  rozísť nemôžu. Popisky sú rozlíšené: „Ročný dopad (po nábehu)" a „Z toho
+  prvých 12 mesiacov".
+- **„Opportunity gap" prestal tvrdiť porovnanie, ktoré sa nepočítalo.** Text
+  znel „Výrazný priestor na zlepšenie **oproti priemeru**", ale číslo je
+  `(1 − zrelosť/4) × 100` — vzdialenosť od najvyššej úrovne procesnej
+  zrelosti, do ktorej žiadny benchmark nevstupuje. Formulácia teraz hovorí,
+  čo naozaj meria, a priznáva, z čoho vzniká. Test stráži, aby sa slovo
+  „priemer" do tých textov nevrátilo.
+
 ### Mikrofirmy sa prestali porovnávať s populáciou, kam nepatria (6. 8. 2026)
 
 - **Eurostat `isoc_e_dii` zbiera podniky od 10 zamestnancov.** Firma s 1–9

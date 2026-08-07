@@ -268,7 +268,7 @@
     "savedHours": "Ušetrené hodiny/rok",
     "savedMd": "Ušetrené MD/rok",
     "errorReduction": "Úspora z redukcie chýb (h)",
-    "annualImpact": "Ročný dopad (EUR)",
+    "annualImpact": "Ročný dopad (po nábehu)",
     "confidence": "Spoľahlivosť odhadu:",
     "disclaimers": "Metodické poznámky a disclaimery",
     "auditTitle": "Audit trail: rozpad výpočtu",
@@ -279,7 +279,8 @@
     "colAuto": "Automat.",
     "colSaved": "Ušetr. h",
     "colErrors": "Chyby h",
-    "colSource": "Zdroj"
+    "colSource": "Zdroj",
+    "firstYear": "Z toho prvých 12 mesiacov"
   },
   "reco": {
     "title": "Odporúčania a Roadmapa",

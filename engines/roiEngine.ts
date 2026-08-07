@@ -379,7 +379,7 @@ export function calculateBusinessImpact(
   const totalMid = (hoursMid + errorHoursMid) * hourlyCost;
   const totalOptimistic = (hoursOptimistic + errorHoursOptimistic) * hourlyCost;
 
-  const savingsProjection = buildSavingsProjection({
+  const { projection: savingsProjection, firstYear } = buildSavingsProjection({
     conservative: totalConservative,
     mid: totalMid,
     optimistic: totalOptimistic,
@@ -419,6 +419,7 @@ export function calculateBusinessImpact(
       },
     },
     financialImpact: {
+      firstYearEur: firstYear,
       eurPerYear: {
         conservative: totalConservative,
         mid: totalMid,
@@ -434,13 +435,17 @@ export function calculateBusinessImpact(
       keyMitigations: mitigations,
     },
     opportunityGap: {
-      descriptionSk: `Firma využíva približne ${100 - gapPercentage}% svojho digitalizačného potenciálu.`,
+      // Odstup od PLNE DIGITALIZOVANÉHO STAVU, nie od priemeru trhu —
+      // gapPercentage je (1 − zrelosť/4) × 100 a žiadny benchmark doň
+      // nevstupuje. Pôvodný text „oproti priemeru" tvrdil porovnanie
+      // s inými firmami, ktoré sa nikdy nepočítalo.
+      descriptionSk: `Podľa zrelosti procesov (${maturityLevel}/4) firma využíva približne ${100 - gapPercentage} % toho, čo by dosiahla pri plnej digitalizácii.`,
       gapPercentage,
       benchmarkComparisonSk: gapPercentage > 30
-        ? 'Výrazný priestor na zlepšenie oproti priemeru'
+        ? 'Výrazný odstup od plne digitalizovaného stavu'
         : gapPercentage > 15
-        ? 'Mierny priestor na zlepšenie'
-        : 'Blízko optimálneho stavu',
+        ? 'Mierny odstup od plne digitalizovaného stavu'
+        : 'Blízko plne digitalizovaného stavu',
     },
     disclaimers,
     calculationAudit: auditEntries,
@@ -452,7 +457,19 @@ export function calculateBusinessImpact(
  * z 0 na plnú (eurPerYear / 12) počas rampUpMonthsByScenario[scenár] mesiacov,
  * potom akumulácia pri plnej mesačnej sadzbe až do horizontu.
  */
-function buildSavingsProjection(eurPerYear: ScenarioValues): SavingsProjection {
+/**
+ * Krivka kumulatívnej úspory a suma za prvých 12 mesiacov.
+ *
+ * Obe vychádzajú z JEDNEJ slučky. Predtým sa suma prvého roka nikde
+ * nepočítala a karta zobrazovala ustálený run-rate ako „€/rok", hoci graf
+ * pod ňou ukazoval v 12. mesiaci o 8–33 % menej (podľa dĺžky nábehu:
+ * 9 mesiacov → 66,7 %, 6 → 79,2 %, 3 → 91,7 %). Spoločný zdroj je jediný
+ * spôsob, ako sa tie dve čísla nemôžu rozísť.
+ */
+function buildSavingsProjection(eurPerYear: ScenarioValues): {
+  projection: SavingsProjection;
+  firstYear: ScenarioValues;
+} {
   const scenarios = ['conservative', 'mid', 'optimistic'] as const;
   const monthlyRunRate: ScenarioValues = {
     conservative: eurPerYear.conservative / 12,
@@ -479,10 +496,20 @@ function buildSavingsProjection(eurPerYear: ScenarioValues): SavingsProjection {
     });
   }
 
+  const twelve = points.find(p => p.month === 12);
   return {
-    horizonMonths: savingsProjectionHorizonMonths,
-    rampUpMonths: rampUpMonthsByScenario,
-    points,
+    projection: {
+      horizonMonths: savingsProjectionHorizonMonths,
+      rampUpMonths: rampUpMonthsByScenario,
+      points,
+    },
+    // Presne bod grafu za 12. mesiac — nie samostatný výpočet, ktorý by sa
+    // od neho mohol odchýliť.
+    firstYear: {
+      conservative: twelve?.conservative ?? 0,
+      mid: twelve?.mid ?? 0,
+      optimistic: twelve?.optimistic ?? 0,
+    },
   };
 }
 

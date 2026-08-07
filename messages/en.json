@@ -268,7 +268,7 @@
     "savedHours": "Hours saved/year",
     "savedMd": "PD saved/year",
     "errorReduction": "Savings from fewer errors (h)",
-    "annualImpact": "Annual impact (EUR)",
+    "annualImpact": "Annual impact (once ramped up)",
     "confidence": "Estimate confidence:",
     "disclaimers": "Methodological notes and disclaimers",
     "auditTitle": "Audit trail: calculation breakdown",
@@ -279,7 +279,8 @@
     "colAuto": "Autom.",
     "colSaved": "Saved h",
     "colErrors": "Errors h",
-    "colSource": "Source"
+    "colSource": "Source",
+    "firstYear": "Of that, first 12 months"
   },
   "reco": {
     "title": "Recommendations and Roadmap",

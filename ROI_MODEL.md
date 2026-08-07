@@ -506,3 +506,51 @@ prísnejšia než akýkoľvek zámer: bez nej sa pripravenosť nedá doložiť v
 
 Text dôvodu ukazuje na tú bránu, ktorá scenár skutočne obmedzila — inak by
 firma dostala radu opravovať niečo, čo má v poriadku.
+
+
+## Prvý rok nie je ustálený run-rate
+
+`financialImpact.eurPerYear` je **ustálený ročný run-rate** — koľko firma
+ušetrí, keď už zmena beží naplno. Nábeh trvá 3–9 mesiacov podľa scenára
+(`rampUpMonthsByScenario`), takže prvých 12 mesiacov je nižších:
+
+| Scenár | Nábeh | Podiel prvého roka |
+|---|---|---|
+| konzervatívny | 9 mesiacov | 66,7 % |
+| realistický | 6 mesiacov | 79,2 % |
+| optimistický | 3 mesiace | 91,7 % |
+
+Vzorec: pri nábehu **R** mesiacov je kumulatív za 12 mesiacov
+`12 − (R−1)/2` mesačných run-rate.
+
+**Prečo to bola chyba.** Karta hlásila run-rate ako „€/rok", kým graf pod ňou
+ukazoval v 12. mesiaci o 8–33 % menej. Dve rôzne čísla pre tú istú vec na
+jednej obrazovke — a to väčšie bolo tučným písmom. Od 6. 8. 2026 nesie
+`financialImpact.firstYearEur` sumu za prvých 12 mesiacov a berie ju **presne
+z bodu grafu**, nie z vlastného výpočtu, takže sa nemôžu rozísť. Stráži to test.
+
+Popisky sú rozlíšené: „Ročný dopad (po nábehu)" a „Z toho prvých 12 mesiacov".
+
+## Odstup od plnej digitalizácie nie je benchmark
+
+`opportunityGap.gapPercentage` je `(1 − zrelosť/4) × 100` — vzdialenosť od
+najvyššej úrovne procesnej zrelosti. **Žiadny benchmark doň nevstupuje.**
+
+Text dovtedy hovoril „Výrazný priestor na zlepšenie **oproti priemeru**", čo
+tvrdí porovnanie s inými firmami, ktoré sa nikdy nepočítalo. Formulácia teraz
+hovorí, čo číslo naozaj meria — odstup od plne digitalizovaného stavu — a
+priznáva, z čoho vzniká (`Podľa zrelosti procesov (N/4)…`). Test stráží, aby
+sa slovo „priemer" do tých textov nevrátilo.
+
+## Otvorené: náklady a payback
+
+Checklist vedie aj „pásma nákladov per odporúčanie → payback interval".
+Payback = investícia / ročná úspora. **Úsporu model počíta, investíciu nie** —
+a odhadnúť ju by znamenalo priradiť eurové pásmo dvadsiatim odporúčaniam bez
+jediného dátového bodu. Väčšina z nich je navyše prevažne prácnosť
+(„zdokumentujte DR plán", „zaveďte MFA"), ktorá sa medzi firmami líši
+rádovo.
+
+Vymyslené pásmo nákladov by bolo číslo, podľa ktorého sa niekto rozhodne
+investovať. To je presne trieda údaja, ktorý model inde dôsledne označuje ako
+expertný odhad alebo nezobrazuje vôbec. Vedené ako otvorený bod.

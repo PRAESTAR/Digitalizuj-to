@@ -97,6 +97,19 @@ export default function BusinessImpactPanel({ impact }: BusinessImpactPanelProps
                 <dd className={`text-right font-mono font-bold pt-2 border-t border-black/5 ${s.eur}`}>
                   {formatEur(impact.financialImpact.eurPerYear[s.key], locale)}
                 </dd>
+
+                {/* Prvý rok je NIŽŠÍ než run-rate o dĺžku nábehu (3–9 mesiacov
+                    podľa scenára). Dovtedy karta hlásila run-rate ako „€/rok"
+                    a graf pod ňou ukazoval v 12. mesiaci o 8–33 % menej —
+                    dve rôzne čísla pre tú istú vec na jednej obrazovke. */}
+                {impact.financialImpact.firstYearEur && (
+                  <>
+                    <dt className="min-w-0 break-words text-[#6e6e73]">{t('impact.firstYear')}</dt>
+                    <dd className="text-right font-mono font-medium text-[#6e6e73]">
+                      {formatEur(impact.financialImpact.firstYearEur[s.key], locale)}
+                    </dd>
+                  </>
+                )}
               </dl>
             </div>
           ))}
@@ -152,6 +165,16 @@ export default function BusinessImpactPanel({ impact }: BusinessImpactPanelProps
                   </td>
                 ))}
               </tr>
+              {impact.financialImpact.firstYearEur && (
+                <tr>
+                  <td className="py-3.5 px-4 text-[#6e6e73]">{t('impact.firstYear')}</td>
+                  {scenarios.map(s => (
+                    <td key={s.key} className="py-3.5 px-4 text-right font-mono text-[#6e6e73]">
+                      {formatEur(impact.financialImpact.firstYearEur![s.key], locale)}
+                    </td>
+                  ))}
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
