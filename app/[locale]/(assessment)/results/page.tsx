@@ -12,6 +12,8 @@ import BusinessImpactPanel from '@/components/results/BusinessImpactPanel';
 import RecommendationsPanel from '@/components/results/Recommendations';
 import BenchmarkComparison from '@/components/results/BenchmarkComparison';
 import PermanentLinkPanel from '@/components/customer/PermanentLinkPanel';
+import ScoreDerivation from '@/components/results/ScoreDerivation';
+import { buildAuditTrail } from '@/engines/auditEngine';
 
 const RadarChart = dynamic(() => import('@/components/results/RadarChart'), {
   ssr: false,
@@ -23,7 +25,7 @@ export default function ResultsPage() {
   const locale = useLocale() as Locale;
   const router = useRouter();
   const { state, reset } = useAssessment();
-  const { assessment } = state;
+  const { assessment, questions } = state;
 
   if (!assessment || !assessment.result) {
     return (
@@ -200,6 +202,22 @@ export default function ResultsPage() {
                 {result.modelVersion.benchmarkDataVersion}
               </div>
             </div>
+
+            {/* Rozklad skóre — aritmetika medzi odpoveďami a číslom na karte.
+                Tabuľka odpovedí nižšie ukazuje vstupy; toto ukazuje výpočet.
+                Rovnaké kroky prepočítava replay test v CI, takže čo je tu
+                napísané, je overené, nie deklarované. */}
+            <details className="group mb-2" open>
+              <summary className="cursor-pointer min-h-11 py-2 text-sm text-[#0068d6] hover:text-[#004a99] font-bold flex items-center gap-1.5 transition-colors break-words">
+                <svg className="w-4 h-4 shrink-0 group-open:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+                {t('results.auditDerivation')}
+              </summary>
+              <div className="mt-3">
+                <ScoreDerivation trail={buildAuditTrail(result, assessment.answers, questions)} />
+              </div>
+            </details>
 
             <details className="group">
               {/* min-h-11 = dotykovy ciel 44 px; ikona shrink-0, aby ju dlhy text nestlacil */}

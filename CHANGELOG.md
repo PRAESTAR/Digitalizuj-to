@@ -8,6 +8,29 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Audit trail sa dá overiť, nie len prečítať (6. 8. 2026)
+
+- **„Každé skóre je auditovateľné a spätne rozložiteľné"** stojí na homepage,
+  v metodike aj v štruktúrovaných dátach pre Google. Pod tým tvrdením bola
+  tabuľka surových odpovedí: bolo z nej vidieť, ČO respondent odpovedal, ale
+  nie AKO z toho vzniklo číslo. Nový rozklad ukazuje aritmetiku — vážený
+  priemer v každej oblasti, zloženie do ORS s renormalizovaným menovateľom,
+  bezpečnostnú penaltu, porovnanie s prahom pásma a extrapoláciu DII vrátane
+  stavu všetkých 12 indikátorov.
+- **Replay test v CI** skóre **prepočíta výhradne z krokov trailu** — nesiaha
+  na engine ani na banku — a porovná s výstupom enginu na 300 deterministických
+  kombináciách odpovedí. Tvrdenie je odteraz doložené, nie deklarované.
+- **Test našiel chybu hneď pri prvom behu.** Kroky pôvodne niesli
+  **zaokrúhlené** vstupy, takže z rozkladu pôvodné číslo nevyšlo — odchýlka
+  0,06 bodu pri ORS a 0,0522 pri penalte. Rozklad, z ktorého nevyjde pôvodné
+  číslo, je horší než žiadny: tvrdí niečo, čo neplatí. Kroky teraz nesú
+  nezaokrúhlené hodnoty a násobok penalty šesť desatinných miest, lebo sa
+  uplatňuje na skóre rádovo 100.
+- **Obmedzenia sú priznané v UI.** Na permanentnom odkaze `/r/{hash}` rozklad
+  nie je a byť nemôže — odpovede po otázkach sa na server neukladajú. To je
+  cena za to, že sa najcitlivejšia časť dát neuchováva, a je napísaná priamo
+  pod rozkladom, nie schovaná v dokumentácii.
+
 ### Dokumentácia prestala klamať o sebe (6. 8. 2026)
 
 - **Štyri špecifikácie existovali v dvoch rozídených kópiách.**

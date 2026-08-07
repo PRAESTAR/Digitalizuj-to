@@ -147,7 +147,8 @@
     "auditColSkipped": "Skipped",
     "scoringConfig": "Scoring configuration",
     "categoryUnmeasured": "Not measured",
-    "radarInsufficient": "The radar chart appears once at least 3 categories are measured — measured values are listed below."
+    "radarInsufficient": "The radar chart appears once at least 3 categories are measured — measured values are listed below.",
+    "auditDerivation": "How your score was derived (calculation breakdown)"
   },
   "share": {
     "title": "Your permanent link",

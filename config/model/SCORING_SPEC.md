@@ -547,3 +547,57 @@ Hardcoded hodnoty, ktoré **nie sú** v konfigurácii (zvyšná medzera, stav 6.
 > (`diiLevelCutoffs`, `unknownAnswerMediumThreshold`). Veta ostala nezmenená
 > pri commite, ktorý ich presunul, takže špecifikácia chvíľu posielala čitateľa
 > hľadať ich do enginu, kde už neboli.
+
+
+---
+
+## 12. Audit trail — rozklad skóre
+
+Implementácia: `engines/auditEngine.ts` → `buildAuditTrail(result, answers, questions)`.
+
+Web aj metodika tvrdia, že **„každé skóre je auditovateľné a spätne
+rozložiteľné"**. Do 6. 8. 2026 sa pod tým skrývala tabuľka surových odpovedí:
+bolo z nej vidieť, ČO respondent odpovedal, ale nie AKO z toho vzniklo číslo —
+váhy, renormalizácia cez merané kategórie, bezpečnostná penalta, porovnanie
+s prahom pásma. Tvrdenie stálo na dôvere, nie na doklade.
+
+### 12.1 Typy krokov
+
+| Krok | Čo dokladá |
+|---|---|
+| `answer` | odpoveď, jej skóre a váha; pri vylúčení aj dôvod („Neviem" / preskočené vetvením) |
+| `category` | vážený priemer jednej ORS kategórie — položky, súčet váh, výsledok |
+| `aggregate` | zloženie celkového ORS z meraných kategórií vrátane renormalizovaného menovateľa |
+| `penalty` | vstup, násobok a výsledok bezpečnostnej penalizácie |
+| `level` | porovnanie s prahmi → úroveň zrelosti |
+| `dii` | extrapolácia `round(met / measured × 12)` a stav všetkých 12 indikátorov |
+| `benchmark` | vaša hodnota vs. referenčná, percentil a či ide o meranú distribúciu alebo expertný odhad |
+| `risk` | penalta faktora, sila dôkazu a otázky, z ktorých vychádza |
+| `recommendation` | priorita a jej zložky (naliehavosť, dopad, náročnosť), čo ju spustilo |
+
+### 12.2 Replay test — dôkaz, nie deklarácia
+
+`engines/auditEngine.test.ts` skóre **prepočíta výhradne z krokov trailu** —
+nesiaha na engine ani na banku otázok — a porovná s tým, čo engine vydal.
+Beží na 300 deterministických kombináciách odpovedí. Ak sa výpočet a jeho
+vysvetlenie rozídu, test spadne.
+
+Test to dokázal hneď pri prvom behu: kroky pôvodne niesli **zaokrúhlené**
+vstupy, takže z nich pôvodné číslo nevyšlo (odchýlka 0,06 b pri ORS a
+0,0522 pri penalte). Rozklad, z ktorého nevyjde pôvodné číslo, je horší než
+žiadny — tvrdí niečo, čo neplatí. Kroky preto nesú nezaokrúhlené hodnoty
+a násobok penalty má šesť desatinných miest, lebo sa uplatňuje na skóre
+rádovo 100 a chyba zaokrúhlenia by sa stonásobila.
+
+### 12.3 Čo trail nepokrýva
+
+- **Na permanentnom odkaze `/r/{hash}` k dispozícii nie je.** Odpovede po
+  otázkach sa na server neukladajú (rozhodnutie 5. 8. 2026), takže trail sa dá
+  postaviť len tam, kde sú odpovede po ruke — na čerstvej výsledkovej stránke.
+  Je to cena za to, že sa najcitlivejšia časť dát neuchováva.
+- **ROI** má vlastný rozklad po procesoch (`calculationAudit` v paneli
+  Business Impact); tu sa neopakuje.
+- **Nie je to uložený záznam**, ale odvodený pohľad — počíta sa pri zobrazení.
+
+Obmedzenia sú vypísané aj v UI (`limitationsSk`), aby „kompletný audit trail"
+nesľuboval viac, než dodáva.

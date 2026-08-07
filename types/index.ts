@@ -548,6 +548,134 @@ export interface PilotAcceptanceCriteria {
   itemDiscriminationMin: number;    // ≥ 0.30
 }
 
+/**
+ * Krok rozkladu výsledku — z čoho a ako vzniklo zobrazené číslo.
+ *
+ * Web aj metodika tvrdia, že „každé skóre je auditovateľné a spätne
+ * rozložiteľné". Do 6. 8. 2026 sa pod tým skrývala tabuľka surových odpovedí:
+ * bolo vidieť, ČO respondent odpovedal, ale nie AKO z toho vzniklo číslo.
+ * Tvrdenie stálo na dôvere, nie na doklade.
+ *
+ * Kroky sú testovateľné: replay test v `engines/auditEngine.test.ts` z nich
+ * skóre PREPOČÍTA a porovná s výstupom enginu. Ak sa výpočet a jeho
+ * vysvetlenie rozídu, test spadne.
+ */
+export type AuditStep =
+  | {
+      kind: 'answer';
+      id: string;
+      labelSk: string;
+      value: string;
+      /** null = do skóre nevstúpila (Neviem alebo preskočená). */
+      score: number | null;
+      weight: number;
+      excluded: 'unknown' | 'skipped' | null;
+      excludedReasonSk: string | null;
+    }
+  | {
+      /** Vážený priemer jednej ORS kategórie. */
+      kind: 'category';
+      id: string;
+      labelSk: string;
+      items: { questionId: string; score: number; weight: number }[];
+      weightSum: number;
+      /** Nezaokrúhlená hodnota — presne to, čo ide do ďalšieho kroku. */
+      computed: number | null;
+      /** Zobrazená hodnota (zaokrúhlená na desatinu). */
+      displayed: number | null;
+      measured: boolean;
+      categoryWeight: number;
+      noteSk: string;
+    }
+  | {
+      /** Zloženie celkového ORS z kategórií — rovnaký tvar, iný význam. */
+      kind: 'aggregate';
+      id: string;
+      labelSk: string;
+      items: { questionId: string; score: number; weight: number }[];
+      weightSum: number;
+      /** Nezaokrúhlená hodnota — presne to, čo ide do ďalšieho kroku. */
+      computed: number | null;
+      /** Zobrazená hodnota (zaokrúhlená na desatinu). */
+      displayed: number | null;
+      measured: boolean;
+      categoryWeight: number;
+      noteSk: string;
+    }
+  | {
+      kind: 'penalty';
+      id: string;
+      labelSk: string;
+      inputSk: string;
+      before: number;
+      factor: number;
+      after: number;
+      noteSk: string;
+    }
+  | {
+      kind: 'level';
+      id: string;
+      labelSk: string;
+      value: number;
+      thresholds: number[];
+      level: number;
+      levelLabelSk: string;
+      noteSk: string;
+    }
+  | {
+      kind: 'dii';
+      id: string;
+      labelSk: string;
+      met: number;
+      measuredCount: number;
+      total: number;
+      computed: number;
+      indicators: { code: string; status: string; sourceQuestions: string[] }[];
+      noteSk: string;
+    }
+  | {
+      kind: 'benchmark';
+      id: string;
+      labelSk: string;
+      yourScore: number | null;
+      referenceScore: number;
+      percentile: number;
+      sourceSk: string;
+    }
+  | {
+      kind: 'risk';
+      id: string;
+      labelSk: string;
+      penalty: number;
+      evidenceStrength: string;
+      evidenceSk: string;
+      sourceAnswers: string[];
+    }
+  | {
+      kind: 'recommendation';
+      id: string;
+      labelSk: string;
+      recType: string;
+      priorityScore: number;
+      urgency: number;
+      impact: number;
+      effort: number;
+      triggeredBy: string[];
+      sourceAnswers: string[];
+    };
+
+/**
+ * Odvodený pohľad na výsledok — NEUKLADÁ sa. Odpovede po otázkach sa na
+ * server neposielajú, takže trail sa dá postaviť len tam, kde sú odpovede
+ * po ruke (čerstvá výsledková stránka). Na `/r/{hash}` k dispozícii nie je.
+ */
+export interface AuditTrail {
+  modelVersion: ModelVersionInfo;
+  steps: AuditStep[];
+  /** Čo trail nepokrýva — priznané, nie zamlčané. */
+  limitationsSk: string[];
+}
+
 export interface ScoringConfig {
   version: string;
   diiMethodologyVersion: string;

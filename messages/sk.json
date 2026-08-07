@@ -147,7 +147,8 @@
     "auditColSkipped": "Preskočená",
     "scoringConfig": "Scoring konfigurácia",
     "categoryUnmeasured": "Nemerané",
-    "radarInsufficient": "Radar sa zobrazuje pri aspoň 3 meraných kategóriách — merané hodnoty nájdete v zozname nižšie."
+    "radarInsufficient": "Radar sa zobrazuje pri aspoň 3 meraných kategóriách — merané hodnoty nájdete v zozname nižšie.",
+    "auditDerivation": "Ako vzniklo vaše skóre (rozklad výpočtu)"
   },
   "share": {
     "title": "Váš permanentný odkaz",
