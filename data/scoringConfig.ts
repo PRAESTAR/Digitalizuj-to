@@ -1,7 +1,7 @@
 import type { ScoringConfig, ScenarioValues } from '@/types';
 
 export const scoringConfig: ScoringConfig = {
-  version: '1.5',
+  version: '1.6',
   diiMethodologyVersion: 'DII v3 (Eurostat isoc_e_dii, prieskum 2025)',
   categoryWeights: {
     A: 0.20,
@@ -142,17 +142,53 @@ export const tdriMaxPenaltySum = riskFactorDefinitions.reduce((s, d) => s + d.ma
  */
 export const riskRecommendationGates = { immediate: 5, medium: 2.5 } as const;
 
-// Hodinová cena práce pre ROI výpočet — už sa nepýtame firmu (citlivý údaj, zbytočná
-// záťaž respondenta); vždy používame priemer IT/telekomunikačného sektora SR, keďže
-// procesy, ktoré appka pomáha automatizovať, typicky rieši alebo zastrešuje IT/technický
-// tím a nástroj cielime na rozhodovanie o digitalizačných investíciách.
-// Zdroj: Eurostat lc_lci_lev 2025 — SK, NACE J (Informácie a komunikácia), celková cena
-// práce vrátane odvodov zamestnávateľa (D1_D4_MD5 = 30,8 €/h; z toho mzdy D11 = 22,4 €/h,
-// nemzdové náklady 8,4 €/h). Kontrolný súčet: Trexima ISCP priemer IT profesií (vývojári,
-// analytici, programátori) ~2 933 €/mes. hrubého × odvodový multiplikátor 1,362 ≈ 23 €/h
-// (wages-only) — rádovo konzistentné s Eurostat D11. Revízia: ročne (aprílová publikácia
-// Eurostatu, dataset lc_lci_lev).
+// ZÁLOHA pri neuvedenom odvetví. Sadzby podľa odvetvia sú v
+// `sectorHourlyCostEur` nižšie — táto hodnota sa použije len vtedy, keď
+// respondent odvetvie neuviedol alebo uviedol neznámu hodnotu, a UI to
+// priznáva ako nadhodnotenie (pre sedem z ôsmich odvetví ním je).
+//
+// Zdroj: Eurostat lc_lci_lev, vintage 2026-04-23, rok 2025 — SK, NACE J
+// (Informácie a komunikácia), celková cena práce vrátane odvodov
+// zamestnávateľa (D1_D4_MD5 = 30,8 €/h; z toho mzdy D11 = 22,4 €/h,
+// nemzdové náklady 8,4 €/h).
 export const defaultHourlyCostEur = 30.8;
+
+/**
+ * Hodinová cena práce podľa odvetvia — Slovensko, 2025.
+ *
+ * PREČO PRIBUDLA. Do 7. 8. 2026 sa na všetky odvetvia používala jedna sadzba
+ * 30,8 €/h odvodená z NACE J (IT a telekomunikácie), teda z najlepšie
+ * plateného odvetvia v celom datasete. Úspora sa počíta ako ušetrené hodiny ×
+ * sadzba, takže chyba išla priamo do eurového čísla na karte. Rozsah tej
+ * chyby je veľký: ubytovanie a gastro má 13,0 €/h, čiže jednotná sadzba ich
+ * úsporu nadhodnocovala **2,4-násobne**. Stavebníctvo a maloobchod zhruba
+ * 1,7-násobne.
+ *
+ * ZDROJ. Eurostat `lc_lci_lev`, vintage 2026-04-23, rok 2025, geo SK,
+ * `lcstruct = D1_D4_MD5` — celková cena práce vrátane odvodov zamestnávateľa,
+ * teda presne to, čo model potrebuje (nie hrubá mzda). Kľúče sú hodnoty
+ * možností otázky `ind_01`/`cx_01`; v komentári je NACE sekcia, z ktorej
+ * hodnota pochádza.
+ *
+ * OBMEDZENIE. `lc_lci_lev` pokrýva podniky **od 10 zamestnancov**, rovnako
+ * ako DII distribúcie. Pre mikrofirmu je to teda odhad z populácie, v ktorej
+ * nie je — priznáva sa to v ROI_MODEL §7 aj v karte Business Impact.
+ *
+ * Revízia: ročne, aprílová publikácia (`npm run data:freshness`).
+ */
+export const sectorHourlyCostEur: Record<string, number> = {
+  manufacturing: 19.3,        // NACE C — Manufacturing
+  wholesale_retail: 17.9,     // NACE G — Wholesale and retail trade
+  professional_services: 24.4,// NACE M — Professional, scientific and technical
+  construction: 17.8,         // NACE F — Construction
+  transport_logistics: 17.2,  // NACE H — Transportation and storage
+  accommodation_food: 13.0,   // NACE I — Accommodation and food service
+  ict: 30.8,                  // NACE J — Information and communication
+  // „Iné" dostáva najširší podnikateľský agregát, nie priemer vyššie uvedených:
+  // priemer ôsmich vybraných odvetví by bol vážený tým, ktoré odvetvia sa
+  // náhodou dostali do kvízu, nie ich zastúpením v ekonomike.
+  other: 19.8,                // NACE B-S_X_O — priemysel, stavebníctvo a služby
+};
 
 // Procesné benchmarky sú interné expertné odhady (frekvencie, časy, automatizovateľnosť) —
 // zatiaľ bez externého zdroja; každý výstup ROI ich označuje ako benchmark v audit traile.

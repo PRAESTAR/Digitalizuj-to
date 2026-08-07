@@ -295,7 +295,7 @@
   },
   "savingsProjectionHorizonMonths": 24,
   "scoringConfig": {
-    "version": "1.5",
+    "version": "1.6",
     "diiMethodologyVersion": "DII v3 (Eurostat isoc_e_dii, prieskum 2025)",
     "categoryWeights": {
       "A": 0.2,
@@ -331,6 +331,16 @@
       "medium": 6
     },
     "aiConfidenceMinAnswers": 2
+  },
+  "sectorHourlyCostEur": {
+    "manufacturing": 19.3,
+    "wholesale_retail": 17.9,
+    "professional_services": 24.4,
+    "construction": 17.8,
+    "transport_logistics": 17.2,
+    "accommodation_food": 13,
+    "ict": 30.8,
+    "other": 19.8
   },
   "workingHoursPerFteYear": 1700
 }

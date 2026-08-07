@@ -1,6 +1,6 @@
 # digitalizuj.to — Recommendation Rules
 
-> **Platí pre:** otázková banka `1.8` · scoring config `1.5` · overené 2026-08-07
+> **Platí pre:** otázková banka `1.8` · scoring config `1.6` · overené 2026-08-07
 >
 > Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
 > Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),

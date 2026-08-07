@@ -1,6 +1,7 @@
 import type { Answer, BusinessImpact, CalculationAuditEntry, Question, ScenarioValues, SavingsProjection, ScenarioDisplayPolicy } from '@/types';
 import {
   defaultHourlyCostEur,
+  sectorHourlyCostEur,
   processBenchmarks,
   manualShareFromMaturity,
   assumedMaturityLevel,
@@ -20,6 +21,12 @@ import {
 interface ROIInputs {
   /** null = veľkosť firmy nebola uvedená — engine ju priznane predpokladá. */
   employeeCountBand: string | null;
+  /**
+   * Odvetvie z `ind_01`/`cx_01`. Určuje hodinovú cenu práce
+   * (`sectorHourlyCostEur`). `null` = neuvedené alebo neznáma hodnota —
+   * engine potom siahne po `defaultHourlyCostEur` a prizná to.
+   */
+  sector: string | null;
   /**
    * Zrelosť procesov 0–4 z `ind_03`/`cx_A01`. `null` = neuvedená alebo
    * mimo domény — engine ju potom priznane predpokladá, nedosádza ticho.
@@ -148,7 +155,12 @@ export function calculateBusinessImpact(
   inputs: ROIInputs
 ): BusinessImpact {
   // Hodinová cena práce sa nepýta ako otázka — vždy priemer SR (viď data/scoringConfig.ts).
-  const hourlyCost = defaultHourlyCostEur;
+  // Sadzba podľa odvetvia. Jednotných 30,8 €/h (NACE J) nadhodnocovalo
+  // úsporu gastru 2,4-násobne — viď `sectorHourlyCostEur`. Neznáme odvetvie
+  // spadne na pôvodnú sadzbu a UI to hovorí, nedosádza sa ticho.
+  const sectorRate = inputs.sector ? sectorHourlyCostEur[inputs.sector] : undefined;
+  const hourlyCost = sectorRate ?? defaultHourlyCostEur;
+  const hourlyCostAssumed = sectorRate === undefined;
   // Neuvedená zrelosť sa priznáva rovnako ako neuvedená veľkosť firmy:
   // počíta sa ďalej, ale s disclaimerom a zastropovanou dôveryhodnosťou.
   // Default je stredná úroveň — nie najhoršia (nafúkla by úsporu), nie
@@ -350,7 +362,9 @@ export function calculateBusinessImpact(
   const disclaimers = [
     'Odhad je založený na kombinácii self-reported dát a sektorových benchmarkov.',
     'Reálny dopad závisí od kvality implementácie a organizačnej pripravenosti.',
-    `Hodinová cena práce: ${hourlyCost} €/hod (priemer IT/telekomunikačného sektora SR, Eurostat 2025 — nie vstup od firmy).`,
+    hourlyCostAssumed
+      ? `Hodinová cena práce: ${hourlyCost} €/hod — odvetvie nebolo uvedené, použitá je sadzba IT/telekomunikácií (Eurostat lc_lci_lev 2025, SK). Pre väčšinu odvetví je to NADHODNOTENIE.`
+      : `Hodinová cena práce: ${hourlyCost} €/hod — celková cena práce vrátane odvodov pre vaše odvetvie (Eurostat lc_lci_lev 2025, SK; podniky od 10 zamestnancov). Nie je to vstup od firmy.`,
     'Konzervatívny scenár predpokladá 40% realizáciu identifikovaného potenciálu.',
     'Odhad chýb a reworku vychádza zo sektorových benchmarkov chybovosti procesov.',
     'Krivky kumulatívnej úspory predpokladajú lineárny nábeh k plnému ročnému run-rate (3/6/9 mesiacov podľa scenára) — zjednodušený ilustratívny model, nie empiricky kalibrovaná adopčná krivka.',
@@ -602,6 +616,12 @@ export function extractROIInputs(
   // Veľkosť sa validuje proti známej množine — neznáma hodnota je to isté
   // ako chýbajúca, inak by sa dostala do benchmarkového lookupu a ticho
   // spadla na 'small'.
+  // Odvetvie sa validuje proti kľúčom sadzobníka — neznáma hodnota je to isté
+  // ako chýbajúca, inak by lookup ticho vrátil undefined a sadzba by spadla
+  // na default bez toho, aby to niekto priznal.
+  const rawSector = getMeasuredAnswerValue('ind_01') ?? getMeasuredAnswerValue('cx_01');
+  const sector = rawSector && rawSector in sectorHourlyCostEur ? rawSector : null;
+
   const KNOWN_SIZE_BANDS = ['micro', 'small', 'medium', 'large'];
   const rawSize = getMeasuredAnswerValue('ind_02') ?? getMeasuredAnswerValue('cx_02');
   const employeeCountBand = rawSize && KNOWN_SIZE_BANDS.includes(rawSize) ? rawSize : null;
@@ -614,6 +634,7 @@ export function extractROIInputs(
 
   return {
     employeeCountBand,
+    sector,
     maturityLevel,
     investmentIntent,
     manualProcesses: manualProcs.filter(p => p !== 'none'),

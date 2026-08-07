@@ -1,18 +1,35 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter, Link } from '@/i18n/navigation';
 import { useAssessment } from '@/context/AssessmentContext';
 import QuestionCard from '@/components/quiz/QuestionCard';
 import ProgressBar from '@/components/quiz/ProgressBar';
 import { getModuleName } from '@/engines/questionEngine';
+import ConflictNotice from '@/components/quiz/ConflictNotice';
+import { detectAnswerConflicts } from '@/data/answerConflicts';
 
 export default function QuizPage() {
   const router = useRouter();
   const t = useTranslations();
-  const { state, submitAnswer, completeQuiz } = useAssessment();
+  const { state, submitAnswer, editAnswer, completeQuiz } = useAssessment();
   const { assessment, currentQuestion, progress } = state;
+
+  /**
+   * Rekapitulácia rozporov sa ponúka RAZ. Keď respondent povie, že odpovede sú
+   * správne, druhýkrát sa ho už nepýtame — inak by sa z ponuky stalo nabádanie
+   * doladiť odpovede k lepšiemu číslu.
+   */
+  const [conflictsDismissed, setConflictsDismissed] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
+
+  const conflicts = useMemo(
+    () => (assessment ? detectAnswerConflicts(assessment.answers, state.questions) : []),
+    [assessment, state.questions]
+  );
+  const showConflicts =
+    assessment?.status === 'answered' && conflicts.length > 0 && !conflictsDismissed && !editing;
 
   // Presmerovanie v efekte, aby sa nemenil stav počas renderu.
   //
@@ -24,13 +41,15 @@ export default function QuizPage() {
   useEffect(() => {
     if (!assessment) return;
     if (assessment.status === 'answered') {
+      // Kým visí nezodpovedaná ponuka opraviť rozpor, výsledok sa nepočíta.
+      if (conflicts.length > 0 && !conflictsDismissed) return;
       completeQuiz();
       return; // presmeruje až ďalší beh, keď je výsledok spočítaný
     }
     if (assessment.status === 'completed' || !currentQuestion) {
       router.push('/results');
     }
-  }, [assessment, currentQuestion, completeQuiz, router]);
+  }, [assessment, currentQuestion, completeQuiz, router, conflicts.length, conflictsDismissed]);
 
   // Redirect if no active assessment
   if (!assessment) {
@@ -51,6 +70,34 @@ export default function QuizPage() {
         >
           {t('common.backHome')}
         </Link>
+      </div>
+    );
+  }
+
+  if (showConflicts) {
+    return (
+      <ConflictNotice
+        conflicts={conflicts}
+        onEdit={setEditing}
+        onContinue={() => setConflictsDismissed(true)}
+      />
+    );
+  }
+
+  // Oprava jednej odpovede — tá istá karta otázky, len sa uloží cez EDIT_ANSWER,
+  // ktorý stav prehrá od začiatku (vetvenie závisí od odpovedí).
+  const editedQuestion = editing ? state.questions.find(q => q.id === editing) : undefined;
+  if (editedQuestion) {
+    return (
+      <div className="site-container pt-16 pb-6 sm:pt-8 sm:pb-8">
+        <QuestionCard
+          key={editedQuestion.id}
+          question={editedQuestion}
+          onSubmit={(value, isUnknown) => {
+            editAnswer(editedQuestion.id, value, isUnknown);
+            setEditing(null);
+          }}
+        />
       </div>
     );
   }

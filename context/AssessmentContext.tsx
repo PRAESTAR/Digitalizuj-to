@@ -2,14 +2,9 @@
 
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
 import { useLocale } from 'next-intl';
-import type { Assessment, AssessmentType, Answer, ResultSnapshot, Question, ModelVersionInfo } from '@/types';
-import {
-  getQuizQuestions,
-  getNextQuestion,
-  evaluateBranching,
-  calculateAnswerScore,
-  getProgress,
-} from '@/engines/questionEngine';
+import type { Assessment, AssessmentType, ResultSnapshot, Question, ModelVersionInfo } from '@/types';
+import { getQuizQuestions, getNextQuestion, getProgress } from '@/engines/questionEngine';
+import { applyAnswer, replayAnswers } from '@/engines/quizState';
 import { calculateDII, calculateORS } from '@/engines/scoringEngine';
 import { calculateTDRI } from '@/engines/riskEngine';
 import { calculateAIReadiness } from '@/engines/aiReadinessEngine';
@@ -40,6 +35,7 @@ const initialState: AssessmentState = {
 type Action =
   | { type: 'START_QUIZ'; quizType: AssessmentType }
   | { type: 'SUBMIT_ANSWER'; questionId: string; value: string | string[]; isUnknown: boolean; market: Market }
+  | { type: 'EDIT_ANSWER'; questionId: string; value: string | string[]; isUnknown: boolean }
   | { type: 'COMPLETE_QUIZ'; market: Market }
   | { type: 'RESET' };
 
@@ -68,65 +64,31 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
 
     case 'SUBMIT_ANSWER': {
       if (!state.assessment) return state;
+      if (!state.questions.some(q => q.id === action.questionId)) return state;
 
-      const question = state.questions.find(q => q.id === action.questionId);
-      if (!question) return state;
-
-      const score = action.isUnknown ? 0 : calculateAnswerScore(question, action.value);
-
-      const answer: Answer = {
-        questionId: action.questionId,
-        value: action.value,
-        score,
-        isUnknown: action.isUnknown,
-        wasSkipped: false,
-        timestamp: new Date().toISOString(),
+      // Rovnaká funkcia, akú používa prehratie pri EDIT_ANSWER — aby sa stav
+      // po oprave odpovede nemohol rozísť so stavom z čerstvého behu.
+      const acc = {
+        answers: [...state.assessment.answers],
+        skipped: new Set(state.assessment.skippedQuestions),
+        riskFlags: new Set(state.assessment.riskFlags),
+        respondent: { ...state.assessment.respondent },
       };
+      applyAnswer(
+        { questionId: action.questionId, value: action.value, isUnknown: action.isUnknown },
+        state.questions,
+        acc,
+        new Date().toISOString()
+      );
 
-      const newAnswers = [...state.assessment.answers, answer];
-      const newSkipped = new Set(state.assessment.skippedQuestions);
-      const newRiskFlags = new Set(state.assessment.riskFlags);
-
-      // Vetvenie sa vyhodnocuje aj pri „Neviem" — pravidlo si samo určuje,
-      // či sa vtedy uplatní (on_unknown). Predtým sa preskakovalo celé, takže
-      // respondent, ktorý priznal nevedomosť, dostal najviac otázok.
-      const branchResult = evaluateBranching(question, answer);
-      branchResult.riskFlags.forEach(id => newRiskFlags.add(id));
-      // 'include' targets are NOT skipped (they stay in the question list)
-
-      // Preskočená otázka sa materializuje ako syntetická odpoveď s
-      // `wasSkipped`. Bez toho sa nedalo odlíšiť „Neviem" od „nikdy sme sa
-      // nespýtali" — obe vyzerali ako chýbajúca odpoveď a miešali sa do
-      // ukazovateľa spoľahlivosti kategórie.
-      for (const { target, reason } of branchResult.skip) {
-        if (newSkipped.has(target) || newAnswers.some(a => a.questionId === target)) continue;
-        newSkipped.add(target);
-        newAnswers.push({
-          questionId: target,
-          value: '',
-          score: 0,
-          isUnknown: false,
-          wasSkipped: true,
-          skipReason: `${question.id}: ${reason}`,
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      // Update respondent from meta questions
-      const respondent = { ...state.assessment.respondent };
-      if (question.maps_to_score.includes('benchmark_sector') && typeof action.value === 'string') {
-        respondent.sector = action.value;
-      }
-      if (question.maps_to_score.includes('benchmark_size') && typeof action.value === 'string') {
-        respondent.employeeCountBand = action.value as Assessment['respondent']['employeeCountBand'];
-      }
-
+      const newAnswers = acc.answers;
+      const newSkipped = acc.skipped;
       const newAssessment: Assessment = {
         ...state.assessment,
         answers: newAnswers,
         skippedQuestions: newSkipped,
-        riskFlags: newRiskFlags,
-        respondent,
+        riskFlags: acc.riskFlags,
+        respondent: acc.respondent,
       };
 
       const currentQuestion = getNextQuestion(state.questions, newAnswers, newSkipped);
@@ -151,6 +113,61 @@ function reducer(state: AssessmentState, action: Action): AssessmentState {
         assessment: newAssessment,
         currentQuestion,
         progress,
+      };
+    }
+
+    /**
+     * Oprava už zodpovedanej otázky.
+     *
+     * Odpovede boli do 7. 8. 2026 append-only: respondent sa nemal ako vrátiť,
+     * takže preklep alebo zle prečítaná otázka ostali vo výsledku natrvalo.
+     * S kontrolou rozporov (`data/answerConflicts.ts`) by to bolo obzvlášť
+     * zlé — nástroj by rozpor ukázal a neponúkol nič, čím ho odstrániť.
+     *
+     * Stav sa NEUPRAVUJE na mieste, ale PREHRÁVA od začiatku. Vetvenie je
+     * závislé od odpovedí: zmena `cx_02` z `medium` na `micro` má odskočiť
+     * `cx_E08_nis2`, zmena späť ho má vrátiť. Rovnako `riskFlags`, ktoré
+     * pôvodná odpoveď nastavila, aj `respondent` (sektor a veľkosť poháňajú
+     * veľkostné kotvy, výber benchmarku aj NIS2 vetvu). Ktorúkoľvek z tých
+     * vecí by inkrementálna úprava zabudla vrátiť späť.
+     *
+     * Prehráva sa v pôvodnom poradí odpovedí; syntetické `wasSkipped` záznamy
+     * sa zahadzujú a vznikajú nanovo z prehratého vetvenia.
+     */
+    case 'EDIT_ANSWER': {
+      if (!state.assessment) return state;
+      const edited = state.questions.find(q => q.id === action.questionId);
+      if (!edited) return state;
+      // Upraviť sa dá len otázka, na ktorú respondent reálne odpovedal.
+      const existing = state.assessment.answers.find(
+        a => a.questionId === action.questionId && !a.wasSkipped
+      );
+      if (!existing) return state;
+
+      const replayInputs = state.assessment.answers
+        .filter(a => !a.wasSkipped)
+        .map(a => a.questionId === action.questionId
+          ? { questionId: a.questionId, value: action.value, isUnknown: action.isUnknown }
+          : { questionId: a.questionId, value: a.value, isUnknown: a.isUnknown });
+
+      const replayed = replayAnswers(replayInputs, state.questions);
+      const currentQuestion = getNextQuestion(state.questions, replayed.answers, replayed.skipped);
+
+      return {
+        ...state,
+        assessment: {
+          ...state.assessment,
+          answers: replayed.answers,
+          skippedQuestions: replayed.skipped,
+          riskFlags: replayed.riskFlags,
+          respondent: replayed.respondent,
+          // Výsledok po oprave neplatí; prepočíta sa až cez COMPLETE_QUIZ.
+          status: currentQuestion ? 'in_progress' : 'answered',
+          result: undefined,
+          completedAt: undefined,
+        },
+        currentQuestion,
+        progress: getProgress(state.questions, replayed.answers, replayed.skipped),
       };
     }
 
@@ -244,6 +261,8 @@ interface AssessmentContextValue {
   state: AssessmentState;
   startQuiz: (type: AssessmentType) => void;
   submitAnswer: (questionId: string, value: string | string[], isUnknown?: boolean) => void;
+  /** Oprava už zodpovedanej otázky — stav sa prehrá od začiatku (viď EDIT_ANSWER). */
+  editAnswer: (questionId: string, value: string | string[], isUnknown?: boolean) => void;
   completeQuiz: () => void;
   reset: () => void;
 }
@@ -268,6 +287,10 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
     dispatch({ type: 'SUBMIT_ANSWER', questionId, value, isUnknown, market });
   }, [market]);
 
+  const editAnswer = useCallback((questionId: string, value: string | string[], isUnknown = false) => {
+    dispatch({ type: 'EDIT_ANSWER', questionId, value, isUnknown });
+  }, []);
+
   const completeQuiz = useCallback(() => {
     dispatch({ type: 'COMPLETE_QUIZ', market });
   }, [market]);
@@ -277,7 +300,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   return (
-    <AssessmentContext.Provider value={{ state, startQuiz, submitAnswer, completeQuiz, reset }}>
+    <AssessmentContext.Provider value={{ state, startQuiz, submitAnswer, editAnswer, completeQuiz, reset }}>
       {children}
     </AssessmentContext.Provider>
   );

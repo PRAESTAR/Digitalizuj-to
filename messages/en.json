@@ -113,6 +113,11 @@
     "fullLink": "Full methodology"
   },
   "quiz": {
+    "conflictTitle": "Before we show your result",
+    "conflictIntro": "Two of your answers contradict each other. It may be a typo — or a real reason that did not fit the question. Your call.",
+    "conflictEdit": "Edit: {question}",
+    "conflictContinue": "The answers are correct, continue",
+    "conflictNote": "This does not affect your result either way — we take your answers as given. Nothing extra is scored or stored.",
     "title": "Digital maturity assessment",
     "questionOf": "Question <b>{current}</b> of {total}",
     "continue": "Continue",

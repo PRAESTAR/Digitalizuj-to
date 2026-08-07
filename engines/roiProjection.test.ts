@@ -15,7 +15,7 @@ const SCENARIOS = ['conservative', 'mid', 'optimistic'] as const;
 
 const impactFor = (maturityLevel: number) =>
   calculateBusinessImpact([], [], {
-    employeeCountBand: 'small', maturityLevel,
+    employeeCountBand: 'small', sector: 'ict', maturityLevel,
     manualProcesses: ['invoicing', 'reporting'], noManualProcesses: false,
     invoicingVolumeBand: 'medium', adminHeadcountBand: '4_10',
     categoryScoreF: 60, investmentIntent: 8,
@@ -62,7 +62,7 @@ describe('prvý rok vs. ustálený run-rate', () => {
 
   test('nulová úspora nedá NaN ani zápornú hodnotu', () => {
     const zero = calculateBusinessImpact([], [], {
-      employeeCountBand: 'small', maturityLevel: 4,
+      employeeCountBand: 'small', sector: 'ict', maturityLevel: 4,
       manualProcesses: [], noManualProcesses: true,
       invoicingVolumeBand: null, adminHeadcountBand: null,
       categoryScoreF: 60, investmentIntent: 5,

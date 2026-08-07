@@ -21,6 +21,8 @@
  *     nesedí s vlastnou distribúciou, ORS mimo rozsahu)
  * 11. benchmarkData: sektor/veľkosť voliteľná v kvíze nemá referenčný záznam
  *     (inak sa respondentovi ticho zobrazí „benchmark nedostupný")
+ * 20. `data/answerConflicts.ts`: dvojica rozporu odkazuje na neexistujúcu
+ *     otázku alebo hodnotu možnosti (rozpor by nikdy nenastal)
  * 19. `data/riskRecommendations.ts`: rizikový faktor bez šablóny odporúčania
  *     (respondent by videl riziko bez akcie), effort ≤ 0 (delenie v priorite),
  *     prázdne texty, kategória mimo A–F
@@ -509,6 +511,43 @@ for (const q of all) {
   for (const band of Object.keys(q.size_anchors?.ceilings ?? {})) {
     if (SIZE_BANDS.includes(band) && !sizeOptionValues.has(band)) {
       errors.push(`${q.id}: kotva pre pásmo "${band}", ktoré otázka na veľkosť firmy neponúka`);
+    }
+  }
+}
+
+// --- 20: dvojice vzájomne sa vylučujúcich odpovedí ---------------------------
+// `data/answerConflicts.ts` odkazuje na ID otázok a hodnoty ich možností. Bez
+// tejto kontroly by sa zoznam pri prvej revízii banky ticho rozišiel: rozpor
+// by prestal nastávať a nikto by sa to nedozvedel, lebo „žiadny rozpor" vyzerá
+// úplne rovnako ako „kontrola prestala fungovať".
+{
+  const src = readFileSync('data/answerConflicts.ts', 'utf8');
+  const list = src.slice(src.indexOf('export const answerConflicts'), src.indexOf('/** Rozpor nájdený'));
+  // JEDEN vzor na oba tvary zápisu (jednoriadkový aj zalomený). Dva
+  // prekrývajúce sa vzory si pri prvom pokuse miešali otázku jednej strany
+  // s hodnotami druhej a kontrola hlásila rozpory, ktoré neexistovali.
+  // `[^\]]*` prechádza cez zalomenie riadku, lebo je to negovaná trieda.
+  const sides = [...list.matchAll(/questionId: '([^']+)',\s*anyOf: \[([^\]]*)\]/g)];
+
+  if (sides.length === 0) {
+    errors.push('data/answerConflicts.ts: nenašiel som ani jednu stranu rozporu — zmenil sa tvar súboru?');
+  }
+  const seen = new Set();
+  for (const [, qid, valuesRaw] of sides) {
+    const key = qid + '|' + valuesRaw;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const q = byId.get(qid);
+    if (!q) {
+      errors.push(`answerConflicts: odkazuje na otázku "${qid}", ktorá v banke neexistuje`);
+      continue;
+    }
+    const opts = new Set((q.options ?? []).map((o) => o.value));
+    for (const m of valuesRaw.matchAll(/'([^']+)'/g)) {
+      if (!opts.has(m[1])) {
+        errors.push(`answerConflicts: ${qid} nemá možnosť "${m[1]}" — rozpor by nikdy nenastal`);
+      }
     }
   }
 }

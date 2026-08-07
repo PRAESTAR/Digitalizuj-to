@@ -31,6 +31,12 @@ const TODAY = dateArg ? new Date(dateArg.slice(7)) : new Date();
 const bench = JSON.parse(readFileSync(path.join(ROOT, 'data/benchmarkData.json'), 'utf8'));
 const scoringSrc = readFileSync(path.join(ROOT, 'data/scoringConfig.ts'), 'utf8');
 const hourly = (scoringSrc.match(/defaultHourlyCostEur = ([\d.]+)/) || [])[1];
+// Počet sektorových sadzieb — aby výpis hovoril, koľko hodnôt treba obnoviť.
+// Jedna hodnota v tabuľke ôsmich je horšia než žiadna: vyzerá aktuálne.
+const sectorRates = (() => {
+  const block = scoringSrc.match(/sectorHourlyCostEur[^=]*=\s*\{([\s\S]*?)^\};/m);
+  return block ? (block[1].match(/^\s+\w+:\s*[\d.]+,/gm) || []).length : 0;
+})();
 
 /**
  * Zdroje s ročným cyklom. `dueMonth` je mesiac publikácie (1–12),
@@ -55,13 +61,15 @@ const SOURCES = [
     name: 'Eurostat lc_lci_lev / ŠÚ SR — hodinová cena práce',
     dueMonth: 3,
     graceMonths: 2,
-    currentLabel: `${hourly} €/h`,
+    currentLabel: `${hourly} €/h (záloha) + ${sectorRates} sektorových sadzieb`,
     lastUpdated: bench.lastUpdated,
     todo: [
-      'overiť mzdový vývoj NACE J za predchádzajúci rok',
-      'prepísať defaultHourlyCostEur v data/scoringConfig.ts vrátane komentára so zdrojom',
+      'stiahnuť lc_lci_lev pre SK, rok N, lcstruct=D1_D4_MD5 — CELÉ členenie NACE, nie jednu hodnotu',
+      'prepísať sectorHourlyCostEur v data/scoringConfig.ts (8 odvetví: C, G, M, F, H, I, J, B-S_X_O)',
+      'prepísať aj defaultHourlyCostEur — je to záloha pri neuvedenom odvetví (NACE J)',
       'npm run config:sync',
-      'aktualizovať ROI_MODEL §7',
+      'aktualizovať tabuľku v ROI_MODEL §7.1 vrátane zmeraných dopadov',
+      'npx vitest run engines/sectorRate.test.ts — stráži, že sadzobník sedí s kvízom',
       'zapísať do MODEL_VERSIONS.md (zmena ceny práce = prerušená, všetky € sa menia)',
     ],
   },

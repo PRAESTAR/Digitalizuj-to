@@ -113,6 +113,11 @@
     "fullLink": "Celá metodika"
   },
   "quiz": {
+    "conflictTitle": "Než vám ukážeme výsledok",
+    "conflictIntro": "Všimli sme si dve odpovede, ktoré si navzájom odporujú. Môže to byť preklep — ale aj vecný dôvod, ktorý sa do otázky nezmestil. Rozhodnite sa sami.",
+    "conflictEdit": "Upraviť: {question}",
+    "conflictContinue": "Odpovede sú správne, pokračovať",
+    "conflictNote": "Na výsledok to nemá vplyv v žiadnom prípade — odpovede berieme tak, ako ste ich dali. Nič sa nehodnotí ani neukladá navyše.",
     "title": "Diagnostika digitálnej zrelosti",
     "questionOf": "Otázka <b>{current}</b> z {total}",
     "continue": "Pokračovať",

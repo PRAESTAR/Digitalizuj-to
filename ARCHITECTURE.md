@@ -1,6 +1,6 @@
 # digitalizuj.to — Technical Architecture
 
-> **Platí pre:** otázková banka `1.8` · scoring config `1.5` · benchmark dáta `2025-DII-v3` · overené 2026-08-07
+> **Platí pre:** otázková banka `1.8` · scoring config `1.6` · benchmark dáta `2025-DII-v3` · overené 2026-08-07
 >
 > Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
 > Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),

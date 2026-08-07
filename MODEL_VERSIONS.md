@@ -1,6 +1,6 @@
 # digitalizuj.to — história verzií modelu
 
-> **Platí pre:** otázková banka `1.8` · scoring config `1.5` · benchmark dáta `2025-DII-v3` · overené 2026-08-07
+> **Platí pre:** otázková banka `1.8` · scoring config `1.6` · benchmark dáta `2025-DII-v3` · overené 2026-08-07
 >
 > Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16).
 
@@ -9,7 +9,7 @@ Model má **tri nezávisle verzované zdroje** a každý má vlastný životný 
 | Zdroj | Kde | Verzia dnes | Čo mení |
 |---|---|---|---|
 | Otázková banka | `data/questionBank.json` | `1.8` | znenie, počet a váhy otázok |
-| Scoring config | `data/scoringConfig.ts` | `1.5` | váhy kategórií, prahy, rizikové faktory, ROI parametre |
+| Scoring config | `data/scoringConfig.ts` | `1.6` | váhy kategórií, prahy, rizikové faktory, ROI parametre |
 | Benchmark dáta | `data/benchmarkData.json` | `2025-DII-v3` | referenčné distribúcie Eurostatu |
 
 `CHANGELOG.md` popisuje **funkcie** — čo pribudlo pre používateľa. Tento
@@ -29,7 +29,7 @@ potrebuje človek, ktorý neskôr pozerá na dáta, nie ten, kto číta release 
   a po zmene je metodicky neplatné.
 
 Verzia modelu je pri každom uloženom výsledku v stĺpci `model_version` ako
-`{scoring}/qb{banka}` — dnes teda `1.5/qb1.8`. Dá sa podľa nej filtrovať
+`{scoring}/qb{banka}` — dnes teda `1.6/qb1.8`. Dá sa podľa nej filtrovať
 v SQL bez rozparsovania `result_json`.
 
 ---
@@ -112,6 +112,45 @@ podhodnotené oproti novým.
 ---
 
 ## Scoring config
+
+### 1.6 — 7. 8. 2026 · **Porovnateľnosť: prerušená pre všetky eurové čísla**
+
+Hodinová cena práce je odteraz **podľa odvetvia**, nie jednotná.
+
+Do tejto verzie sa na všetky odvetvia používalo 30,8 €/h z NACE J — teda
+z najlepšie plateného odvetvia v datasete. Zdôvodnenie znelo, že
+automatizované procesy zastrešuje IT tím. To neobstálo: ušetrený čas vzniká
+tam, kde sa proces vykonáva, nie v IT.
+
+| Odvetvie | NACE | Sadzba | Zmena odhadu úspory |
+|---|---|---|---|
+| Ubytovanie / Gastro | I | 13,0 €/h | **−58 %** |
+| Doprava / Logistika | H | 17,2 €/h | −44 % |
+| Stavebníctvo | F | 17,8 €/h | −42 % |
+| Veľkoobchod / Maloobchod | G | 17,9 €/h | −42 % |
+| Výroba / Priemysel | C | 19,3 €/h | −37 % |
+| Iné | B-S_X_O | 19,8 €/h | −36 % |
+| Profesionálne služby | M | 24,4 €/h | −21 % |
+| IT / Telekomunikácie | J | 30,8 €/h | 0 % |
+
+Zdroj: Eurostat `lc_lci_lev`, vintage 2026-04-23, rok 2025, SK,
+`lcstruct = D1_D4_MD5` (celková cena práce vrátane odvodov).
+
+**Čo to znamená:**
+
+- **Všetky eurové čísla** uložené pred 7. 8. 2026 sú pre sedem z ôsmich
+  odvetví **nadhodnotené** o 21 až 58 %. Priame porovnanie so staršími
+  výsledkami je metodicky neplatné — a v tomto prípade nejde o posun, ale
+  o opravu chyby: staršie čísla boli jednoducho vyššie, než mali byť.
+- **Ušetrené hodiny sa nemenia.** Mení sa len ich ocenenie, takže časové
+  úspory sú naprieč verziou porovnateľné.
+- **Skóre (DII, ORS, TDRI) sa nemenia vôbec.**
+- Neuvedené odvetvie spadne na pôvodných 30,8 €/h a karta to hovorí ako
+  nadhodnotenie, namiesto tichého dosadenia mediánu.
+
+Obmedzenie zdroja: `lc_lci_lev` pokrýva podniky **od 10 zamestnancov**,
+rovnako ako DII distribúcie — pre mikrofirmu je to odhad z populácie,
+v ktorej nie je zastúpená.
 
 ### 1.5 — 6. 8. 2026 · **Porovnateľnosť: zachovaná**
 

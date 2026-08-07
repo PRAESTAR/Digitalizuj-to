@@ -45,7 +45,7 @@ describe('extractROIInputs — manuálne procesy', () => {
 
   test('deklarované „žiadny ručný proces" nedostane úsporu z predpokladaných procesov', () => {
     const base = {
-      employeeCountBand: 'small', maturityLevel: 1,
+      employeeCountBand: 'small', sector: 'ict', maturityLevel: 1,
       invoicingVolumeBand: 'medium', adminHeadcountBand: '4_10', categoryScoreF: 60, investmentIntent: null,
     };
     const ziadny = calculateBusinessImpact([], [], {
@@ -127,7 +127,7 @@ describe('extractROIInputs — ostatné vstupy', () => {
 
   test('predpokladaná zrelosť sa prizná disclaimerom a stropom dôveryhodnosti', () => {
     const base = {
-      employeeCountBand: 'small', manualProcesses: ['invoicing'], noManualProcesses: false,
+      employeeCountBand: 'small', sector: 'ict', manualProcesses: ['invoicing'], noManualProcesses: false,
       invoicingVolumeBand: 'medium', adminHeadcountBand: '4_10', categoryScoreF: 60, investmentIntent: null,
     };
     const zistena = calculateBusinessImpact([], [], { ...base, maturityLevel: 2 });
@@ -166,7 +166,7 @@ describe('extractROIInputs — ostatné vstupy', () => {
 
 describe('calculateBusinessImpact — voľba procesov', () => {
   const baseInputs = {
-    employeeCountBand: 'small',
+    employeeCountBand: 'small', sector: 'ict',
     maturityLevel: 1,
     invoicingVolumeBand: 'medium',
     adminHeadcountBand: '4_10',
@@ -231,7 +231,7 @@ describe('calculateBusinessImpact — voľba procesov', () => {
 
 describe('calculateBusinessImpact — self-reported vstupy menia výsledok', () => {
   const base = {
-    employeeCountBand: 'medium',
+    employeeCountBand: 'medium', sector: 'ict',
     maturityLevel: 1,
     manualProcesses: ['invoicing'], noManualProcesses: false,
     adminHeadcountBand: null,
@@ -278,7 +278,7 @@ describe('calculateBusinessImpact — self-reported vstupy menia výsledok', () 
 
 describe('calculateBusinessImpact — chýbajúca veľkosť firmy', () => {
   const base = {
-    employeeCountBand: null,
+    employeeCountBand: null, sector: 'ict',
     maturityLevel: 1,
     manualProcesses: [], noManualProcesses: false,
     invoicingVolumeBand: null,
@@ -299,7 +299,7 @@ describe('calculateBusinessImpact — chýbajúca veľkosť firmy', () => {
 
 describe('calculateBusinessImpact — politika scenárov podľa governance', () => {
   const base = {
-    employeeCountBand: 'small',
+    employeeCountBand: 'small', sector: 'ict',
     maturityLevel: 1,
     manualProcesses: [], noManualProcesses: false,
     invoicingVolumeBand: null,
@@ -335,7 +335,7 @@ describe('calculateBusinessImpact — zámer investovať je druhá brána', () =
   // ako zástupný ukazovateľ oboch, takže firma s výbornou organizáciou
   // a nulovou chuťou investovať dostávala optimistický scenár.
   const base = {
-    employeeCountBand: 'small', maturityLevel: 1,
+    employeeCountBand: 'small', sector: 'ict', maturityLevel: 1,
     manualProcesses: [], noManualProcesses: false,
     invoicingVolumeBand: null, adminHeadcountBand: null,
   };

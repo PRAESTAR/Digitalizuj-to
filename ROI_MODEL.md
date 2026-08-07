@@ -1,6 +1,6 @@
 # digitalizuj.to — ROI & Business Impact Model
 
-> **Platí pre:** otázková banka `1.8` · scoring config `1.5` · overené 2026-08-07
+> **Platí pre:** otázková banka `1.8` · scoring config `1.6` · overené 2026-08-07
 >
 > Dokument nemá vlastné číslo verzie — má ho model, ktorý opisuje.
 > Zhodu pečiatky so zdrojmi kontroluje build (`validate-model.mjs` #16),
@@ -45,7 +45,7 @@ Odhaduje potenciálny business dopad digitalizácie na základe:
 | `employee_count` | Otázka (`ind_02`/`cx_02`) | Žiadny — pri chýbajúcom údaji sa počíta s pásmom 10–49, ale priznane (viď 2.3) |
 | `invoicing_volume` | Otázka `cx_ROI03` | Benchmark frekvencia podľa veľkosti firmy |
 | `admin_headcount` | Otázka `cx_ROI02` | Bez stropu kapacity (viď 2.3) |
-| `hourly_cost` | **Vždy fixný — priemer SR** | Nepýtame sa (citlivý údaj); pozri 2.2 |
+| `hourly_cost` | **Podľa odvetvia (`ind_01`/`cx_01`)** | Nepýtame sa (citlivý údaj); tabuľka v §7.1 |
 | `process_frequency` | Per-proces otázka | Benchmark podľa veľkosti a sektora |
 | `process_time_per_unit` | Per-proces otázka | Benchmark |
 | `manual_share` | Per-proces otázka | Odvodzuje sa z maturity levelu |
@@ -57,13 +57,14 @@ Odhaduje potenciálny business dopad digitalizácie na základe:
 
 > **Zmena (verzia 1.1):** Otázka na hodinovú cenu práce (`ind_15` / `cx_ROI01`) bola z dotazníka **odstránená** — je to citlivý údaj a väčšina respondentov ho odhaduje nepresne. ROI model teraz vždy počíta s priemernou hodinovou cenou práce (viď nižšie), nie so self-reported hodnotou. Toto zjednodušenie znižuje presnosť pre firmy s výrazne podpriemernými/nadpriemernými mzdami, ale zvyšuje completion rate a odstraňuje nekonzistenciu medzi definíciami "hrubá" vs. "plná" cena práce, ktorá predtým existovala medzi oboma kvízmi.
 >
-> **Zmena (verzia 1.0.0):** Benchmark prepnutý z priemeru **celého hospodárstva SR** na priemer **IT/telekomunikačného sektora SR** (NACE J) — procesy, ktoré platforma pomáha automatizovať, typicky rieši alebo zastrešuje IT/technický tím, a nástroj cielime na rozhodovanie o digitalizačných investíciách. Presný zdroj a kontrolný súčet v §7.
+> **Zmena (7. 8. 2026):** Sadzba je odteraz **podľa odvetvia respondenta**, nie jednotná. Predchádzajúce zdôvodnenie (že procesy zastrešuje IT tím, takže platí sadzba NACE J pre všetkých) neobstálo: ušetrený čas vzniká tam, kde sa proces vykonáva, nie v IT. Jednotná sadzba nadhodnocovala úsporu gastru 2,4-násobne. Tabuľka, zdroje a zmerané dopady v §7.1.
 
 ```json
 {
   "hourly_cost_eur": {
-    "default": 30.8,
-    "note": "Plná hodinová cena práce vrátane odvodov — vždy priemer IT/telekomunikačného sektora SR (NACE J), nepýta sa ako otázka. Zdroj: Eurostat lc_lci_lev 2025, SK, NACE J Informácie a komunikácia (30,8 €/h celková cena práce; z toho mzdy 22,4 €/h). Revízia: ročne (aprílová publikácia Eurostatu)."
+    "by_sector": { "accommodation_food": 13.0, "transport_logistics": 17.2, "construction": 17.8, "wholesale_retail": 17.9, "manufacturing": 19.3, "other": 19.8, "professional_services": 24.4, "ict": 30.8 },
+    "fallback_unknown_sector": 30.8,
+    "note": "Plná hodinová cena práce vrátane odvodov, podľa odvetvia respondenta — nepýta sa ako otázka. Zdroj: Eurostat lc_lci_lev, vintage 2026-04-23, rok 2025, SK, lcstruct D1_D4_MD5. Pokrýva podniky od 10 zamestnancov. Revízia: ročne (aprílová publikácia); obnoviť treba CELÚ tabuľku."
   },
   "process_benchmarks": {
     "invoicing": {
@@ -372,7 +373,8 @@ nižšie odmieta.)*
 
 | Vstup | Hodnota | Zdroj | Rok |
 |-------|---------|-------|-----|
-| **Hodinová cena práce IT sektora SR (NACE J) — použité v ROI modeli** | **30,8 €/h** | Eurostat `lc_lci_lev` (SK, NACE J, publ. 4/2026) | 2025 |
+| **Hodinová cena práce podľa odvetvia — použité v ROI modeli** | **13,0–30,8 €/h** (tabuľka v §7.1) | Eurostat `lc_lci_lev` (SK, NACE sekcie, publ. 4/2026) | 2025 |
+| — záloha pri neuvedenom odvetví (NACE J) | 30,8 €/h | Eurostat `lc_lci_lev` | 2025 |
 | — z toho mzdy a platy (D11) | 22,4 €/h | Eurostat `lc_lci_lev` | 2025 |
 | — nemzdové náklady (odvody, benefity, školenia) | 8,4 €/h (27,3 %) | Eurostat `lc_lci_lev` | 2025 |
 | Priemerná hrubá mesačná mzda NACE J (celé odvetvie) | 2 664 €/mes. (Q1 2026) | ŠÚ SR DATAcube, tabuľka pr0205qs | 2026 |
@@ -381,9 +383,48 @@ nižšie odmieta.)*
 | — priemer EÚ (kontext) | 34,9 €/h | Eurostat `lc_lci_lev` | 2025 |
 | Odvodový multiplikátor zamestnávateľa (kontext, nepoužíva sa — Eurostat cena práce ho už zahŕňa) | 1,362 (36,2 %) | zákony č. 461/2003 a 580/2004 Z. z. | 2025–2026 |
 
-**Prečo IT sektor namiesto celého hospodárstva:** procesy, ktoré platforma pomáha automatizovať (fakturácia, integrácie, reporting, bezpečnosť), typicky navrhuje, zavádza alebo zastrešuje IT/technický tím firmy — a nástroj cielime na rozhodovanie o digitalizačných investíciách, kde je relevantná cena IT kapacity, nie priemerná mzda naprieč celou firmou.
+### 7.1 Sadzba podľa odvetvia (od 7. 8. 2026)
 
-**Politika aktualizácie:** ročne po aprílovej publikácii Eurostat `lc_lci_lev`. Eurostat hodinová cena práce už zahŕňa odvody zamestnávateľa — nepoužívať dvojité násobenie multiplikátorom.
+Do 7. 8. 2026 sa **na všetky odvetvia** používala jedna sadzba 30,8 €/h
+odvodená z NACE J. Zdôvodnenie znelo, že automatizované procesy zastrešuje
+IT tím, takže je relevantná cena IT kapacity. **To zdôvodnenie neobstálo.**
+Ušetrený čas nevzniká v IT — vzniká tam, kde sa proces vykonáva: faktúru
+prepisuje účtovníčka, dovolenku schvaľuje majiteľ, dodací list vypisuje
+skladník. Oceňovať ich čas sadzbou vývojára znamená nadhodnotiť úsporu.
+
+Rozsah tej chyby nie je kozmetický. Model odteraz používa sadzbu odvetvia,
+ktoré respondent uviedol:
+
+| Odvetvie v kvíze | NACE | Sadzba | Zmena odhadu úspory |
+|---|---|---|---|
+| Ubytovanie / Gastro | I | 13,0 €/h | **−58 %** |
+| Doprava / Logistika | H | 17,2 €/h | −44 % |
+| Stavebníctvo | F | 17,8 €/h | −42 % |
+| Veľkoobchod / Maloobchod | G | 17,9 €/h | −42 % |
+| Výroba / Priemysel | C | 19,3 €/h | −37 % |
+| Iné | B-S_X_O | 19,8 €/h | −36 % |
+| Profesionálne služby | M | 24,4 €/h | −21 % |
+| IT / Telekomunikácie | J | 30,8 €/h | 0 % |
+
+Všetky hodnoty: Eurostat `lc_lci_lev`, vintage 2026-04-23, rok 2025, geo SK,
+`lcstruct = D1_D4_MD5` (celková cena práce vrátane odvodov zamestnávateľa).
+Percentá sú zmerané na modelovej firme (malá, zrelosť 1, dva ručné procesy).
+
+**Ušetrené hodiny sa sadzbou nemenia** — mení sa len ich ocenenie. Rozklad
+v audit traile uvádza sadzbu, s ktorou sa naozaj rátalo.
+
+**Neuvedené odvetvie** spadne na pôvodných 30,8 €/h a karta to hovorí:
+pre väčšinu odvetví je to nadhodnotenie. Nedosádza sa ticho medián.
+
+**Obmedzenie:** `lc_lci_lev` pokrýva podniky **od 10 zamestnancov**, rovnako
+ako DII distribúcie. Pre mikrofirmu je to teda odhad z populácie, v ktorej
+nie je zastúpená.
+
+**„Iné" dostáva najširší podnikateľský agregát** (B-S bez verejnej správy),
+nie priemer ôsmich vybraných odvetví — ten by bol vážený tým, ktoré odvetvia
+sa náhodou dostali do kvízu, nie ich zastúpením v ekonomike.
+
+**Politika aktualizácie:** ročne po aprílovej publikácii Eurostat `lc_lci_lev` — obnoviť treba **celú tabuľku §7.1**, nie len jednu hodnotu (`npm run data:freshness` na to upozorní). Eurostat hodinová cena práce už zahŕňa odvody zamestnávateľa — nepoužívať dvojité násobenie multiplikátorom.
 
 ---
 

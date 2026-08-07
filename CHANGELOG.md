@@ -8,6 +8,37 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Šesť chýb opravených; ROI prestalo prisľubovať viac, než vychádza (8. 8. 2026)
+
+- **Hodinová sadzba je odteraz podľa odvetvia.** Na všetky odvetvia sa dovtedy
+  používalo 30,8 €/h z NACE J — z najlepšie plateného odvetvia v datasete.
+  Zdôvodnenie znelo, že automatizované procesy zastrešuje IT tím; to neobstálo,
+  lebo ušetrený čas vzniká tam, kde sa proces vykonáva. **Gastro má 13,0 €/h,
+  takže odhad úspory bol nadhodnotený 2,4-násobne** a po oprave klesol o 58 %.
+  Sedem z ôsmich odvetví kleslo o 21–58 %. Ušetrené hodiny sa nemenia — mení sa
+  ich ocenenie. Zdroj: Eurostat `lc_lci_lev` 2025, SK, celková cena práce
+  vrátane odvodov.
+- **Celá trieda odporúčaní sa počítala a nikdy nezobrazila.** Stredné riziká
+  (`riskMitigations`) mali podľa enginu stáť v roadmape pred strategickými
+  iniciatívami — komponent ich ignoroval a renderoval len iniciatívy. Roadmapa
+  sa odteraz vykresľuje tak, ako ju engine zostavil.
+- **Odpoveď sa dá opraviť.** Doteraz boli odpovede append-only: preklep alebo
+  zle prečítaná otázka ostali vo výsledku natrvalo. Pribudol medzistav medzi
+  poslednou odpoveďou a výsledkom, v ktorom sa dá vrátiť späť. Stav sa po
+  oprave **prehrá od začiatku**, takže vetvenie, rizikové príznaky aj profil
+  firmy sa vrátia presne tam, kde by boli pri čerstvom vyplnení.
+- **Rozpory v odpovediach sa ponúknu na opravu.** Keď firma uvedie, že
+  fakturáciu má plne automatizovanú, a zároveň ju označí za prevažne ručný
+  proces, nástroj sa raz spýta, či to tak naozaj je. Bez prahu, bez hodnotenia
+  a bez vplyvu na výsledok — odpovede berieme tak, ako ich dá.
+- **Lievik opustenia kvízu sa merať nebude.** Nástroj počas kvízu sľubuje, že
+  odpovede zostávajú v prehliadači; posielať v tom momente čokoľvek tretej
+  strane by ten sľub podkopalo — a je to práve sľub, ktorý drží ochotu
+  odpovedať pravdivo o vlastnej bezpečnosti.
+- **Dve chyby v kontrolách:** validátor nekontroloval šablóny odporúčaní
+  k rizikovým faktorom, hoci ich dokumentácia označovala za kontrolované;
+  a dokončenie kvízu obchádzalo vetvu, ktorá naň bola určená.
+
 ### Tri otvorené metodické body rozhodnuté — všetky tri zamietnutím (7. 8. 2026)
 
 Spoločný menovateľ nebol „chýbajú dáta", ale **chýba väzba** — a správnou
