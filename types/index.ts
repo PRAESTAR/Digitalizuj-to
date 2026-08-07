@@ -414,6 +414,16 @@ export interface BenchmarkComparison {
    * pri sektorových DII mediánoch chýbal, hoci odhady sú rovnako.
    */
   source?: 'eurostat' | 'expert';
+  /**
+   * Výhrada k použiteľnosti porovnania pre TÚTO firmu.
+   *
+   * Eurostat `isoc_e_dii` meria podniky od **10 zamestnancov**. Mikrofirma
+   * (1–9) tak dostávala percentil voči distribúcii, ktorá ju z definície
+   * nezahŕňa — a značka `source: 'eurostat'` to robila dôveryhodnejším než
+   * expertné odhady, hoci pre ňu platí menej. Výhrada je preto per porovnanie,
+   * nie globálny disclaimer: netýka sa všetkých rovnako.
+   */
+  caveatSk?: string;
   disclaimer?: string;
 }
 

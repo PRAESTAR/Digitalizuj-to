@@ -48,6 +48,7 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
               gap={benchmarks.diiVsSk.gap}
               label={benchmarks.diiVsSk.labelSk}
               percentile={benchmarks.diiVsSk.percentile}
+              disclaimer={benchmarks.diiVsSk.caveatSk}
             />
           )}
           <BenchmarkCard
@@ -57,6 +58,7 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
             gap={benchmarks.diiVsEu.gap}
             label={benchmarks.diiVsEu.labelSk}
             percentile={benchmarks.diiVsEu.percentile}
+            disclaimer={benchmarks.diiVsEu.caveatSk}
           />
         </div>
 
@@ -89,6 +91,7 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
               icon="🗺️"
               gap={benchmarks.orsVsCountry.gap}
               label={benchmarks.orsVsCountry.labelSk}
+              disclaimer={benchmarks.orsVsCountry.caveatSk}
             />
           )}
           <BenchmarkCard
@@ -104,6 +107,9 @@ export default function BenchmarkComparison({ benchmarks, dii }: BenchmarkCompar
               gap={benchmarks.orsVsSize.gap}
               label={benchmarks.orsVsSize.labelSk}
               disclaimer={benchmarks.orsVsSize.sizeBand === 'micro' ? t('microCaveat') : undefined}
+              /* Pozn.: výhrada k Eurostat pokrytiu chodí z enginu ako
+                 `caveatSk` — tu ostáva len text o expertnom odhade, ktorý
+                 sa týka práve veľkostného mediánu. */
             />
           )}
         </div>

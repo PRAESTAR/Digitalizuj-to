@@ -8,6 +8,20 @@ Formát vychádza z [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) a p
 
 ## [1.0.0] — 2026-08-05
 
+### Mikrofirmy sa prestali porovnávať s populáciou, kam nepatria (6. 8. 2026)
+
+- **Eurostat `isoc_e_dii` zbiera podniky od 10 zamestnancov.** Firma s 1–9
+  ľuďmi dostávala DII percentil voči rozdeleniu, v ktorom žiadna firma jej
+  veľkosti nie je — a keďže to porovnanie nesie značku „meraná distribúcia",
+  pôsobilo **dôveryhodnejšie** než expertné odhady vedľa neho, hoci pre ňu
+  platí najmenej. Porovnania voči krajine a EÚ teraz pre mikrofirmy nesú
+  výhradu priamo pod kartou.
+- **Percentil sa počíta ďalej.** Skryť ho by bolo horšie — mikrofirma by
+  prišla o jedinú orientáciu, ktorú má. Výhrada vysvetľuje, ako ho čítať.
+- **Sektorové a veľkostné porovnania výhradu nedostali.** Sú to expertné
+  odhady, ktoré pásmo mikro zámerne pokrývajú; pridať k nim tú istú vetu by
+  bol šum, nie presnosť.
+
 ### Audit trail sa dá overiť, nie len prečítať (6. 8. 2026)
 
 - **„Každé skóre je auditovateľné a spätne rozložiteľné"** stojí na homepage,

@@ -269,3 +269,42 @@ neistejšie než referencia. Profily majú odteraz dosiahnuteľné pokrytie
 (39× 10/12, 11× 8/12) a `diiScore12` prepočítané vzorcom enginu
 `round(met / measured × 12)`. Stráži to `data/peerData.test.ts`, ktorý
 pokrytie počíta priamo z banky.
+
+
+## Mikrofirmy a pokrytie Eurostatu
+
+`isoc_e_dii` zbiera podniky **od 10 zamestnancov**. Firma s 1–9 ľuďmi tak
+dostávala DII percentil voči rozdeleniu, v ktorom žiadna firma jej veľkosti
+nie je — a keďže to porovnanie nesie `source: 'eurostat'`, pôsobilo
+dôveryhodnejšie než expertné odhady vedľa neho, hoci pre ňu platí najmenej.
+
+Od 6. 8. 2026 nesie `BenchmarkComparison` pole `caveatSk`. Porovnania voči
+meranej distribúcii (`diiVsSk`, `diiVsEu`, `orsVsCountry`) ho pre pásmo
+`micro` vypĺňajú a UI ho zobrazí pod kartou.
+
+**Percentil sa napriek tomu počíta ďalej.** Skryť ho by bolo horšie:
+mikrofirma by prišla o jedinú orientáciu, ktorú má. Výhrada vysvetľuje, ako
+ho čítať — nemá ho nahradiť.
+
+Výhrada sa **nepripája** k sektorovým a veľkostným porovnaniam. Tie sú
+expertné odhady, ktoré pásmo `micro` zámerne pokrývajú (`sizeBenchmarks.micro`
+má vlastný medián s poznámkou „Eurostat nepokrýva, expertný odhad"); pridať
+k nim tú istú vetu by bol šum, nie presnosť.
+
+### Otvorené: kotvy otázok podľa veľkosti
+
+Druhá polovica problému zostáva. Niektoré otázky majú najvyššie možnosti
+štrukturálne nedosiahnuteľné pre mikrofirmu:
+
+| Otázka | Vrchná možnosť | Prečo je pre 1–9 ľudí mimo dosahu |
+|---|---|---|
+| `cx_DII04` | „Dedikovaný IT tím s viacerými rolami" | tím rolí v trojčlennej firme neexistuje |
+| `cx_F01` / `ind_13` | „Zodpovedná osoba/tím s rozpočtom" | pri troch ľuďoch je to majiteľ = možnosť za 25 b |
+
+`cx_DII04` navyše sýti **DII**, takže mikrofirme znižuje aj benchmarkové
+skóre. Naopak `ind_14`/`cx_F06` (závislosť na jednom človeku) nízke skóre
+dostávajú **správne** — riziko je reálne bez ohľadu na veľkosť, nie artefakt.
+
+Riešenie by znamenalo skórovacie kotvy podmienené veľkosťou, teda zmenu
+modelu s prerušením porovnateľnosti a bez dát na kalibráciu (žiadne reálne
+hodnotenia zatiaľ nie sú). Vedené ako otvorený bod v `IMPROVEMENT_CHECKLIST.md`.

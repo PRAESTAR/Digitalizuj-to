@@ -2,6 +2,19 @@ import type { BenchmarkResults, BenchmarkComparison, DIIScore, ORSScore } from '
 import { benchmarkData, type DiiDistribution } from '@/data/benchmarkData';
 import { MARKET_LABEL, type Market } from '@/lib/market';
 
+/**
+ * Veľkostné pásma, ktoré Eurostat `isoc_e_dii` NEPOKRÝVA.
+ *
+ * Prieskum zbiera podniky od 10 zamestnancov. Mikrofirma teda dostávala
+ * percentil voči distribúcii, v ktorej žiadna firma jej veľkosti nie je —
+ * a keďže porovnanie nesie značku `eurostat`, pôsobilo dôveryhodnejšie než
+ * expertné odhady, hoci pre ňu platí najmenej.
+ */
+const EUROSTAT_UNCOVERED_SIZES = new Set(['micro']);
+
+const MICRO_CAVEAT =
+  'Eurostat isoc_e_dii zbiera podniky od 10 zamestnancov, takže firmy vašej veľkosti v tejto distribúcii nie sú — percentil berte ako orientáciu voči väčším podnikom, nie ako pozíciu medzi vám podobnými.';
+
 export function calculateBenchmarks(
   dii: DIIScore,
   ors: ORSScore,
@@ -16,10 +29,15 @@ export function calculateBenchmarks(
    */
   market: Market = 'SK'
 ): BenchmarkResults {
+  // Výhrada sa pripája len k porovnaniam voči MERANEJ Eurostat distribúcii.
+  // Veľkostné a sektorové mediány sú expertné odhady, ktoré mikrofirmy
+  // zámerne pokrývajú — tam výhrada neplatí a pridávať ju by bol šum.
+  const uncovered = EUROSTAT_UNCOVERED_SIZES.has(sizeBand);
+
   return {
     homeMarket: market,
-    diiVsSk: calculateDIIBenchmark(dii, market),
-    diiVsEu: calculateDIIBenchmark(dii, 'EU27'),
+    diiVsSk: calculateDIIBenchmark(dii, market, uncovered),
+    diiVsEu: calculateDIIBenchmark(dii, 'EU27', uncovered),
     diiVsSector: {
       ...calculateSectorBenchmark(dii, sector),
       sector,
@@ -28,7 +46,7 @@ export function calculateBenchmarks(
       ...calculateDIISizeBenchmark(dii, sizeBand),
       sizeBand,
     },
-    orsVsCountry: calculateORSCountryBenchmark(ors, market),
+    orsVsCountry: calculateORSCountryBenchmark(ors, market, uncovered),
     orsVsSector: calculateORSSectorBenchmark(ors, sector),
     orsVsSize: {
       ...calculateORSSizeBenchmark(ors, sizeBand),
@@ -83,7 +101,11 @@ export function diiPercentile(score12: number, dist: DiiDistribution): number {
 const DII_UNMEASURED = 'Nedostupné — DII nemerané';
 const ORS_UNMEASURED = 'Nedostupné — ORS nemerané';
 
-function calculateDIIBenchmark(dii: DIIScore, country: Market): BenchmarkComparison {
+function calculateDIIBenchmark(
+  dii: DIIScore,
+  country: Market,
+  sizeUncoveredByEurostat = false
+): BenchmarkComparison {
   const countryData = benchmarkData.countryBenchmarks[country];
   if (!countryData) {
     // gap null + žiadny percentil — 0 by sa tvárilo ako reálna (najhoršia) hodnota
@@ -100,6 +122,7 @@ function calculateDIIBenchmark(dii: DIIScore, country: Market): BenchmarkCompari
     gap,
     labelSk: getGapLabel(gap, MARKET_LABEL[country], 'dii12'),
     source: 'eurostat',
+    ...(sizeUncoveredByEurostat ? { caveatSk: MICRO_CAVEAT } : {}),
   };
 }
 
@@ -139,7 +162,11 @@ function calculateDIISizeBenchmark(dii: DIIScore, sizeBand: string): BenchmarkCo
   };
 }
 
-function calculateORSCountryBenchmark(ors: ORSScore, country: Market): BenchmarkComparison {
+function calculateORSCountryBenchmark(
+  ors: ORSScore,
+  country: Market,
+  sizeUncoveredByEurostat = false
+): BenchmarkComparison {
   const countryData = benchmarkData.countryBenchmarks[country];
   if (!countryData) {
     return { gap: null, labelSk: 'Nedostupné', source: 'expert' };
@@ -154,6 +181,9 @@ function calculateORSCountryBenchmark(ors: ORSScore, country: Market): Benchmark
     gap,
     labelSk: getGapLabel(gap, MARKET_LABEL[country]),
     source: 'expert',
+    // Medián ORS je expertný odhad, ale je odvodený od tej istej populácie
+    // podnikov 10+ ako Eurostat distribúcia — výhrada preto platí aj tu.
+    ...(sizeUncoveredByEurostat ? { caveatSk: MICRO_CAVEAT } : {}),
   };
 }
 
